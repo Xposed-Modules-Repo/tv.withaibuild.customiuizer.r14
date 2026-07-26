@@ -5,6 +5,8 @@
 本页面用于 LSPosed 模块仓库展示和下载。源码、完整 changelog、构建说明与工程文档位于
 [个人维护仓库](https://github.com/tomthenpc/customiuizer-a14)。
 
+当前版本变化见本仓库的 [CHANGELOG](CHANGELOG.md)，完整工程记录以个人维护仓库为准。
+
 ## 适用环境
 
 - HyperOS 1 / Android 14（SDK 34）
@@ -51,13 +53,18 @@ CustoMIUIzer 派生模块同时启用。
 
 ## 安装
 
-1. 安装本仓库 Release 中的 APK。
+1. 从 [r14.12.0 Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/174-r14.12.0)
+   下载并安装 APK。
 2. 在 LSPosed/Vector 中启用模块并确认推荐作用域。
 3. 打开模块设置一次。
 4. 完整重启设备。
 
 API 101 管理器可能因为模块声明 `targetApiVersion=102` 显示面向较新 API 的提示。该提示
 不等于加载失败，应以目标进程日志和实际功能为准。
+
+APK SHA-256：
+
+`7E488C4ED011F68321A8A2E5911B61D1C35659C98CA0116500855F79F05ED80E`
 
 ## 反馈
 
