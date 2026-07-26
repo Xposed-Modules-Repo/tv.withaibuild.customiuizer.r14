@@ -1,1 +1,1 @@
-面向 HyperOS 1 / Android 14 的系统定制 Xposed 模块，支持状态栏、锁屏、控制中心、桌面等深度定制。
+HyperOS 1 / Android 14 系统定制模块，兼容 libxposed API 101/102，覆盖状态栏、控制中心、锁屏与桌面。

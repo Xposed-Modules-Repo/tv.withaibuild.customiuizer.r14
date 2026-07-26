@@ -1,6 +1,14 @@
-﻿[
+[
   "android",
-  "com.android.systemui",
+  "com.android.incallui",
   "com.android.settings",
-  "com.miui.home"
+  "com.android.systemui",
+  "com.miui.miwallpaper",
+  "com.miui.packageinstaller",
+  "com.miui.powerkeeper",
+  "com.miui.securitycenter",
+  "com.miui.home",
+  "com.miui.screenshot",
+  "com.miui.gallery",
+  "com.miui.guardprovider"
 ]
