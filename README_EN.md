@@ -35,17 +35,15 @@ module together with upstream or another CustoMIUIzer-derived module.
 
 Feature availability depends on the device ROM and system-app versions.
 
-## r14.12.0 Highlights
+## r14.13.4 Highlights
 
-- One APK supports libxposed API 101 and 102: API 101 is the minimum runtime baseline, while API
-  102 is the compile target.
-- Core hooks, settings UI, and utilities completed a conservative Kotlin migration.
-- SystemUI recreation no longer causes duplicate hooks, receivers, observers, coroutines, or
-  animation tasks in the reviewed paths.
-- Frequent drawing and hook callbacks perform fewer repeated reflection operations, resource
-  lookups, formatting operations, and temporary allocations.
-- Disabled features avoid registering unnecessary hooks and long-lived listeners where possible.
-- The Release build passed R8, resource shrinking, zipalign, and APK v2 signing checks.
+- Improved in-app locale handling, About information, day/night themes, and settings recreation.
+- Fixed stale status-bar temperature/current text Views being retained by SystemUI.
+- Reduced boxing, reflection, and unnecessary parsing on resource-hook lookup misses.
+- Fixed Kotlin migration regressions in thermal-zone scanning and pair-string Regex parsing.
+- Improved RemotePreferences initial loading and listener registration state.
+- The same APK continues to support libxposed API 101/102 and passes R8, resource shrinking,
+  zipalign, and APK v2 signing checks.
 
 ## Differences in This Maintenance Build
 
@@ -69,10 +67,13 @@ and `system_server`.
 Actual gains depend on enabled features, ROM, and usage. No fixed battery, CPU, or memory
 improvement percentage is claimed without a same-device controlled comparison.
 
+When upgrading from `r14.12.0` or earlier public builds, back up settings first; the signing
+key has been changed, so you must uninstall the old version before installing this one.
+
 ## Installation
 
 1. Download and install the APK from the
-   [r14.12.0 Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/174-r14.12.0).
+   [r14.13.4 Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/182-r14.13.4).
 2. Enable the module in LSPosed/Vector and confirm the recommended scope.
 3. Open module settings once.
 4. Fully reboot the device.
@@ -82,7 +83,11 @@ not mean loading failed; use target-process logs and actual behavior as the sour
 
 APK SHA-256:
 
-`7E488C4ED011F68321A8A2E5911B61D1C35659C98CA0116500855F79F05ED80E`
+`E8A2BD362C0540972441B8D1DE0BCACE8FE85FEF71F31406F3B4DA1A4027D26C`
+
+Signing certificate SHA-256:
+
+`C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
 
 ## Feedback
 

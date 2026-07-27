@@ -33,13 +33,16 @@ CustoMIUIzer 派生模块同时启用。
 
 功能可用性取决于设备 ROM 和系统应用版本。
 
-## r14.12.0 更新重点
+## r14.13.4 更新重点
 
-- 同一 APK 支持 libxposed API 101/102：API 101 为最低运行基线，API 102 为编译目标。
-- 核心 Hook、设置 UI 和工具代码完成保守 Kotlin 迁移。
-- SystemUI 重建时防止重复 Hook、Receiver、Observer、Coroutine 和动画任务。
-- 高频绘制与 Hook 回调减少重复反射、资源查询、格式化和临时对象。
-- 功能关闭时尽量不注册对应 Hook 或长期监听。
+- 完善应用内语言、About 页面、日间/夜间主题和设置页面重建；
+- 修复搜索返回状态及 Root 重启功能的异步执行和错误反馈；
+- 修复 SystemUI 状态栏文本图标长期持有失效 View 的问题；
+- 优化资源 Hook 高频未命中路径，减少装箱、反射和无效解析；
+- 修复 Kotlin 迁移后的 CPU thermal zone 扫描控制流；
+- 移除 pair 配置解析中的重复 Regex 编译；
+- 改进 RemotePreferences 空快照和监听器注册状态；
+- 同一 APK 保持 libxposed API 101/102 兼容；
 - Release 通过 R8、资源压缩、zipalign 和 APK v2 签名检查。
 
 ## 本维护版的区别
@@ -56,9 +59,12 @@ CustoMIUIzer 派生模块同时启用。
 理论上可降低 SystemUI、Launcher 与 `system_server` 的额外 CPU、内存和唤醒开销。
 收益取决于启用功能、ROM 和使用方式；未提供未经同设备对照测量的固定百分比。
 
+从 `r14.12.0` 或更早公开版本升级时，请先完成设置备份；由于签名证书已经更换，
+必须卸载旧版后再安装。
+
 ## 安装
 
-1. 从 [r14.12.0 Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/174-r14.12.0)
+1. 从 [r14.13.4 Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/182-r14.13.4)
    下载并安装 APK。
 2. 在 LSPosed/Vector 中启用模块并确认推荐作用域。
 3. 打开模块设置一次。
@@ -69,7 +75,11 @@ API 101 管理器可能因为模块声明 `targetApiVersion=102` 显示面向较
 
 APK SHA-256：
 
-`7E488C4ED011F68321A8A2E5911B61D1C35659C98CA0116500855F79F05ED80E`
+`E8A2BD362C0540972441B8D1DE0BCACE8FE85FEF71F31406F3B4DA1A4027D26C`
+
+签名证书 SHA-256：
+
+`C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
 
 ## 反馈
 
