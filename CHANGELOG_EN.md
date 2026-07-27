@@ -6,7 +6,41 @@ This file records user-visible changes in the LSPosed module repository. For the
 history, engineering notes, and all public releases, see the
 [source repository](https://github.com/tomthenpc/customiuizer-a14).
 
+## r14.13.5
+
+- Fixes the home search navigation regression: `Various` search results and sub-category items no
+  longer return to the home page immediately; the target Preference is highlighted and scrolled into
+  view.
+- Restores the search state machine: three states `0/1/2`, automatically collapsing the SearchView
+  and clearing the query when returning to the home page.
+- Unifies empty/blank `sub` semantics: `ModData.sub` is now nullable, preventing empty strings from
+  being treated as valid sub-categories.
+- Corrects `openModCat()` return value: System / Launcher / Controls / Various now return `true` on
+  successful navigation.
+- Adds `SearchRouteResolver` and `SearchStateMachine` unit tests.
+- Same APK keeps libxposed API 101/102 compatibility.
+- Release passes R8, resource shrinking, zipalign, and APK Signature Scheme v2 checks.
+
+### Important upgrade note
+
+`r14.13.4` has a home search navigation regression and is superseded by `r14.13.5`. `r14.13.5` is
+signed with the same new official certificate as `r14.13.4`, so users on `r14.13.4` can update in
+place without uninstalling.
+
+The private signing key used for public `r14.12.0` and earlier releases has been lost. Upgrading
+from those builds still requires backing up, uninstalling, installing, re-enabling scope, restoring
+settings, and fully rebooting.
+
+- APK: `CustoMIUIzer-A14-r14.13.5.apk`
+- SHA-256: `89AE5046564F69D491DC44F7B853443113FEC7100FE997ABA9984181C4983EA5`
+- Signing-certificate SHA-256:
+  `C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
+
+Download: [183-r14.13.5](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/183-r14.13.5)
+
 ## r14.13.4
+
+> Withdrawn; superseded by `r14.13.5`.
 
 - Improved in-app locale handling, About page, day/night theme, and settings-page recreation.
 - Fixed search return state and asynchronous Root-restart feedback for Launcher, SystemUI, and
@@ -35,7 +69,7 @@ old build, install the new one, re-enable the scope, restore settings, and fully
 - Signing-certificate SHA-256:
   `C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
 
-Download: [182-r14.13.4](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/182-r14.13.4)
+Download: [182-r14.13.4](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/182-r14.13.4) (deleted)
 
 ## r14.12.0
 

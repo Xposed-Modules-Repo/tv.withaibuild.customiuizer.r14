@@ -33,17 +33,22 @@ CustoMIUIzer 派生模块同时启用。
 
 功能可用性取决于设备 ROM 和系统应用版本。
 
-## r14.13.4 更新重点
+## r14.13.5 更新重点
 
-- 完善应用内语言、About 页面、日间/夜间主题和设置页面重建；
-- 修复搜索返回状态及 Root 重启功能的异步执行和错误反馈；
-- 修复 SystemUI 状态栏文本图标长期持有失效 View 的问题；
-- 优化资源 Hook 高频未命中路径，减少装箱、反射和无效解析；
-- 修复 Kotlin 迁移后的 CPU thermal zone 扫描控制流；
-- 移除 pair 配置解析中的重复 Regex 编译；
-- 改进 RemotePreferences 空快照和监听器注册状态；
+- 修复首页搜索导航回归：`Various` 搜索结果及子分类项点击后不再立即返回首页，目标
+  Preference 正确高亮并滚动。
+- 恢复搜索状态机：`0/1/2` 三态控制，返回首页后自动收起 SearchView、清空 query。
+- 统一 `sub` 空/空白语义：`ModData.sub` 改为可空，避免空字符串被误判为有效子分类。
+- 修正 `openModCat()` 返回值：System / Launcher / Controls / Various 成功导航后统一返回
+  `true`。
+- 新增 `SearchRouteResolver` 与 `SearchStateMachine` 单元测试。
 - 同一 APK 保持 libxposed API 101/102 兼容；
 - Release 通过 R8、资源压缩、zipalign 和 APK v2 签名检查。
+
+## r14.13.4 说明
+
+`r14.13.4` 存在首页搜索导航回归，已被 `r14.13.5` 取代。`r14.13.5` 使用与 `r14.13.4`
+相同的新正式签名证书，已安装 `r14.13.4` 的用户可直接覆盖安装，无需卸载。
 
 ## 本维护版的区别
 
@@ -64,7 +69,7 @@ CustoMIUIzer 派生模块同时启用。
 
 ## 安装
 
-1. 从 [r14.13.4 Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/182-r14.13.4)
+1. 从 [r14.13.5 Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/183-r14.13.5)
    下载并安装 APK。
 2. 在 LSPosed/Vector 中启用模块并确认推荐作用域。
 3. 打开模块设置一次。
@@ -75,7 +80,7 @@ API 101 管理器可能因为模块声明 `targetApiVersion=102` 显示面向较
 
 APK SHA-256：
 
-`E8A2BD362C0540972441B8D1DE0BCACE8FE85FEF71F31406F3B4DA1A4027D26C`
+`89AE5046564F69D491DC44F7B853443113FEC7100FE997ABA9984181C4983EA5`
 
 签名证书 SHA-256：
 
