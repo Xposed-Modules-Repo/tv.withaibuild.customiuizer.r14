@@ -37,15 +37,26 @@ module together with upstream or another CustoMIUIzer-derived module.
 
 Feature availability depends on the device ROM and system-app versions.
 
-## r14.13.4 Highlights
+## r14.13.5 Highlights
 
-- Improved in-app locale handling, About information, day/night themes, and settings recreation.
-- Fixed stale status-bar temperature/current text Views being retained by SystemUI.
-- Reduced boxing, reflection, and unnecessary parsing on resource-hook lookup misses.
-- Fixed Kotlin migration regressions in thermal-zone scanning and pair-string Regex parsing.
-- Improved RemotePreferences initial loading and listener registration state.
+- Fixes the home search navigation regression: `Various` search results and sub-category items no
+  longer return to the home page immediately; the target Preference is highlighted and scrolled
+  into view.
+- Restores the search state machine: three states `0/1/2`, automatically collapsing the SearchView
+  and clearing the query when returning to the home page.
+- Unifies empty/blank `sub` semantics: `ModData.sub` is now nullable, preventing empty strings from
+  being treated as valid sub-categories.
+- Corrects `openModCat()` return value: System / Launcher / Controls / Various now return `true` on
+  successful navigation.
+- Adds `SearchRouteResolver` and `SearchStateMachine` unit tests.
 - The same APK continues to support libxposed API 101/102 and passes R8, resource shrinking,
   zipalign, and APK v2 signing checks.
+
+## r14.13.4 Note
+
+`r14.13.4` has a home search navigation regression and is superseded by `r14.13.5`. `r14.13.5` is
+signed with the same new official certificate as `r14.13.4`, so users on `r14.13.4` can update in
+place without uninstalling.
 
 ## Differences in This Maintenance Build
 
@@ -75,7 +86,7 @@ key has been changed, so you must uninstall the old version before installing th
 ## Installation
 
 1. Download and install the APK from the
-   [r14.13.4 Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/182-r14.13.4).
+   [r14.13.5 Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/183-r14.13.5).
 2. Enable the module in LSPosed/Vector and confirm the recommended scope.
 3. Open module settings once.
 4. Fully reboot the device.
@@ -85,7 +96,7 @@ not mean loading failed; use target-process logs and actual behavior as the sour
 
 APK SHA-256:
 
-`E8A2BD362C0540972441B8D1DE0BCACE8FE85FEF71F31406F3B4DA1A4027D26C`
+`89AE5046564F69D491DC44F7B853443113FEC7100FE997ABA9984181C4983EA5`
 
 Signing certificate SHA-256:
 
