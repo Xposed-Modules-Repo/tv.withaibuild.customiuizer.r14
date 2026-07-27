@@ -11,8 +11,10 @@ changelog, build instructions, and engineering documentation are maintained in t
 [source repository](https://github.com/tomthenpc/customiuizer-a14).
 
 User-visible changes are listed in this repository's
-[CHANGELOG](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/blob/main/CHANGELOG.md).
-The source repository remains authoritative for complete engineering records.
+[CHANGELOG](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/blob/main/CHANGELOG.md)
+(Chinese) and
+[CHANGELOG_EN](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/blob/main/CHANGELOG_EN.md)
+(English). The source repository remains authoritative for complete engineering records.
 
 ## Supported Environment
 
