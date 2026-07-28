@@ -33,22 +33,28 @@ CustoMIUIzer 派生模块同时启用。
 
 功能可用性取决于设备 ROM 和系统应用版本。
 
-## r14.13.5 更新重点
+## r14.13.6 更新重点
 
-- 修复首页搜索导航回归：`Various` 搜索结果及子分类项点击后不再立即返回首页，目标
-  Preference 正确高亮并滚动。
-- 恢复搜索状态机：`0/1/2` 三态控制，返回首页后自动收起 SearchView、清空 query。
-- 统一 `sub` 空/空白语义：`ModData.sub` 改为可空，避免空字符串被误判为有效子分类。
-- 修正 `openModCat()` 返回值：System / Launcher / Controls / Various 成功导航后统一返回
-  `true`。
-- 新增 `SearchRouteResolver` 与 `SearchStateMachine` 单元测试。
+- **界面语言切换终于生效**：`AppCompatDelegate.setApplicationLocales()` 在应用启动阶段是
+  静默空操作（API 33+ 需要一个存活的 Activity 才能解析 `LocaleManager`），语言选择被保存后
+  从未被应用。改为直接调用框架的 `LocaleManager`。
+- **关于页语言项不再让设置界面报错**：绑定期间不再写入 Preference 值，也不会用 XML 占位值
+  覆盖掉已保存的语言。
+- **不再误报「模块未被激活」**：区分「等待超时」与「确认未连接」，超时后再等一轮才下结论。
+- **搜索跳转后开关状态立即刷新**：搜索高亮恢复为一次性，且不再永久替换行背景。
+- **系统进程健壮性**：模块从 hook 注册出去的回调全部加了异常隔离，其中两处运行在
+  `system_server` 内；协程 scope 统一挂上失败处理器。
+- **注册与内存**：receiver / 观察者的清理改为绑定所有者，修掉数个从未生效的清理路径；
+  实例级附加字段改为按身份存储，不再因对象相等或哈希变化而丢失。
+- **性能**：hook 参数不再逐次复制与重新编排；反射缓存命中零分配；主界面搜索改为单次
+  零分配扫描。
 - 同一 APK 保持 libxposed API 101/102 兼容；
 - Release 通过 R8、资源压缩、zipalign 和 APK v2 签名检查。
 
-## r14.13.4 说明
+### 验证状态
 
-`r14.13.4` 存在首页搜索导航回归，已被 `r14.13.5` 取代。`r14.13.5` 使用与 `r14.13.4`
-相同的新正式签名证书，已安装 `r14.13.4` 的用户可直接覆盖安装，无需卸载。
+本版本通过静态门禁、122 项单元测试、lint 与 Debug/Release 构建，**但尚未完成实机验收**。
+签名证书与 `r14.13.5` 相同，可直接覆盖安装；如遇问题请回退到 `r14.13.5`。
 
 ## 本维护版的区别
 
@@ -69,7 +75,7 @@ CustoMIUIzer 派生模块同时启用。
 
 ## 安装
 
-1. 从 [r14.13.5 Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/183-r14.13.5)
+1. 从 [r14.13.6 Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/184-r14.13.6)
    下载并安装 APK。
 2. 在 LSPosed/Vector 中启用模块并确认推荐作用域。
 3. 打开模块设置一次。
@@ -80,7 +86,7 @@ API 101 管理器可能因为模块声明 `targetApiVersion=102` 显示面向较
 
 APK SHA-256：
 
-`89AE5046564F69D491DC44F7B853443113FEC7100FE997ABA9984181C4983EA5`
+`35AEE1FEA1D7B38D967267210B7C272340B56B580ED49BEF4945AA9FC6F2ED96`
 
 签名证书 SHA-256：
 

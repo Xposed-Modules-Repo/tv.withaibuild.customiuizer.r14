@@ -37,26 +37,33 @@ module together with upstream or another CustoMIUIzer-derived module.
 
 Feature availability depends on the device ROM and system-app versions.
 
-## r14.13.5 Highlights
+## r14.13.6 Highlights
 
-- Fixes the home search navigation regression: `Various` search results and sub-category items no
-  longer return to the home page immediately; the target Preference is highlighted and scrolled
-  into view.
-- Restores the search state machine: three states `0/1/2`, automatically collapsing the SearchView
-  and clearing the query when returning to the home page.
-- Unifies empty/blank `sub` semantics: `ModData.sub` is now nullable, preventing empty strings from
-  being treated as valid sub-categories.
-- Corrects `openModCat()` return value: System / Launcher / Controls / Various now return `true` on
-  successful navigation.
-- Adds `SearchRouteResolver` and `SearchStateMachine` unit tests.
+- **Changing the interface language finally works**: `AppCompatDelegate.setApplicationLocales()`
+  is a silent no-op during application start-up — on API 33+ it needs a live Activity to resolve
+  `LocaleManager` — so the saved choice was never applied. It now calls the framework
+  `LocaleManager` directly.
+- **The language row no longer breaks the settings screen** and no longer overwrites the saved
+  language with the XML placeholder.
+- **No more spurious "module not active" warning**: "we stopped waiting" is now distinct from
+  "proven disconnected", and a timeout gets one further wait before anything is reported.
+- **A toggle opened from search updates immediately**: the search highlight is one-shot again and
+  no longer permanently replaces the row's background.
+- **System-process robustness**: every callback the module registers from a hook is isolated,
+  including two that run inside `system_server`; coroutine scopes carry a failure handler.
+- **Registrations and memory**: receiver and observer cleanup is bound to an owner, fixing several
+  paths that never ran; additional instance fields are stored by identity, so they are no longer
+  lost when two objects compare equal or an object's hash changes.
+- **Performance**: hook arguments are no longer copied and re-marshalled per invocation;
+  reflection cache hits do not allocate; the main-screen search is a single allocation-free scan.
 - The same APK continues to support libxposed API 101/102 and passes R8, resource shrinking,
   zipalign, and APK v2 signing checks.
 
-## r14.13.4 Note
+### Verification status
 
-`r14.13.4` has a home search navigation regression and is superseded by `r14.13.5`. `r14.13.5` is
-signed with the same new official certificate as `r14.13.4`, so users on `r14.13.4` can update in
-place without uninstalling.
+This release passes the static gate, 122 unit tests, lint, and both build variants, but has
+**not completed on-device acceptance**. It shares a signing certificate with `r14.13.5`, so it
+installs in place; roll back to `r14.13.5` if you hit a problem.
 
 ## Differences in This Maintenance Build
 
@@ -86,7 +93,7 @@ key has been changed, so you must uninstall the old version before installing th
 ## Installation
 
 1. Download and install the APK from the
-   [r14.13.5 Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/183-r14.13.5).
+   [r14.13.6 Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/184-r14.13.6).
 2. Enable the module in LSPosed/Vector and confirm the recommended scope.
 3. Open module settings once.
 4. Fully reboot the device.
@@ -96,7 +103,7 @@ not mean loading failed; use target-process logs and actual behavior as the sour
 
 APK SHA-256:
 
-`89AE5046564F69D491DC44F7B853443113FEC7100FE997ABA9984181C4983EA5`
+`35AEE1FEA1D7B38D967267210B7C272340B56B580ED49BEF4945AA9FC6F2ED96`
 
 Signing certificate SHA-256:
 

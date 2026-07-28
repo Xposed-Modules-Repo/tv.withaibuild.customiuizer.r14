@@ -3,6 +3,34 @@
 本文件只记录 LSPosed 模块仓库中的用户可见版本变化。完整提交历史、工程说明与历史
 Release 归档见[个人维护仓库](https://github.com/tomthenpc/customiuizer-a14)。
 
+## r14.13.6
+
+- 修复界面语言切换从未生效：`AppCompatDelegate.setApplicationLocales()` 在应用启动阶段是
+  静默空操作，改为直接调用框架 `LocaleManager`。
+- 修复关于页语言项在绑定期间写入偏好值，导致设置界面报错并把已保存语言回退为占位值。
+- 修复误报「模块未被激活」：区分等待超时与确认未连接，超时后再等一轮才下结论。
+- 修复从搜索结果跳转后开关状态不立即刷新：搜索高亮恢复为一次性，不再永久替换行背景。
+- 加固 23 处模块从 hook 注册出去的回调（其中两处运行在 `system_server` 内）。
+- 修复数个从未生效的 receiver / 观察者清理路径；实例级附加字段改为按身份存储。
+- 性能：hook 参数不再逐次复制与重新编排；反射缓存命中零分配；主界面搜索零分配扫描。
+- 同一 APK 保持 libxposed API 101/102 兼容；
+- Release 通过 R8、资源压缩、zipalign 和 APK v2 签名检查。
+
+### 重要升级说明
+
+`r14.13.6` 使用与 `r14.13.5` 相同的正式签名证书，可直接覆盖安装，无需卸载。
+
+`r14.12.0` 及更早公开版本使用的旧签名私钥已经遗失，从那些版本升级前仍需备份、卸载、
+安装、重新启用作用域、恢复设置并完整重启。
+
+**本版本尚未完成实机验收。**
+
+- APK：`CustoMIUIzer-A14-r14.13.6.apk`
+- SHA-256：`35AEE1FEA1D7B38D967267210B7C272340B56B580ED49BEF4945AA9FC6F2ED96`
+- 签名证书 SHA-256：`C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
+
+下载：[184-r14.13.6](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/184-r14.13.6)
+
 ## r14.13.5
 
 - 修复首页搜索导航回归：`Various` 搜索结果及子分类项点击后不再立即返回首页，目标
@@ -27,7 +55,7 @@ Release 归档见[个人维护仓库](https://github.com/tomthenpc/customiuizer-
 - SHA-256：`89AE5046564F69D491DC44F7B853443113FEC7100FE997ABA9984181C4983EA5`
 - 签名证书 SHA-256：`C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
 
-下载：[183-r14.13.5](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/183-r14.13.5)
+下载：[183-r14.13.5](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/183-r14.13.5)（已删除，源码 tag 仍在）
 
 ## r14.13.4
 

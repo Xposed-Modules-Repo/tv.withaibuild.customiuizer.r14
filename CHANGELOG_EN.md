@@ -6,6 +6,39 @@ This file records user-visible changes in the LSPosed module repository. For the
 history, engineering notes, and all public releases, see the
 [source repository](https://github.com/tomthenpc/customiuizer-a14).
 
+## r14.13.6
+
+- Fixes the interface language never being applied: `AppCompatDelegate.setApplicationLocales()`
+  is a silent no-op during application start-up; it now calls the framework `LocaleManager`.
+- Fixes the language row writing a preference value during binding, which broke the settings
+  screen and reverted the saved language to the XML placeholder.
+- Fixes the spurious "module not active" warning: a timeout is now distinct from a proven
+  disconnect, and gets one further wait before anything is reported.
+- Fixes a toggle opened from search not updating until the screen was left and re-entered.
+- Hardens 23 callbacks the module registers from hooks, two of which run inside `system_server`.
+- Fixes several receiver and observer cleanup paths that never ran; additional instance fields
+  are now stored by identity.
+- Performance: hook arguments are no longer copied and re-marshalled per invocation; reflection
+  cache hits do not allocate; the main-screen search is a single allocation-free scan.
+- The same APK continues to support libxposed API 101/102 and passes R8, resource shrinking,
+  zipalign, and APK v2 signing checks.
+
+### Important upgrade note
+
+`r14.13.6` is signed with the same official certificate as `r14.13.5`, so it installs in place.
+
+`r14.12.0` and earlier public builds used a signing key that has been lost; upgrading from those
+still requires backing up, uninstalling, installing, re-enabling the scope, restoring settings,
+and a full reboot.
+
+**This release has not completed on-device acceptance.**
+
+- APK: `CustoMIUIzer-A14-r14.13.6.apk`
+- SHA-256: `35AEE1FEA1D7B38D967267210B7C272340B56B580ED49BEF4945AA9FC6F2ED96`
+- Signing certificate SHA-256: `C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
+
+Download: [184-r14.13.6](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/184-r14.13.6)
+
 ## r14.13.5
 
 - Fixes the home search navigation regression: `Various` search results and sub-category items no
@@ -36,7 +69,7 @@ settings, and fully rebooting.
 - Signing-certificate SHA-256:
   `C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
 
-Download: [183-r14.13.5](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/183-r14.13.5)
+Download: [183-r14.13.5](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/183-r14.13.5) (removed; the source tag remains)
 
 ## r14.13.4
 
