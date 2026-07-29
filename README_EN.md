@@ -37,33 +37,41 @@ module together with upstream or another CustoMIUIzer-derived module.
 
 Feature availability depends on the device ROM and system-app versions.
 
-## r14.13.6 Highlights
+## r14.13.7 Highlights
 
-- **Changing the interface language finally works**: `AppCompatDelegate.setApplicationLocales()`
-  is a silent no-op during application start-up — on API 33+ it needs a live Activity to resolve
-  `LocaleManager` — so the saved choice was never applied. It now calls the framework
-  `LocaleManager` directly.
-- **The language row no longer breaks the settings screen** and no longer overwrites the saved
-  language with the XML placeholder.
-- **No more spurious "module not active" warning**: "we stopped waiting" is now distinct from
-  "proven disconnected", and a timeout gets one further wait before anything is reported.
-- **A toggle opened from search updates immediately**: the search highlight is one-shot again and
-  no longer permanently replaces the row's background.
-- **System-process robustness**: every callback the module registers from a hook is isolated,
-  including two that run inside `system_server`; coroutine scopes carry a failure handler.
-- **Registrations and memory**: receiver and observer cleanup is bound to an owner, fixing several
-  paths that never ran; additional instance fields are stored by identity, so they are no longer
-  lost when two objects compare equal or an object's hash changes.
-- **Performance**: hook arguments are no longer copied and re-marshalled per invocation;
-  reflection cache hits do not allocate; the main-screen search is a single allocation-free scan.
+- **A setting changed while the LSPosed service is unreachable is no longer lost.** Every change
+  made while unbound used to be dropped, and reconnecting did not resend it. The module reads its
+  snapshot once per hooked process and installs hooks from it, so a toggle flipped at the wrong
+  moment stayed off for good — which is what "album art as wallpaper does nothing" was. The mirror
+  now reconciles in full on bind, and says so while anything is still undelivered.
+- **Soft reboot is no longer refused on the wrong evidence.** It broadcasts to the module inside
+  SystemUI, which is unrelated to whether the settings app holds a service binder. It is attempted
+  as an ordered broadcast and reported only if nobody claims it.
+- **A damaged list preference no longer risks a system process.** Reading one threw on a changed
+  stored type or a non-numeric string, from hooks running in SystemUI and `system_server`.
+  Unreadable values now fall back to the caller's default.
+- **Status bar battery/temperature formats apply without restarting SystemUI.** The ticker used the
+  config captured at hook time. The two options that genuinely cannot hot-update now say so.
+- **Lock-screen album art concurrency and cache.** Skipping tracks quickly could run several
+  full-screen passes at once, and the cache was bounded by entry count (~31 MB on a tall screen)
+  with a key that could never hit. Output quality and cropping are unchanged.
+- **A saturated icon queue no longer leaves an icon permanently blank.**
 - The same APK continues to support libxposed API 101/102 and passes R8, resource shrinking,
   zipalign, and APK v2 signing checks.
 
+> The root cause of this round is that the LSPosed/Vector daemon stops pushing the service binder
+> after the module's app process restarts rapidly several times, and `libxposed-service` offers no
+> way to ask for it. That belongs to the framework and cannot be fixed inside the module; what
+> this release fixes is everything it was costing. See
+> [LSPOSED_BINDER_DELIVERY.md](https://github.com/tomthenpc/customiuizer-a14/blob/r14.13.7/docs/LSPOSED_BINDER_DELIVERY.md).
+
 ### Verification status
 
-This release passes the static gate, 122 unit tests, lint, and both build variants, but has
-**not completed on-device acceptance**. It shares a signing certificate with `r14.13.5`, so it
-installs in place; roll back to `r14.13.5` if you hit a problem.
+This release passes the static gate (116 files, no violations), 171 unit tests, lint at all three
+levels, and both build variants, but has **not completed on-device acceptance**. It changes the
+lock-screen album art processor and the status bar ticker, both of which run inside SystemUI, so it
+sits closer to a system process than `r14.13.6` did; roll back to `r14.13.6` if SystemUI misbehaves.
+The signing certificate is unchanged since `r14.13.5`, so installing in either direction works.
 
 ## Differences in This Maintenance Build
 
@@ -93,7 +101,7 @@ key has been changed, so you must uninstall the old version before installing th
 ## Installation
 
 1. Download and install the APK from the
-   [r14.13.6 Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/184-r14.13.6).
+   [r14.13.7 Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/185-r14.13.7).
 2. Enable the module in LSPosed/Vector and confirm the recommended scope.
 3. Open module settings once.
 4. Fully reboot the device.
@@ -103,7 +111,7 @@ not mean loading failed; use target-process logs and actual behavior as the sour
 
 APK SHA-256:
 
-`35AEE1FEA1D7B38D967267210B7C272340B56B580ED49BEF4945AA9FC6F2ED96`
+`11D01A737BED25C3C4D31153DE22CB918A651D0DD043D0374E2C0E41D32492CC`
 
 Signing certificate SHA-256:
 
