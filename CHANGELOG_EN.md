@@ -119,7 +119,7 @@ Download: [182-r14.13.4](https://github.com/Xposed-Modules-Repo/tv.withaibuild.c
 - API 102 engineering compatibility was verified; independent API 102 device coverage was still
   pending.
 
-Download: [174-r14.12.0](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/174-r14.12.0)
+Download: [174-r14.12.0](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/174-r14.12.0) (removed; the Git tag and source remain)
 
 ## Maintenance scope
 

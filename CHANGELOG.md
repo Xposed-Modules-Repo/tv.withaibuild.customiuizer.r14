@@ -96,7 +96,7 @@ Release 归档见[个人维护仓库](https://github.com/tomthenpc/customiuizer-
 - API 101 实机完整重启日志未发现模块相关崩溃、ANR、Hook 或链接错误；
 - API 102 工程兼容已验证，仍需对应框架环境的独立实机验证。
 
-下载：[174-r14.12.0](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/174-r14.12.0)
+下载：[174-r14.12.0](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/174-r14.12.0)（已删除，Git tag 与源码仍在）
 
 ## 维护版边界
 
