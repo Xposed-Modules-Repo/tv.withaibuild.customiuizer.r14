@@ -6,6 +6,30 @@ This file records user-visible changes in the LSPosed module repository. For the
 history, engineering notes, and all public releases, see the
 [source repository](https://github.com/tomthenpc/customiuizer-a14).
 
+## r14.13.7
+
+- Fixes settings changed while the LSPosed service is unreachable being dropped and never
+  resent. The module reads its snapshot once per hooked process and installs hooks from it, so a
+  toggle flipped while unbound stayed off permanently and silently — which is what "album art as
+  wallpaper does nothing" was. The mirror now reconciles in full when the service binds, and says
+  so while anything is still undelivered.
+- Fixes soft reboot being refused when the settings app is not bound. It broadcasts to the module
+  inside SystemUI, which is unrelated to the settings app's own binding; it is now attempted as an
+  ordered broadcast and reported only if nobody claims it.
+- Fixes a crash risk when reading list preferences: a changed stored type or a non-numeric string
+  threw out of hooks running in SystemUI and `system_server`. Unreadable values now fall back to
+  the caller's default.
+- Fixes status bar battery/temperature formats and units needing a SystemUI restart: the ticker
+  used the config captured at hook time. The two options that genuinely cannot hot-update now say
+  so in the settings screen.
+- Fixes lock-screen album art running several full-screen passes at once when skipping tracks, and
+  a cache bounded by entry count whose key could never hit. Output quality and cropping unchanged.
+- Fixes a saturated icon queue leaving an icon permanently unloaded.
+
+> The root cause is that the LSPosed/Vector daemon stops pushing the service binder after the
+> module's app process restarts rapidly several times, and `libxposed-service` has no way to ask
+> for it. That part belongs to the framework and cannot be fixed inside the module.
+
 ## r14.13.6
 
 - Fixes the interface language never being applied: `AppCompatDelegate.setApplicationLocales()`
