@@ -37,41 +37,29 @@ module together with upstream or another CustoMIUIzer-derived module.
 
 Feature availability depends on the device ROM and system-app versions.
 
-## r14.13.7 Highlights
+## r14.13.8 Highlights
 
-- **A setting changed while the LSPosed service is unreachable is no longer lost.** Every change
-  made while unbound used to be dropped, and reconnecting did not resend it. The module reads its
-  snapshot once per hooked process and installs hooks from it, so a toggle flipped at the wrong
-  moment stayed off for good — which is what "album art as wallpaper does nothing" was. The mirror
-  now reconciles in full on bind, and says so while anything is still undelivered.
-- **Soft reboot is no longer refused on the wrong evidence.** It broadcasts to the module inside
-  SystemUI, which is unrelated to whether the settings app holds a service binder. It is attempted
-  as an ordered broadcast and reported only if nobody claims it.
-- **A damaged list preference no longer risks a system process.** Reading one threw on a changed
-  stored type or a non-numeric string, from hooks running in SystemUI and `system_server`.
-  Unreadable values now fall back to the caller's default.
-- **Status bar battery/temperature formats apply without restarting SystemUI.** The ticker used the
-  config captured at hook time. The two options that genuinely cannot hot-update now say so.
-- **Lock-screen album art concurrency and cache.** Skipping tracks quickly could run several
-  full-screen passes at once, and the cache was bounded by entry count (~31 MB on a tall screen)
-  with a key that could never hit. Output quality and cropping are unchanged.
-- **A saturated icon queue no longer leaves an icon permanently blank.**
-- The same APK continues to support libxposed API 101/102 and passes R8, resource shrinking,
-  zipalign, and APK v2 signing checks.
-
-> The root cause of this round is that the LSPosed/Vector daemon stops pushing the service binder
-> after the module's app process restarts rapidly several times, and `libxposed-service` offers no
-> way to ask for it. That belongs to the framework and cannot be fixed inside the module; what
-> this release fixes is everything it was costing. See
-> [LSPOSED_BINDER_DELIVERY.md](https://github.com/tomthenpc/customiuizer-a14/blob/r14.13.7/docs/LSPOSED_BINDER_DELIVERY.md).
+- Tightens the boundary between hook-process utilities and settings-app utilities, reducing
+  unrelated class loading inside system processes.
+- Removes six obsolete GlobalActions forwarding stubs and calls their implementations directly.
+- Registers the soft-reboot receiver independently of custom actions, so in-app "Reboot system"
+  still works when no custom action is configured.
+- Distinguishes an unclaimed broadcast from receiver-side execution failure, so the latter is no
+  longer reported as "LSPosed service not connected".
+- Custom-action behavior is unchanged; the same APK continues to support libxposed API 101/102.
+- The Release passes R8, resource shrinking, zipalign, and production APK v2 signing checks.
 
 ### Verification status
 
-This release passes the static gate (116 files, no violations), 171 unit tests, lint at all three
-levels, and both build variants, but has **not completed on-device acceptance**. It changes the
-lock-screen album art processor and the status bar ticker, both of which run inside SystemUI, so it
-sits closer to a system process than `r14.13.6` did; roll back to `r14.13.6` if SystemUI misbehaves.
-The signing certificate is unchanged since `r14.13.5`, so installing in either direction works.
+This release passes the static gate (117 files, no violations), 176 unit tests, lint at all three
+levels, and both build variants.
+
+On-device acceptance completed on Android 14 / HyperOS 1 with LSPosed 2.1.1 (7790): the module
+loaded in SystemUI and Launcher, both reboot cycles completed, P0/P1 were zero, and no
+target-process crash, hook exception, or duplicate receiver registration was found.
+
+Known issue: system Toast suppression may still be ineffective; this release does not change that
+logic. The signing certificate is unchanged since `r14.13.5`, so it installs in place.
 
 ## Differences in This Maintenance Build
 
@@ -101,7 +89,7 @@ key has been changed, so you must uninstall the old version before installing th
 ## Installation
 
 1. Download and install the APK from the
-   [r14.13.7 Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/185-r14.13.7).
+   [r14.13.8 Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/186-r14.13.8).
 2. Enable the module in LSPosed/Vector and confirm the recommended scope.
 3. Open module settings once.
 4. Fully reboot the device.
@@ -111,7 +99,7 @@ not mean loading failed; use target-process logs and actual behavior as the sour
 
 APK SHA-256:
 
-`11D01A737BED25C3C4D31153DE22CB918A651D0DD043D0374E2C0E41D32492CC`
+`B0E7D4A3CB50E39748531D5B0FD3CB95F81C1F777DDAC9E346B8C8D67B8CBE62`
 
 Signing certificate SHA-256:
 

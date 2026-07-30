@@ -6,6 +6,29 @@ This file records user-visible changes in the LSPosed module repository. For the
 history, engineering notes, and all public releases, see the
 [source repository](https://github.com/tomthenpc/customiuizer-a14).
 
+## r14.13.8
+
+- Tightens the boundary between hook-process utilities and settings-app utilities by splitting
+  `HookUtils`, reducing unrelated class loading inside system processes.
+- Removes six obsolete GlobalActions forwarding stubs.
+- Registers the soft-reboot receiver independently of custom actions, so in-app "Reboot system"
+  still works when no custom action is configured.
+- Distinguishes an unclaimed broadcast from receiver-side execution failure, preventing the latter
+  from being reported as "LSPosed service not connected".
+- On-device acceptance passed on Android 14 / HyperOS 1 with LSPosed 2.1.1 (7790): P0/P1 were zero,
+  SystemUI and Launcher loaded normally, both reboot cycles completed, and no crash, hook
+  exception, or duplicate registration was found.
+- Known issue: system Toast suppression may still be ineffective; this release does not change
+  that logic.
+
+- APK: `CustoMIUIzer-A14-r14.13.8.apk`
+- Size: 3,085,209 bytes
+- SHA-256: `B0E7D4A3CB50E39748531D5B0FD3CB95F81C1F777DDAC9E346B8C8D67B8CBE62`
+- Signing certificate SHA-256: `C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
+- versionCode / versionName: `186 / r14.13.8`
+
+Download: [186-r14.13.8](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/186-r14.13.8)
+
 ## r14.13.7
 
 - Fixes settings changed while the LSPosed service is unreachable being dropped and never

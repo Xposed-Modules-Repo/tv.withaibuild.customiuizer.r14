@@ -3,6 +3,25 @@
 本文件只记录 LSPosed 模块仓库中的用户可见版本变化。完整提交历史、工程说明与历史
 Release 归档见[个人维护仓库](https://github.com/tomthenpc/customiuizer-a14)。
 
+## r14.13.8
+
+- 优化 Hook 进程与设置应用工具代码的边界，拆分 `HookUtils`，减少系统进程无关类加载。
+- 清理 GlobalActions 遗留的 6 个转发桩。
+- 快速重启 Receiver 不再依赖是否配置自定义动作；未配置动作时，应用内“重启系统”
+  仍可正常执行。
+- 区分广播无人接收与接收端执行失败，执行失败时不再误报“未连接 LSPosed 服务”。
+- Android 14 / HyperOS 1、LSPosed 2.1.1（7790）实机验收通过：P0/P1 为 0，
+  SystemUI 与 Launcher 加载正常，两次快速重启完成，未发现崩溃、Hook 异常或重复注册。
+- 已知问题：系统 Toast 屏蔽仍可能无效，本版本未改动相关逻辑。
+
+- APK：`CustoMIUIzer-A14-r14.13.8.apk`
+- 大小：3,085,209 bytes
+- SHA-256：`B0E7D4A3CB50E39748531D5B0FD3CB95F81C1F777DDAC9E346B8C8D67B8CBE62`
+- 签名证书 SHA-256：`C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
+- versionCode / versionName：`186 / r14.13.8`
+
+下载：[186-r14.13.8](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/186-r14.13.8)
+
 ## r14.13.7
 
 - 修复未连接 LSPosed 服务期间改动的设置被静默丢弃且永不补发：设置应用与服务断开时每一次

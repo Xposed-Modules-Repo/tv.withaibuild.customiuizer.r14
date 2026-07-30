@@ -33,35 +33,27 @@ CustoMIUIzer 派生模块同时启用。
 
 功能可用性取决于设备 ROM 和系统应用版本。
 
-## r14.13.7 更新重点
+## r14.13.8 更新重点
 
-- **未连接 LSPosed 服务时改的设置不再丢失**：设置应用与服务断开期间，每一次偏好改动过去都
-  被直接丢弃，重新连上也不会补发。模块每个宿主进程只读一次快照并据此决定装哪些 hook，因此
-  断开期间打开的开关会永久无效 ——「专辑封面设为壁纸」不生效就是这么来的。现在连接建立时做
-  一次全量对账，未下发的改动会在对话框里明确告知。
-- **快速重启不再被误判为不可用**：该功能是发广播给 SystemUI 里的模块，与设置应用自己有没有
-  连上服务无关。改为直接发送有序广播，只有确实无人处理时才提示。
-- **列表偏好损坏不再拖垮系统进程**：读取列表类偏好时遇到类型变化或非法字符串会抛异常，而
-  调用点在 SystemUI 和 `system_server` 的 hook 里。现在一律回退到默认值。
-- **状态栏电池/温度的格式与单位无需重启 SystemUI 即可生效**：ticker 过去一直读 hook 时捕获的
-  旧配置。真正无法热更新的两个开关已在界面上标注。
-- **锁屏专辑封面的并发与缓存**：快速切歌时可能并行生成多张全屏图；缓存按条数计数（长屏上约
-  31 MB）且实际永远不命中。改为代次校验 + 按字节限额 + 正确的缓存键，画质与裁剪行为不变。
-- **图标加载队列饱和不再让图标永久空白**。
-- 同一 APK 保持 libxposed API 101/102 兼容；
-- Release 通过 R8、资源压缩、zipalign 和 APK v2 签名检查。
-
-> 本轮的根因是 LSPosed/Vector 守护进程在设置应用连续快速重启后会停止向模块推送 service
-> binder，而 `libxposed-service` 没有任何索取或重试接口。该问题属于框架侧，模块内无法修复；
-> 本版本做的是让这个状态不再丢数据、不再误伤其他功能并明确告知用户。分析见源码仓库的
-> [LSPOSED_BINDER_DELIVERY.md](https://github.com/tomthenpc/customiuizer-a14/blob/r14.13.7/docs/LSPOSED_BINDER_DELIVERY.md)。
+- 优化 Hook 进程与设置应用工具代码的边界，减少系统进程加载无关类。
+- 清理 GlobalActions 遗留的 6 个转发桩，调用点直接使用实际实现。
+- 快速重启 Receiver 不再依赖是否配置自定义动作；未配置任何动作时，应用内“重启系统”
+  仍可由 SystemUI 正常接收和执行。
+- 区分快速重启广播无人接收与接收端执行失败，不再把后者误报为“未连接 LSPosed 服务”。
+- 自定义动作行为保持不变；同一 APK 继续兼容 libxposed API 101/102。
+- Release 通过 R8、资源压缩、zipalign 和 APK v2 正式签名检查。
 
 ### 验证状态
 
-本版本通过静态门禁（116 文件 / 0 违规）、171 项单元测试、lint 三档 0 errors 与 Debug/Release
-构建，**但尚未完成实机验收**。本版本改动了运行在 SystemUI 内的锁屏专辑封面处理器与状态栏
-ticker，影响面比 `r14.13.6` 更靠近系统进程；如遇 SystemUI 异常请回退到 `r14.13.6`。
-签名证书与 `r14.13.5`、`r14.13.6` 相同，可双向直接覆盖安装。
+本版本通过静态门禁（117 文件 / 0 违规）、176 项单元测试、lint 三档 0 errors 与
+Debug/Release 构建。
+
+已在 Android 14 / HyperOS 1 与 LSPosed 2.1.1（7790）上完成实机验收：模块在 SystemUI
+与 Launcher 正常加载，两次快速重启均完成，日志中 P0/P1 为 0，未发现目标进程崩溃、
+Hook 异常或 Receiver 重复注册。
+
+已知问题：系统 Toast 屏蔽仍可能无效，本版本未改动相关逻辑。签名证书与
+`r14.13.5`—`r14.13.7` 相同，可直接覆盖安装。
 
 ## 本维护版的区别
 
@@ -82,7 +74,7 @@ ticker，影响面比 `r14.13.6` 更靠近系统进程；如遇 SystemUI 异常�
 
 ## 安装
 
-1. 从 [r14.13.7 Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/185-r14.13.7)
+1. 从 [r14.13.8 Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/186-r14.13.8)
    下载并安装 APK。
 2. 在 LSPosed/Vector 中启用模块并确认推荐作用域。
 3. 打开模块设置一次。
@@ -93,7 +85,7 @@ API 101 管理器可能因为模块声明 `targetApiVersion=102` 显示面向较
 
 APK SHA-256：
 
-`11D01A737BED25C3C4D31153DE22CB918A651D0DD043D0374E2C0E41D32492CC`
+`B0E7D4A3CB50E39748531D5B0FD3CB95F81C1F777DDAC9E346B8C8D67B8CBE62`
 
 签名证书 SHA-256：
 
