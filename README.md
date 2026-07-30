@@ -3,7 +3,7 @@
 [简体中文](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/blob/main/README.md) |
 [English](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/blob/main/README_EN.md)
 
-面向 **HyperOS 1 / Android 14** 的系统界面与交互定制 Xposed 模块。
+面向 **HyperOS 1 / Android 14** 的 CustoMIUIzer Kotlin 重构版 Xposed 模块。
 
 本页面用于 LSPosed 模块仓库展示和下载。源码、完整 changelog、构建说明与工程文档位于
 [个人维护仓库](https://github.com/tomthenpc/customiuizer-a14)。
