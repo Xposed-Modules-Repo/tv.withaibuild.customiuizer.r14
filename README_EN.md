@@ -10,6 +10,11 @@ This repository is the LSPosed module listing and download page. Source code, th
 changelog, build instructions, and engineering documentation are maintained in the
 [source repository](https://github.com/tomthenpc/customiuizer-a14).
 
+Project lineage: the furthest upstream project is **Mikanoshi/CustoMIUIzer**, while Android 14
+feature semantics reference
+[MonwF/customiuizer v24.10.12](https://github.com/MonwF/customiuizer/releases/tag/v24.10.12).
+This repository is not an official release of either project.
+
 User-visible changes are listed in this repository's
 [CHANGELOG](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/blob/main/CHANGELOG.md)
 (Chinese) and

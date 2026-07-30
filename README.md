@@ -8,6 +8,10 @@
 本页面用于 LSPosed 模块仓库展示和下载。源码、完整 changelog、构建说明与工程文档位于
 [个人维护仓库](https://github.com/tomthenpc/customiuizer-a14)。
 
+项目谱系：本维护版的最上游为 **Mikanoshi/CustoMIUIzer**，Android 14 功能语义参考
+[MonwF/customiuizer v24.10.12](https://github.com/MonwF/customiuizer/releases/tag/v24.10.12)。
+本仓库不是上述项目的官方发布。
+
 当前版本变化见本仓库的
 [CHANGELOG](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/blob/main/CHANGELOG.md)，
 完整工程记录以个人维护仓库为准。
