@@ -1,1 +1,1 @@
-HyperOS 1 / Android 14 系统定制模块，兼容 libxposed API 101/102，覆盖状态栏、控制中心、锁屏与桌面。
+HyperOS 1 / Android 14 Kotlin 重构版系统定制模块，兼容 libxposed API 101/102，覆盖状态栏、控制中心、锁屏与桌面。

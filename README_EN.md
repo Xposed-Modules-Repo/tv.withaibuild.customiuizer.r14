@@ -3,7 +3,7 @@
 [简体中文](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/blob/main/README.md) |
 [English](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/blob/main/README_EN.md)
 
-An Xposed module for customizing the system UI and interactions on
+A Kotlin-refactored CustoMIUIzer Xposed module for customizing the system UI and interactions on
 **HyperOS 1 / Android 14**.
 
 This repository is the LSPosed module listing and download page. Source code, the complete
