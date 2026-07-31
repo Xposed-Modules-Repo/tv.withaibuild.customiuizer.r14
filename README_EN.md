@@ -1,122 +1,78 @@
-# CustoMIUIzer A14
+# CustoMIUIzer A14 Kotlin Refactor｜HyperOS 1 / Android 14｜API 101/102
 
-[简体中文](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/blob/main/README.md) |
-[English](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/blob/main/README_EN.md)
+[简体中文](README.md) | English
 
-A Kotlin-refactored CustoMIUIzer Xposed module for customizing the system UI and interactions on
-**HyperOS 1 / Android 14**.
+A system UI and interaction customization module for **HyperOS 1 / Android 14**.
 
-This repository is the LSPosed module listing and download page. Source code, the complete
-changelog, build instructions, and engineering documentation are maintained in the
-[source repository](https://github.com/tomthenpc/customiuizer-a14).
+## Current Release
 
-Project lineage: the furthest upstream project is **Mikanoshi/CustoMIUIzer**, while Android 14
-feature semantics reference
-[MonwF/customiuizer v24.10.12](https://github.com/MonwF/customiuizer/releases/tag/v24.10.12).
-This repository is not an official release of either project.
+| Item | Value |
+| --- | --- |
+| Version | `r14.15.3` |
+| versionCode | `191` |
+| System | HyperOS 1 / Android 14 |
+| ABI | `arm64-v8a` |
+| applicationId | `tv.withaibuild.customiuizer.r14` |
+| libxposed | API 101–102 |
+| APK | `CustoMIUIzer-A14-r14.15.3.apk` |
+| Size | `3107265` bytes |
+| APK SHA-256 | `F7AB34722B0193DD8C97DF0146C968E5A6064655AD497061E902CD1545375E7E` |
+| Signing certificate SHA-256 | `C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70` |
 
-User-visible changes are listed in this repository's
-[CHANGELOG](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/blob/main/CHANGELOG.md)
-(Chinese) and
-[CHANGELOG_EN](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/blob/main/CHANGELOG_EN.md)
-(English). The source repository remains authoritative for complete engineering records.
+## r14.15.3 Highlights
+
+* Restores the previously-removed `system` scope, fixing `system_server` hook loading.
+* Hardens Global Actions and other Receivers with exception isolation, trust validation, lifecycle,
+  and concurrent-registration handling.
+* Improves hook-load diagnostics and compatibility information.
+* Keeps network-speed bold text in the current system typeface and adds dual-row line-spacing
+  adjustment.
+* Adds localization notes for network-speed settings.
+* Fixes settings text-style inheritance and About-page text wrapping.
 
 ## Supported Environment
 
-- HyperOS 1 / Android 14 (SDK 34)
-- `arm64-v8a`
-- A framework implementing modern libxposed API 101 or API 102
-- Module package: `tv.withaibuild.customiuizer.r14`
+* HyperOS 1 / Android 14 (SDK 34);
+* `arm64-v8a`;
+* LSPosed / Vector implementing libxposed API 101 or 102;
+* Android 15 and Android 16 are not supported.
 
-Android 15, Android 16, and other MIUI/HyperOS versions are not supported. Do not enable this
-module together with upstream or another CustoMIUIzer-derived module.
+Feature availability depends on the device ROM and system-app versions. Do not enable this module
+with the upstream version or another CustoMIUIzer-derived module.
 
-## Feature Overview
+## Important Upgrade Notes
 
-- Status-bar icons, battery, signal, network speed, date, and temperature;
-- Control center, volume panel, brightness, and notification behavior;
-- Lock screen, charging information, media UI, and shortcuts;
-- Launcher, recents, folders, icons, and home-screen gestures;
-- Navigation bar, buttons, custom actions, power menu, and system animations;
-- App, permission, installer, sharing, privacy-app, and app-lock behavior.
+Builds from `r14.13.5` and later using the new signing key can be installed as updates.
 
-Feature availability depends on the device ROM and system-app versions.
-
-## r14.13.8 Highlights
-
-- Tightens the boundary between hook-process utilities and settings-app utilities, reducing
-  unrelated class loading inside system processes.
-- Removes six obsolete GlobalActions forwarding stubs and calls their implementations directly.
-- Registers the soft-reboot receiver independently of custom actions, so in-app "Reboot system"
-  still works when no custom action is configured.
-- Distinguishes an unclaimed broadcast from receiver-side execution failure, so the latter is no
-  longer reported as "LSPosed service not connected".
-- Custom-action behavior is unchanged; the same APK continues to support libxposed API 101/102.
-- The Release passes R8, resource shrinking, zipalign, and production APK v2 signing checks.
-
-### Verification status
-
-This release passes the static gate (117 files, no violations), 176 unit tests, lint at all three
-levels, and both build variants.
-
-On-device acceptance completed on Android 14 / HyperOS 1 with LSPosed 2.1.1 (7790): the module
-loaded in SystemUI and Launcher, both reboot cycles completed, P0/P1 were zero, and no
-target-process crash, hook exception, or duplicate receiver registration was found.
-
-Known issue: system Toast suppression may still be ineffective; this release does not change that
-logic. The signing certificate is unchanged since `r14.13.5`, so it installs in place.
-
-## Differences in This Maintenance Build
-
-- `MonwF/customiuizer@v24.10.12` is used only as the Android 14 functional reference; this is not
-  an official upstream release.
-- The module uses an independent package, version line, signing identity, and release process, so
-  it does not replace the upstream installation identity.
-- Maintenance is limited to HyperOS 1 / Android 14; Android 15/16 compatibility is not mixed into
-  this release line.
-- It uses modern libxposed API 101/102 and does not depend on the Legacy Xposed Hook API.
-- Long-lived system processes receive focused lifecycle, duplicate-registration, hot-path, and
-  disabled-feature overhead controls.
-
-## Performance and Power Note
-
-Compared with earlier implementations, this release reduces unnecessary hooks, duplicate
-listeners, orphaned background tasks, hot-path allocations, and exception retries. In theory,
-this can lower the module's additional CPU, memory, and wakeup overhead in SystemUI, Launcher,
-and `system_server`.
-
-Actual gains depend on enabled features, ROM, and usage. No fixed battery, CPU, or memory
-improvement percentage is claimed without a same-device controlled comparison.
-
-When upgrading from `r14.12.0` or earlier public builds, back up settings first; the signing
-key has been changed, so you must uninstall the old version before installing this one.
+When upgrading from `r14.12.0` or earlier, the old signing key is lost. Back up your settings and
+record the scope, then uninstall the old version, install the new version, re-enable the scope,
+restore settings, and fully reboot.
 
 ## Installation
 
-1. Download and install the APK from the
-   [r14.13.8 Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/186-r14.13.8).
-2. Enable the module in LSPosed/Vector and confirm the recommended scope.
-3. Open module settings once.
-4. Fully reboot the device.
+1. Download the APK from this repository's Release.
+2. Verify the APK SHA-256.
+3. Install the APK.
+4. Enable the module in LSPosed / Vector.
+5. Make sure the recommended scope includes `system`.
+6. Open the module settings once and fully reboot the device.
 
 An API 101 manager may warn that `targetApiVersion=102` targets a newer API. The warning alone does
 not mean loading failed; use target-process logs and actual behavior as the source of truth.
 
-APK SHA-256:
+## Verification Status
 
-`B0E7D4A3CB50E39748531D5B0FD3CB95F81C1F777DDAC9E346B8C8D67B8CBE62`
+This release completed the official Release APK build, signing, zipalign, package metadata, and
+Xposed metadata checks, and confirmed that the APK contains both `system` and `android` scopes.
 
-Signing certificate SHA-256:
+This release did not run the full unit test suite, Lint, project Audit, ADB regression, or a complete
+real-device smoke test.
 
-`C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
+## Source and Feedback
 
-## Feedback
+Source code, the complete changelog, and engineering documentation:
 
-Report issues in the [source repository](https://github.com/tomthenpc/customiuizer-a14) and
-include:
+`https://github.com/tomthenpc/customiuizer-a14`
 
-- Module version and APK source;
-- Device, ROM, and system-app versions;
-- Framework name and actual libxposed API version;
-- Module, `system_server`, SystemUI, or Launcher logs collected after a full reboot;
-- Reproducible feature settings and steps.
+When reporting issues, please provide the module version, device, ROM, framework version, actual
+scope, reproduction steps, and relevant `system_server`, SystemUI, or Launcher logs.
