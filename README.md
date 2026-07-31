@@ -19,6 +19,8 @@
 | APK SHA-256  | `F7AB34722B0193DD8C97DF0146C968E5A6064655AD497061E902CD1545375E7E` |
 | 签名证书 SHA-256 | `C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70` |
 
+> Releases 页面仅保留当前正式版。旧版本的变更记录已合并到当前 Release 和 CHANGELOG；旧版 APK 不再提供下载，历史源码 tag 继续保留。
+
 ## r14.15.3 更新重点
 
 * 恢复此前误删的 `system` 作用域，修复 `system_server` Hook 未加载；
