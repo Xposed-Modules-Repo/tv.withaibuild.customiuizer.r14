@@ -19,6 +19,8 @@ A system UI and interaction customization module for **HyperOS 1 / Android 14**.
 | APK SHA-256 | `F7AB34722B0193DD8C97DF0146C968E5A6064655AD497061E902CD1545375E7E` |
 | Signing certificate SHA-256 | `C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70` |
 
+> This Releases page only keeps the current formal release. Changelog for older versions has been merged into the current Release and CHANGELOG. Older APKs are no longer available for download; the historical source tags remain.
+
 ## r14.15.3 Highlights
 
 * Restores the previously-removed `system` scope, fixing `system_server` hook loading.

@@ -1,5 +1,7 @@
 # Changelog
 
+> Note: The Releases page only keeps the current formal release. Full changelogs for older versions are preserved in this file. Older APKs are no longer available for download; historical source tags remain.
+
 This file records only user-visible changes for the LSPosed module repository.
 
 ## r14.15.3
