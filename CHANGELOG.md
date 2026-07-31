@@ -1,145 +1,26 @@
 # Changelog
 
-本文件只记录 LSPosed 模块仓库中的用户可见版本变化。完整提交历史、工程说明与历史
-Release 归档见[个人维护仓库](https://github.com/tomthenpc/customiuizer-a14)。
+本文件仅记录 LSPosed 模块仓库中的用户可见变化。
 
-## r14.13.8
+## r14.15.3
 
-- 优化 Hook 进程与设置应用工具代码的边界，拆分 `HookUtils`，减少系统进程无关类加载。
-- 清理 GlobalActions 遗留的 6 个转发桩。
-- 快速重启 Receiver 不再依赖是否配置自定义动作；未配置动作时，应用内“重启系统”
-  仍可正常执行。
-- 区分广播无人接收与接收端执行失败，执行失败时不再误报“未连接 LSPosed 服务”。
-- Android 14 / HyperOS 1、LSPosed 2.1.1（7790）实机验收通过：P0/P1 为 0，
-  SystemUI 与 Launcher 加载正常，两次快速重启完成，未发现崩溃、Hook 异常或重复注册。
-- 已知问题：系统 Toast 屏蔽仍可能无效，本版本未改动相关逻辑。
+* 恢复此前误删的 `system` 作用域，修复 `system_server` Hook 未加载及相关系统级功能静默失效；
+* 加固 Global Actions Receiver 的异常隔离、信任验证和有序广播处理；
+* 完善 Receiver / Observer 生命周期及并发注册处理；
+* 改进 Hook 加载诊断和兼容信息记录；
+* 状态栏网速粗体保留 SystemUI 当前字体家族；
+* 新增双排网速行距 `70%–130%` 和相关本地化提示；
+* 修复设置文本样式继承和 About 页面文字换行；
+* 保持 HyperOS 1 / Android 14、`arm64-v8a` 和 libxposed API 101/102 兼容。
 
-- APK：`CustoMIUIzer-A14-r14.13.8.apk`
-- 大小：3,085,209 bytes
-- SHA-256：`B0E7D4A3CB50E39748531D5B0FD3CB95F81C1F777DDAC9E346B8C8D67B8CBE62`
-- 签名证书 SHA-256：`C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
-- versionCode / versionName：`186 / r14.13.8`
+### APK
 
-下载：[186-r14.13.8](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/186-r14.13.8)
+* 文件：`CustoMIUIzer-A14-r14.15.3.apk`
+* 大小：`3107265` bytes
+* SHA-256：`F7AB34722B0193DD8C97DF0146C968E5A6064655AD497061E902CD1545375E7E`
+* 签名证书 SHA-256：`C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
+* versionCode / versionName：`191 / r14.15.3`
 
-## r14.13.7
+### 验证说明
 
-- 修复未连接 LSPosed 服务期间改动的设置被静默丢弃且永不补发：设置应用与服务断开时每一次
-  偏好改动都被丢掉，重新连上也不会补齐；模块每个宿主进程只读一次快照并据此决定装哪些
-  hook，因此断开期间打开的开关会永久无效。「专辑封面设为壁纸」不生效即由此而来。现在连接
-  建立时做一次全量对账，仍未下发时在对话框中明确告知。
-- 修复快速重启在设置应用未绑定服务时被拒绝执行：该功能是发广播给 SystemUI 里的模块，与
-  设置应用自身的绑定状态无关。改为直接发送有序广播，只有确实无人处理时才提示。
-- 修复读取列表类偏好时的崩溃风险：存储类型变化或非法字符串会抛异常，而调用点位于 SystemUI
-  与 `system_server` 的 hook 内。现在一律回退到默认值。
-- 修复状态栏电池/温度显示的格式与单位改动需要重启 SystemUI 才生效：ticker 一直使用 hook 时
-  捕获的旧配置。真正无法热更新的两个开关已在设置界面标注。
-- 修复锁屏专辑封面在快速切歌时可能并行生成多张全屏图，以及缓存按条数计数、缓存键永不命中
-  的问题。画质与裁剪行为不变。
-- 修复图标加载队列饱和时被丢弃的任务不释放在途标记，导致该图标此后永久不再加载。
-
-> 根因是 LSPosed/Vector 守护进程在模块应用连续快速重启后停止推送 service binder，而
-> `libxposed-service` 没有索取或重试接口。该问题属于框架侧，模块内无法修复。
-
-## r14.13.6
-
-- 修复界面语言切换从未生效：`AppCompatDelegate.setApplicationLocales()` 在应用启动阶段是
-  静默空操作，改为直接调用框架 `LocaleManager`。
-- 修复关于页语言项在绑定期间写入偏好值，导致设置界面报错并把已保存语言回退为占位值。
-- 修复误报「模块未被激活」：区分等待超时与确认未连接，超时后再等一轮才下结论。
-- 修复从搜索结果跳转后开关状态不立即刷新：搜索高亮恢复为一次性，不再永久替换行背景。
-- 加固 23 处模块从 hook 注册出去的回调（其中两处运行在 `system_server` 内）。
-- 修复数个从未生效的 receiver / 观察者清理路径；实例级附加字段改为按身份存储。
-- 性能：hook 参数不再逐次复制与重新编排；反射缓存命中零分配；主界面搜索零分配扫描。
-- 同一 APK 保持 libxposed API 101/102 兼容；
-- Release 通过 R8、资源压缩、zipalign 和 APK v2 签名检查。
-
-### 重要升级说明
-
-`r14.13.6` 使用与 `r14.13.5` 相同的正式签名证书，可直接覆盖安装，无需卸载。
-
-`r14.12.0` 及更早公开版本使用的旧签名私钥已经遗失，从那些版本升级前仍需备份、卸载、
-安装、重新启用作用域、恢复设置并完整重启。
-
-**本版本尚未完成实机验收。**
-
-- APK：`CustoMIUIzer-A14-r14.13.6.apk`
-- SHA-256：`35AEE1FEA1D7B38D967267210B7C272340B56B580ED49BEF4945AA9FC6F2ED96`
-- 签名证书 SHA-256：`C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
-
-下载：[184-r14.13.6](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/184-r14.13.6)
-
-## r14.13.5
-
-- 修复首页搜索导航回归：`Various` 搜索结果及子分类项点击后不再立即返回首页，目标
-  Preference 正确高亮并滚动。
-- 恢复搜索状态机：`0/1/2` 三态控制，返回首页后自动收起 SearchView、清空 query。
-- 统一 `sub` 空/空白语义：`ModData.sub` 改为可空，避免空字符串被误判为有效子分类。
-- 修正 `openModCat()` 返回值：System / Launcher / Controls / Various 成功导航后统一返回
-  `true`。
-- 新增 `SearchRouteResolver` 与 `SearchStateMachine` 单元测试。
-- 同一 APK 保持 libxposed API 101/102 兼容；
-- Release 通过 R8、资源压缩、zipalign 和 APK v2 签名检查。
-
-### 重要升级说明
-
-`r14.13.4` 存在首页搜索导航回归，已被 `r14.13.5` 取代。`r14.13.5` 使用与 `r14.13.4`
-相同的新正式签名证书，已安装 `r14.13.4` 的用户可直接覆盖安装，无需卸载。
-
-`r14.12.0` 及更早公开版本使用的旧签名私钥已经遗失，从那些版本升级前仍需备份、卸载、
-安装、重新启用作用域、恢复设置并完整重启。
-
-- APK：`CustoMIUIzer-A14-r14.13.5.apk`
-- SHA-256：`89AE5046564F69D491DC44F7B853443113FEC7100FE997ABA9984181C4983EA5`
-- 签名证书 SHA-256：`C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
-
-下载：[183-r14.13.5](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/183-r14.13.5)（已删除，源码 tag 仍在）
-
-## r14.13.4
-
-> 已撤回；被 `r14.13.5` 取代。
-
-- 完善应用内语言、About 页面、日间/夜间主题和设置页面重建；
-- 修复搜索返回状态及 Root 重启功能的异步执行和错误反馈；
-- 修复 SystemUI 状态栏文本图标长期持有失效 View 的问题；
-- 优化资源 Hook 高频未命中路径，减少装箱、反射和无效解析；
-- 修复 Kotlin 迁移后的 CPU thermal zone 扫描控制流；
-- 移除 pair 配置解析中的重复 Regex 编译；
-- 改进 RemotePreferences 空快照和监听器注册状态；
-- 同一 APK 保持 libxposed API 101/102 兼容；
-- Release 通过 R8、资源压缩、zipalign 和 APK v2 签名检查。
-
-### 重要升级说明
-
-`r14.12.0` 及更早公开版本使用的旧签名私钥已经遗失。`r14.13.4` 使用新的正式签名，
-不能直接覆盖安装旧版本。
-
-升级前必须先备份模块设置并记录 LSPosed/Vector 作用域，然后卸载旧版本、安装新版本、
-重新启用作用域、恢复设置并完整重启设备。
-
-- APK：`CustoMIUIzer-A14-r14.13.4.apk`
-- SHA-256：`E8A2BD362C0540972441B8D1DE0BCACE8FE85FEF71F31406F3B4DA1A4027D26C`
-- 签名证书 SHA-256：`C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
-
-下载：[182-r14.13.4](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/182-r14.13.4)（已删除）
-
-## r14.12.0
-
-- 同一 APK 支持实现 libxposed API 101 或 API 102 的框架；
-- 核心 Hook、设置 UI 和工具代码完成保守 Kotlin 迁移；
-- 修复 SystemUI 重建后的重复 Hook、Receiver、Observer、Coroutine 和动画任务；
-- 收敛高频 Hook 与绘制路径中的重复反射、资源查询、格式化和临时对象；
-- 功能关闭时尽量不注册对应 Hook 或长期监听；
-- Release 通过 R8、资源压缩、zipalign 和 APK v2 签名检查；
-- API 101 实机完整重启日志未发现模块相关崩溃、ANR、Hook 或链接错误；
-- API 102 工程兼容已验证，仍需对应框架环境的独立实机验证。
-
-下载：[174-r14.12.0](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/174-r14.12.0)（已删除，Git tag 与源码仍在）
-
-## 维护版边界
-
-- 仅维护 HyperOS 1 / Android 14（SDK 34）和 `arm64-v8a`；
-- 包名为 `tv.withaibuild.customiuizer.r14`，与上游安装身份分离；
-- `MonwF/customiuizer@v24.10.12` 只作为 Android 14 功能语义参考；
-- 不支持 Android 15、Android 16，也不启用 API 102 Hot Reload；
-- 性能和省电收益取决于 ROM、功能组合和使用方式，不声明未经同设备测量的固定比例。
+本版本已完成 APK 构建、正式签名、zipalign、包信息和 Xposed 元数据基础检查，并确认 `scope.list` 包含 `system` 与 `android`；未执行完整测试套件和全功能实机回归。

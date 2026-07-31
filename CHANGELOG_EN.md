@@ -1,178 +1,30 @@
 # Changelog
 
-[简体中文](CHANGELOG.md) | English
+This file records only user-visible changes for the LSPosed module repository.
 
-This file records user-visible changes in the LSPosed module repository. For the complete commit
-history, engineering notes, and all public releases, see the
-[source repository](https://github.com/tomthenpc/customiuizer-a14).
+## r14.15.3
 
-## r14.13.8
+* Restores the previously-removed `system` scope, fixing `system_server` hook loading and the silent
+  failure of related system-level features.
+* Hardens the Global Actions Receiver with exception isolation, trust validation, and ordered-broadcast
+  handling.
+* Improves Receiver / Observer lifecycle and concurrent-registration handling.
+* Improves hook-load diagnostics and compatibility logging.
+* Keeps network-speed bold text in the current SystemUI font family.
+* Adds dual-row network speed line spacing from `70%` to `130%`, with related localization notes.
+* Fixes settings text-style inheritance and attribution/version text wrapping on the About page.
+* Remains compatible with HyperOS 1 / Android 14, `arm64-v8a`, and libxposed API 101/102.
 
-- Tightens the boundary between hook-process utilities and settings-app utilities by splitting
-  `HookUtils`, reducing unrelated class loading inside system processes.
-- Removes six obsolete GlobalActions forwarding stubs.
-- Registers the soft-reboot receiver independently of custom actions, so in-app "Reboot system"
-  still works when no custom action is configured.
-- Distinguishes an unclaimed broadcast from receiver-side execution failure, preventing the latter
-  from being reported as "LSPosed service not connected".
-- On-device acceptance passed on Android 14 / HyperOS 1 with LSPosed 2.1.1 (7790): P0/P1 were zero,
-  SystemUI and Launcher loaded normally, both reboot cycles completed, and no crash, hook
-  exception, or duplicate registration was found.
-- Known issue: system Toast suppression may still be ineffective; this release does not change
-  that logic.
+### APK
 
-- APK: `CustoMIUIzer-A14-r14.13.8.apk`
-- Size: 3,085,209 bytes
-- SHA-256: `B0E7D4A3CB50E39748531D5B0FD3CB95F81C1F777DDAC9E346B8C8D67B8CBE62`
-- Signing certificate SHA-256: `C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
-- versionCode / versionName: `186 / r14.13.8`
+* File: `CustoMIUIzer-A14-r14.15.3.apk`
+* Size: `3107265` bytes
+* SHA-256: `F7AB34722B0193DD8C97DF0146C968E5A6064655AD497061E902CD1545375E7E`
+* Signing certificate SHA-256: `C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
+* versionCode / versionName: `191 / r14.15.3`
 
-Download: [186-r14.13.8](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/186-r14.13.8)
+### Verification
 
-## r14.13.7
-
-- Fixes settings changed while the LSPosed service is unreachable being dropped and never
-  resent. The module reads its snapshot once per hooked process and installs hooks from it, so a
-  toggle flipped while unbound stayed off permanently and silently — which is what "album art as
-  wallpaper does nothing" was. The mirror now reconciles in full when the service binds, and says
-  so while anything is still undelivered.
-- Fixes soft reboot being refused when the settings app is not bound. It broadcasts to the module
-  inside SystemUI, which is unrelated to the settings app's own binding; it is now attempted as an
-  ordered broadcast and reported only if nobody claims it.
-- Fixes a crash risk when reading list preferences: a changed stored type or a non-numeric string
-  threw out of hooks running in SystemUI and `system_server`. Unreadable values now fall back to
-  the caller's default.
-- Fixes status bar battery/temperature formats and units needing a SystemUI restart: the ticker
-  used the config captured at hook time. The two options that genuinely cannot hot-update now say
-  so in the settings screen.
-- Fixes lock-screen album art running several full-screen passes at once when skipping tracks, and
-  a cache bounded by entry count whose key could never hit. Output quality and cropping unchanged.
-- Fixes a saturated icon queue leaving an icon permanently unloaded.
-
-> The root cause is that the LSPosed/Vector daemon stops pushing the service binder after the
-> module's app process restarts rapidly several times, and `libxposed-service` has no way to ask
-> for it. That part belongs to the framework and cannot be fixed inside the module.
-
-## r14.13.6
-
-- Fixes the interface language never being applied: `AppCompatDelegate.setApplicationLocales()`
-  is a silent no-op during application start-up; it now calls the framework `LocaleManager`.
-- Fixes the language row writing a preference value during binding, which broke the settings
-  screen and reverted the saved language to the XML placeholder.
-- Fixes the spurious "module not active" warning: a timeout is now distinct from a proven
-  disconnect, and gets one further wait before anything is reported.
-- Fixes a toggle opened from search not updating until the screen was left and re-entered.
-- Hardens 23 callbacks the module registers from hooks, two of which run inside `system_server`.
-- Fixes several receiver and observer cleanup paths that never ran; additional instance fields
-  are now stored by identity.
-- Performance: hook arguments are no longer copied and re-marshalled per invocation; reflection
-  cache hits do not allocate; the main-screen search is a single allocation-free scan.
-- The same APK continues to support libxposed API 101/102 and passes R8, resource shrinking,
-  zipalign, and APK v2 signing checks.
-
-### Important upgrade note
-
-`r14.13.6` is signed with the same official certificate as `r14.13.5`, so it installs in place.
-
-`r14.12.0` and earlier public builds used a signing key that has been lost; upgrading from those
-still requires backing up, uninstalling, installing, re-enabling the scope, restoring settings,
-and a full reboot.
-
-**This release has not completed on-device acceptance.**
-
-- APK: `CustoMIUIzer-A14-r14.13.6.apk`
-- SHA-256: `35AEE1FEA1D7B38D967267210B7C272340B56B580ED49BEF4945AA9FC6F2ED96`
-- Signing certificate SHA-256: `C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
-
-Download: [184-r14.13.6](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/184-r14.13.6)
-
-## r14.13.5
-
-- Fixes the home search navigation regression: `Various` search results and sub-category items no
-  longer return to the home page immediately; the target Preference is highlighted and scrolled into
-  view.
-- Restores the search state machine: three states `0/1/2`, automatically collapsing the SearchView
-  and clearing the query when returning to the home page.
-- Unifies empty/blank `sub` semantics: `ModData.sub` is now nullable, preventing empty strings from
-  being treated as valid sub-categories.
-- Corrects `openModCat()` return value: System / Launcher / Controls / Various now return `true` on
-  successful navigation.
-- Adds `SearchRouteResolver` and `SearchStateMachine` unit tests.
-- Same APK keeps libxposed API 101/102 compatibility.
-- Release passes R8, resource shrinking, zipalign, and APK Signature Scheme v2 checks.
-
-### Important upgrade note
-
-`r14.13.4` has a home search navigation regression and is superseded by `r14.13.5`. `r14.13.5` is
-signed with the same new official certificate as `r14.13.4`, so users on `r14.13.4` can update in
-place without uninstalling.
-
-The private signing key used for public `r14.12.0` and earlier releases has been lost. Upgrading
-from those builds still requires backing up, uninstalling, installing, re-enabling scope, restoring
-settings, and fully rebooting.
-
-- APK: `CustoMIUIzer-A14-r14.13.5.apk`
-- SHA-256: `89AE5046564F69D491DC44F7B853443113FEC7100FE997ABA9984181C4983EA5`
-- Signing-certificate SHA-256:
-  `C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
-
-Download: [183-r14.13.5](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/183-r14.13.5) (removed; the source tag remains)
-
-## r14.13.4
-
-> Withdrawn; superseded by `r14.13.5`.
-
-- Improved in-app locale handling, About page, day/night theme, and settings-page recreation.
-- Fixed search return state and asynchronous Root-restart feedback for Launcher, SystemUI, and
-  Security Center.
-- Fixed status-bar temperature/current text icons in SystemUI retaining stale Views indefinitely.
-- Optimized resource-hook miss paths by reducing boxing, reflection, and unnecessary parsing, with
-  safe publication for sparse containers.
-- Restored first-match exit behavior in CPU thermal-zone scanning after the Kotlin migration.
-- Removed repeated Regex compilation from `first|second` preference parsing and added PrefPair
-  regression tests.
-- Improved RemotePreferences initial snapshot and listener-registration state.
-- Same APK keeps libxposed API 101/102 compatibility.
-- Release passes R8, resource shrinking, zipalign, and APK Signature Scheme v2 checks.
-
-### Important upgrade note
-
-The private signing key used for public `r14.12.0` and earlier releases has been lost. `r14.13.4`
-uses a new official signing certificate and cannot be installed as an in-place update over older
-public builds.
-
-Before upgrading, back up module settings and record the LSPosed/Vector scope, then uninstall the
-old build, install the new one, re-enable the scope, restore settings, and fully reboot.
-
-- APK: `CustoMIUIzer-A14-r14.13.4.apk`
-- SHA-256: `E8A2BD362C0540972441B8D1DE0BCACE8FE85FEF71F31406F3B4DA1A4027D26C`
-- Signing-certificate SHA-256:
-  `C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
-
-Download: [182-r14.13.4](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/182-r14.13.4) (deleted)
-
-## r14.12.0
-
-- One APK supports frameworks implementing libxposed API 101 or API 102.
-- Core hooks, settings UI, and utilities completed a conservative Kotlin migration.
-- Fixed duplicate hooks, receivers, observers, coroutines, and animation tasks after SystemUI
-  recreation.
-- Reduced repeated reflection, resource lookups, formatting, and temporary objects in frequent hook
-  and drawing paths.
-- Disabled features avoid registering unnecessary hooks and long-lived listeners where possible.
-- Release passes R8, resource shrinking, zipalign, and APK Signature Scheme v2 checks.
-- API 101 full reboot logs showed no module-attributable crash, ANR, hook failure, or linkage
-  error.
-- API 102 engineering compatibility was verified; independent API 102 device coverage was still
-  pending.
-
-Download: [174-r14.12.0](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/174-r14.12.0) (removed; the Git tag and source remain)
-
-## Maintenance scope
-
-- HyperOS 1 / Android 14 (SDK 34) and `arm64-v8a` only.
-- Package name `tv.withaibuild.customiuizer.r14`; not interchangeable with upstream.
-- `MonwF/customiuizer@v24.10.12` is used only as the Android 14 functional reference.
-- Android 15, Android 16, and API 102 Hot Reload are not supported.
-- Performance and power gains depend on the ROM, feature set, and usage; no fixed percentage is
-  claimed without same-device controlled measurements.
+This release completed APK build, production signing, zipalign, package metadata, and Xposed metadata
+basic checks, and confirmed `scope.list` contains `system` and `android`. It did not run the complete
+test suite or a full real-device smoke test.
