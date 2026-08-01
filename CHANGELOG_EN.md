@@ -1,32 +1,27 @@
 # Changelog
 
-> Note: The Releases page only keeps the current formal release. Full changelogs for older versions are preserved in this file. Older APKs are no longer available for download; historical source tags remain.
+[简体中文](CHANGELOG.md) | English
 
-This file records only user-visible changes for the LSPosed module repository.
+## r14.16.1 — 2026-08-01
 
-## r14.15.3
+- Installs module features by target process and preference state, so disabled features do not create unrelated Hooks, Receivers, Observers, or tasks, and a process cannot install the same feature repeatedly.
+- Fixes early preference snapshots, failed-install state, and reflection cache boundaries, reducing the risk of ignored toggles, duplicate installation, and unbounded cache growth.
+- Completes release paths for Receivers, Observers, weather, step counter, album art, battery indicator, and overlay Views, reducing retained Contexts, Views, and Bitmaps.
+- Shared Hook and callback boundaries continue to isolate ordinary compatibility failures without swallowing `OutOfMemoryError`.
+- Optimizes network speed, charging hints, navigation icons, battery indicators, and pass-through Hook hot paths to reduce temporary objects and repeated updates.
+- Preference switches show the target state immediately before the existing save and restart-notice logic, improving feedback for rapid taps.
+- Module-load logs include the version and short Git SHA. API 102-only Hook capabilities remain isolated from production paths.
 
-* Restores the previously-removed `system` scope, fixing `system_server` hook loading and the silent
-  failure of related system-level features.
-* Hardens the Global Actions Receiver with exception isolation, trust validation, and ordered-broadcast
-  handling.
-* Improves Receiver / Observer lifecycle and concurrent-registration handling.
-* Improves hook-load diagnostics and compatibility logging.
-* Keeps network-speed bold text in the current SystemUI font family.
-* Adds dual-row network speed line spacing from `70%` to `130%`, with related localization notes.
-* Fixes settings text-style inheritance and attribution/version text wrapping on the About page.
-* Remains compatible with HyperOS 1 / Android 14, `arm64-v8a`, and libxposed API 101/102.
+### Artifact and Verification
 
-### APK
+- APK: `CustoMIUIzer-A14-r14.16.1.apk`
+- Size: `3369409` bytes
+- SHA-256: `F213BA3F939FAA7BD12150D75A538529E9517D9CE865B6611C7A3C93C8370258`
+- Signing certificate SHA-256: `C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
+- versionCode / versionName: `192 / r14.16.1`
+- Passed the complete offline gates, Release/R8 build, v2 signature, zip alignment, `debuggable=false`, SDK, and Xposed metadata checks.
+- New changes have not completed per-feature device behavior verification.
 
-* File: `CustoMIUIzer-A14-r14.15.3.apk`
-* Size: `3107265` bytes
-* SHA-256: `F7AB34722B0193DD8C97DF0146C968E5A6064655AD497061E902CD1545375E7E`
-* Signing certificate SHA-256: `C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70`
-* versionCode / versionName: `191 / r14.15.3`
+### Historical Core Implementation Summary
 
-### Verification
-
-This release completed APK build, production signing, zipalign, package metadata, and Xposed metadata
-basic checks, and confirmed `scope.list` contains `system` and `android`. It did not run the complete
-test suite or a full real-device smoke test.
+The r14 line established an independent package, signing identity, and HyperOS 1 / Android 14 maintenance path; completed Kotlin migration, one-APK libxposed API 101/102 compatibility, `system` scope restoration, preference synchronization, lifecycle governance, reflection and resource cache hardening, and ongoing status-bar, Launcher, lock-screen, control-center, and settings UI improvements. Fine-grained history remains in the source repository's Git history and old tags, while obsolete APKs are no longer retained as Release assets.
