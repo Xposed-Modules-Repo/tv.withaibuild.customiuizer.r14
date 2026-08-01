@@ -1,80 +1,54 @@
-# CustoMIUIzer A14 Kotlin Refactor｜HyperOS 1 / Android 14｜API 101/102
+# CustoMIUIzer A14 | HyperOS 1 / Android 14
 
 [简体中文](README.md) | English
 
-A system UI and interaction customization module for **HyperOS 1 / Android 14**.
+CustoMIUIzer A14 is a system UI and interaction customization module for HyperOS 1 / Android 14.
 
-## Current Release
+## Current Version
 
 | Item | Value |
 | --- | --- |
-| Version | `r14.15.3` |
-| versionCode | `191` |
-| System | HyperOS 1 / Android 14 |
-| ABI | `arm64-v8a` |
-| applicationId | `tv.withaibuild.customiuizer.r14` |
-| libxposed | API 101–102 |
-| APK | `CustoMIUIzer-A14-r14.15.3.apk` |
-| Size | `3107265` bytes |
-| APK SHA-256 | `F7AB34722B0193DD8C97DF0146C968E5A6064655AD497061E902CD1545375E7E` |
+| Version | `r14.16.1` |
+| versionCode | `192` |
+| Application ID | `tv.withaibuild.customiuizer.r14` |
+| APK | `CustoMIUIzer-A14-r14.16.1.apk` |
+| Size | `3369409` bytes |
+| APK SHA-256 | `F213BA3F939FAA7BD12150D75A538529E9517D9CE865B6611C7A3C93C8370258` |
 | Signing certificate SHA-256 | `C0EFF2DC4E662717195490DA78B12A984C6F2E6BD38ACF4EDAD14D53E3D22E70` |
 
-> This Releases page only keeps the current formal release. Changelog for older versions has been merged into the current Release and CHANGELOG. Older APKs are no longer available for download; the historical source tags remain.
+## Compatibility and Requirements
 
-## r14.15.3 Highlights
+- HyperOS 1 / Android 14 (SDK 34);
+- `arm64-v8a` devices;
+- LSPosed / Vector implementing libxposed API 101 or 102;
+- Android 15, Android 16, and other major MIUI / HyperOS versions are not supported;
+- Do not enable this module together with upstream or another CustoMIUIzer-derived module.
 
-* Restores the previously-removed `system` scope, fixing `system_server` hook loading.
-* Hardens Global Actions and other Receivers with exception isolation, trust validation, lifecycle,
-  and concurrent-registration handling.
-* Improves hook-load diagnostics and compatibility information.
-* Keeps network-speed bold text in the current system typeface and adds dual-row line-spacing
-  adjustment.
-* Adds localization notes for network-speed settings.
-* Fixes settings text-style inheritance and About-page text wrapping.
+An API 101 manager may warn that the module targets API 102. The warning alone does not mean the module failed to load.
 
-## Supported Environment
+## Main Features
 
-* HyperOS 1 / Android 14 (SDK 34);
-* `arm64-v8a`;
-* LSPosed / Vector implementing libxposed API 101 or 102;
-* Android 15 and Android 16 are not supported.
+- Status bar icons, battery, signal, network speed, date, and temperature;
+- Control center, notifications, volume, brightness, lock screen, charging, and media UI;
+- Launcher, recents, folders, icons, and home-screen gestures;
+- Navigation bar, buttons, custom actions, power menu, and system animations;
+- App, permission, installer, sharing, privacy-app, and app-lock behavior.
 
-Feature availability depends on the device ROM and system-app versions. Do not enable this module
-with the upstream version or another CustoMIUIzer-derived module.
+`r14.16.1` focuses on runtime stability, memory release, SystemUI hot-path performance, and immediate visual feedback when a preference switch is tapped. See [CHANGELOG_EN.md](CHANGELOG_EN.md) for details.
 
-## Important Upgrade Notes
+## Installation and Upgrade
 
-Builds from `r14.13.5` and later using the new signing key can be installed as updates.
+1. Download the APK from this repository's Release and verify its SHA-256.
+2. Install it and enable the module in LSPosed / Vector.
+3. Make sure the recommended scope includes `system`.
+4. Open module settings once and fully reboot the device.
 
-When upgrading from `r14.12.0` or earlier, the old signing key is lost. Back up your settings and
-record the scope, then uninstall the old version, install the new version, re-enable the scope,
-restore settings, and fully reboot.
+Versions from `r14.13.5` onward using the current certificate can be updated in place. The old certificate used by `r14.12.0` and earlier is incompatible: back up settings and record the scope before uninstalling the old build, then install this release, restore settings, and fully reboot.
 
-## Installation
+## Risk Notice
 
-1. Download the APK from this repository's Release.
-2. Verify the APK SHA-256.
-3. Install the APK.
-4. Enable the module in LSPosed / Vector.
-5. Make sure the recommended scope includes `system`.
-6. Open the module settings once and fully reboot the device.
+This module changes system processes through Hooks. Availability depends on the ROM and system-app versions, and ROM updates may change classes, methods, or resources. If a problem occurs, disable the related feature first and retain the logs.
 
-An API 101 manager may warn that `targetApiVersion=102` targets a newer API. The warning alone does
-not mean loading failed; use target-process logs and actual behavior as the source of truth.
+This release passes the complete offline gates, formal Release/R8 build, version, signature, zip alignment, `debuggable=false`, and Xposed metadata checks. New changes have not completed per-feature device behavior verification and are not claimed as fully `DEVICE_VERIFIED` on every device.
 
-## Verification Status
-
-This release completed the official Release APK build, signing, zipalign, package metadata, and
-Xposed metadata checks, and confirmed that the APK contains both `system` and `android` scopes.
-
-This release did not run the full unit test suite, Lint, project Audit, ADB regression, or a complete
-real-device smoke test.
-
-## Source and Feedback
-
-Source code, the complete changelog, and engineering documentation:
-
-`https://github.com/tomthenpc/customiuizer-a14`
-
-When reporting issues, please provide the module version, device, ROM, framework version, actual
-scope, reproduction steps, and relevant `system_server`, SystemUI, or Launcher logs.
+Source and issue reporting: <https://github.com/tomthenpc/customiuizer-a14>
