@@ -19,7 +19,7 @@ CustoMIUIzer A14 is a system UI and interaction customization module for HyperOS
 
 - HyperOS 1 / Android 14 (SDK 34);
 - `arm64-v8a` devices;
-- [Vector v2.2](https://github.com/JingMatrix/Vector/releases/tag/v2.2), libxposed API 101/102;
+- libxposed API 101/102;
 - Android 15, Android 16, and other major MIUI / HyperOS versions are not supported;
 - Do not enable this module together with upstream or another CustoMIUIzer-derived module.
 
@@ -36,7 +36,7 @@ CustoMIUIzer A14 is a system UI and interaction customization module for HyperOS
 ## Installation and Upgrade
 
 - Download `CustoMIUIzer-A14-r14.18.0.apk` from this repository's Release;
-- Enable the module in [Vector v2.2](https://github.com/JingMatrix/Vector/releases/tag/v2.2);
+- Enable the module;
 - Make sure the recommended scope includes `system`;
 - Fully reboot the device.
 
