@@ -31,7 +31,7 @@ CustoMIUIzer A14 是面向 HyperOS 1 / Android 14 的系统界面与交互定制
 - 导航栏、按键、自定义动作、电源菜单和系统动画；
 - 应用、权限、安装、分享、隐私应用和应用锁行为。
 
-`r14.18.2` 重点改进通知弹窗和锁屏功能的兼容性与失败保护、修复充电信息字号被系统样式重置的问题，并简化 SystemUI / system_server 生命周期 Hook。详细变化见 [CHANGELOG.md](CHANGELOG.md)。
+`r14.18.2` 重点改进通知弹窗和锁屏功能的兼容性与失败保护、修复充电信息字号被系统样式重置的问题，并简化 SystemUI / system_server 生命周期 Hook。详细变化见 [CHANGELOG_CN.md](CHANGELOG_CN.md)。
 
 ## 安装与升级
 
@@ -44,6 +44,6 @@ CustoMIUIzer A14 是面向 HyperOS 1 / Android 14 的系统界面与交互定制
 
 模块通过 Hook 修改系统进程，功能可用性取决于设备 ROM 与系统应用版本。ROM 更新可能改变类、方法或资源结构，异常时请先停用相关功能并保留日志。
 
-本版本已通过完整离线门禁、正式 Release/R8 构建、版本、v2 签名、zipalign、`debuggable=false` 和 Xposed 元数据校验。状态栏高度无重启切换的 fuxi 实机验证未执行，因此不宣称所有功能或所有设备均已 `DEVICE_VERIFIED`。
+本版本已通过完整离线门禁、正式 Release/R8 构建、版本、v2 签名、zipalign、`debuggable=false` 和 Xposed 元数据校验，且 Release Candidate 已完成安装并通过实机冒烟验证。功能可用性仍取决于具体 ROM 与系统应用版本，不宣称所有功能或所有设备均已全面 `DEVICE_VERIFIED`。
 
 源码与问题反馈：<https://github.com/tomthenpc/customiuizer-a14>

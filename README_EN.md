@@ -31,7 +31,7 @@ CustoMIUIzer A14 is a system UI and interaction customization module for HyperOS
 - Navigation bar, buttons, custom actions, power menu, and system animations;
 - App, permission, installer, sharing, privacy-app, and app-lock behavior.
 
-`r14.18.2` improves the compatibility and fail-closed behavior of heads-up notification and lockscreen hooks, fixes the charging-info font size being reset by system styles, and simplifies SystemUI / system_server lifecycle hooks. See [CHANGELOG_EN.md](CHANGELOG_EN.md) for details.
+`r14.18.2` improves the compatibility and fail-closed behavior of heads-up notification and lockscreen hooks, fixes the charging-info font size being reset by system styles, and simplifies SystemUI / system_server lifecycle hooks. See [CHANGELOG.md](CHANGELOG.md) for details.
 
 ## Installation and Upgrade
 
@@ -44,6 +44,6 @@ CustoMIUIzer A14 is a system UI and interaction customization module for HyperOS
 
 This module changes system processes through Hooks. Availability depends on the ROM and system-app versions, and ROM updates may change classes, methods, or resources. If a problem occurs, disable the related feature first and retain the logs.
 
-This release passes the complete offline gates, formal Release/R8 build, version, v2 signature, zip alignment, `debuggable=false`, and Xposed metadata checks. The fuxi no-reboot status-bar-height switch has not been run on a physical device, so not all features or all devices are claimed as `DEVICE_VERIFIED`.
+This release passes the complete offline gates, formal Release/R8 build, version, v2 signature, zip alignment, `debuggable=false`, and Xposed metadata checks, and the release candidate was installed and passed device smoke validation. Feature availability still depends on the ROM and system-app versions, and not all features or all devices are claimed as fully `DEVICE_VERIFIED`.
 
 Source and issue reporting: <https://github.com/tomthenpc/customiuizer-a14>
