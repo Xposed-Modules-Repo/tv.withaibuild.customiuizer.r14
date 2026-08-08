@@ -2,6 +2,23 @@
 
 简体中文 | [English](CHANGELOG_EN.md)
 
+## r14.18.2 — 2026-08-08
+
+面向 HyperOS 1 / Android 14（SDK 34）、`arm64-v8a` 与 libxposed API 101/102。
+
+- 提升通知弹窗和锁屏功能在 HyperOS / Android 14 下的兼容性与稳定性。
+- 修复充电信息字号在锁屏提示更新后恢复默认的问题。
+- 简化部分系统 Hook 生命周期处理。
+- 改进 Hook 安装异常处理。
+
+### 产物信息
+
+- APK：`CustoMIUIzer-A14-r14.18.2.apk`
+- 大小：`3468849` bytes
+- SHA-256：`77F868590C631271251991EDEBF066919460E2F1DA955EFDC10271207EAF3E77`
+- versionCode / versionName：`195 / r14.18.2`
+- 已通过完整离线门禁、Release/R8 构建、v2 签名、zipalign、`debuggable=false`、SDK 与 Xposed 元数据检查。
+
 ## r14.18.0 — 2026-08-06
 
 面向 HyperOS 1 / Android 14（SDK 34）、`arm64-v8a` 与 libxposed API 101/102。
