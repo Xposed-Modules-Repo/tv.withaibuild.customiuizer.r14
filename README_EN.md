@@ -8,12 +8,12 @@ CustoMIUIzer A14 is a system UI and interaction customization module for HyperOS
 
 | Item | Value |
 | --- | --- |
-| Version | `r14.18.0` |
-| versionCode | `193` |
+| Version | `r14.18.2` |
+| versionCode | `195` |
 | Application ID | `tv.withaibuild.customiuizer.r14` |
-| APK | `CustoMIUIzer-A14-r14.18.0.apk` |
-| Size | `3436081` bytes |
-| APK SHA-256 | `31D839BDE68749D16FC13FC426B3B4975E84A29F9910326D33BBE00815FE9953` |
+| APK | `CustoMIUIzer-A14-r14.18.2.apk` |
+| Size | `3468849` bytes |
+| APK SHA-256 | `77F868590C631271251991EDEBF066919460E2F1DA955EFDC10271207EAF3E77` |
 
 ## Compatibility and Requirements
 
@@ -31,11 +31,11 @@ CustoMIUIzer A14 is a system UI and interaction customization module for HyperOS
 - Navigation bar, buttons, custom actions, power menu, and system animations;
 - App, permission, installer, sharing, privacy-app, and app-lock behavior.
 
-`r14.18.0` adds adjustable lock-screen charging text size, live status-bar height synchronization, a fix for dark-visibility of left-side custom text icons, and hardens SystemUI and gesture lifecycles. See [CHANGELOG_EN.md](CHANGELOG_EN.md) for details.
+`r14.18.2` improves the compatibility and fail-closed behavior of heads-up notification and lockscreen hooks, fixes the charging-info font size being reset by system styles, and simplifies SystemUI / system_server lifecycle hooks. See [CHANGELOG_EN.md](CHANGELOG_EN.md) for details.
 
 ## Installation and Upgrade
 
-- Download `CustoMIUIzer-A14-r14.18.0.apk` from this repository's Release;
+- Download `CustoMIUIzer-A14-r14.18.2.apk` from this repository's Release;
 - Enable the module;
 - Make sure the recommended scope includes `system`;
 - Fully reboot the device.
