@@ -2,6 +2,23 @@
 
 English | [简体中文](CHANGELOG_CN.md)
 
+## r14.18.6 — 2026-08-09
+
+- Rebuilt settings navigation around lazy category pages and a generated search index; removed transition residue and reorganized the Various section.
+- Removed repeated caller stack scans from Launcher gestures, charging hints, and Security Center dock handling.
+- Fixed AudioVisualizer and battery-indicator observer ownership, startup activation-state races, and stale app selections restored from backups.
+- Fixed app status-bar/content geometry not following a custom status-bar height.
+- Clarified generic input-method naming while keeping Gboard-only padding controls explicit.
+- Added **in-development** HyperOS status-capsule controls for charging, silent mode, and Do Not Disturb; status-bar height matching remains under compatibility work.
+- Passed the complete A14 gates and official Release artifact checks.
+
+### Artifact Information
+
+- APK: `CustoMIUIzer-A14-r14.18.6.apk`
+- Size: `3353186` bytes
+- SHA-256: `7434C6B40E1FA913D7BC465D31DC04CD6C66C4763958A3053223EB3991320D7D`
+- versionCode / versionName: `196 / r14.18.6`
+
 ## r14.18.2 — 2026-08-08
 
 - Improved compatibility and fail-closed behavior for notification and lockscreen hooks.
