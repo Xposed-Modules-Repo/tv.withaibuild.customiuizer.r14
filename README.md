@@ -8,12 +8,12 @@ CustoMIUIzer A14 是面向 HyperOS 1 / Android 14 的系统界面与交互定制
 
 | 项目 | 值 |
 | --- | --- |
-| 版本 | `r14.20.0` |
-| versionCode | `198` |
+| 版本 | `r14.20.2` |
+| versionCode | `199` |
 | 应用 ID | `tv.withaibuild.customiuizer.r14` |
-| APK | `CustoMIUIzer-A14-r14.20.0.apk` |
-| 大小 | `3805054` bytes |
-| APK SHA-256 | `AD9A8B86CFC5C55A0AB1D6EE1AE5EB3316897838A39B667F44154D219215722B` |
+| APK | `CustoMIUIzer-A14-r14.20.2.apk` |
+| 大小 | `3844538` bytes |
+| APK SHA-256 | `64D4241AB6F8F6970EEBDCF9D871F366FC035D2399FC706EFE3166F05F62BD48` |
 
 ## 兼容范围与要求
 
@@ -32,11 +32,11 @@ CustoMIUIzer A14 是面向 HyperOS 1 / Android 14 的系统界面与交互定制
 - 导航栏、按键、自定义动作、电源菜单和系统动画；
 - 应用、权限、安装、分享、隐私应用和应用锁行为。
 
-`r14.20.0` 新增动态岛模式、USB 默认用途、最近任务隐藏应用名、备份 V2，以及多项设置与界面整理。模块改为静态作用域，只暴露当前实际支持的 Hook 目标。详细变化见 [CHANGELOG_CN.md](CHANGELOG_CN.md)。
+`r14.20.2` 修复状态栏温度来源、双排位置、自定义高度下的文字裁切，以及内容垂直位置。详细变化见 [CHANGELOG_CN.md](CHANGELOG_CN.md)。
 
 ## 安装与升级
 
-1. 从本仓库 Release 下载 `CustoMIUIzer-A14-r14.20.0.apk`；
+1. 从本仓库 Release 下载 `CustoMIUIzer-A14-r14.20.2.apk`；
 2. 启用模块；
 3. 确认作用域包含 `system`、桌面等必要应用；
 4. 完整重启设备。
