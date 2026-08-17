@@ -2,6 +2,35 @@
 
 English | [简体中文](CHANGELOG_CN.md)
 
+## r14.20.2 — 2026-08-17
+
+Targeting HyperOS 1 / Android 14 (SDK 34), `arm64-v8a`, and libxposed API 101/102.
+
+### Status Bar
+
+- Device temperature now uses separate CPU and battery sources, with more compatible CPU thermal-zone parsing.
+- In dual-row mode, temperature moves to the left when “show on the right” is off.
+- Default font size is kept when it fits. If a custom height or vertical offset leaves too little room, text shrinks instead of being clipped.
+- Status-bar contents can be moved vertically without leaving the status-bar window.
+
+### Fixes
+
+- Dynamic Island upward recall is more reliable.
+- Device-info updates no longer depend on network-speed controller slots, so temperature text can still appear without that controller.
+
+### Stability and Compatibility
+
+- Custom status-bar height, dual-row layout, and vertical offset keep text and system icons inside the status-bar window.
+
+### Artifact Information
+
+- APK: `CustoMIUIzer-A14-r14.20.2.apk`
+- Size: `3844538` bytes
+- SHA-256: `64D4241AB6F8F6970EEBDCF9D871F366FC035D2399FC706EFE3166F05F62BD48`
+- versionCode / versionName: `199 / r14.20.2`
+
+---
+
 ## r14.20.0 — 2026-08-17
 
 Targeting HyperOS 1 / Android 14 (SDK 34), `arm64-v8a`, and libxposed API 101/102.
