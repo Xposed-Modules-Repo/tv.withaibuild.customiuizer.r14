@@ -8,12 +8,12 @@ CustoMIUIzer A14 is a system UI and interaction customization module for HyperOS
 
 | Item | Value |
 | --- | --- |
-| Version | `r14.20.2` |
-| versionCode | `199` |
+| Version | `r14.20.7` |
+| versionCode | `204` |
 | Application ID | `tv.withaibuild.customiuizer.r14` |
-| APK | `CustoMIUIzer-A14-r14.20.2.apk` |
-| Size | `3844538` bytes |
-| APK SHA-256 | `64D4241AB6F8F6970EEBDCF9D871F366FC035D2399FC706EFE3166F05F62BD48` |
+| APK | `CustoMIUIzer-A14-r14.20.7.apk` |
+| Size | `3882834` bytes |
+| APK SHA-256 | `D713D2D36A99C79AA1597952AE339788E8CC1E48084A805D779123E752414312` |
 
 ## Compatibility and Requirements
 
@@ -32,11 +32,11 @@ CustoMIUIzer A14 is a system UI and interaction customization module for HyperOS
 - Navigation bar, buttons, custom actions, power menu, and system animations;
 - App, permission, installer, sharing, privacy-app, and app-lock behavior.
 
-`r14.20.2` fixes status-bar temperature sources, dual-row placement, text clipping under custom height, and content vertical offset. See [CHANGELOG.md](CHANGELOG.md) for details.
+`r14.20.7` fixes Extended Action selector crashes, Toggle action failure, and lock-screen Toggle label/value mismatch. See [CHANGELOG.md](CHANGELOG.md) for details.
 
 ## Installation and Upgrade
 
-- Download `CustoMIUIzer-A14-r14.20.2.apk` from this repository's Release;
+- Download `CustoMIUIzer-A14-r14.20.7.apk` from this repository's Release;
 - Enable the module;
 - Confirm that scope includes `system`, the launcher, and the other required apps;
 - Fully reboot the device.
