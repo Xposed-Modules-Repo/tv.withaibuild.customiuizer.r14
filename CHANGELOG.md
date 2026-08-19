@@ -2,6 +2,29 @@
 
 English | [简体中文](CHANGELOG_CN.md)
 
+## r14.20.8 — 2026-08-19
+
+Targeting HyperOS 1 / Android 14 (SDK 34), `arm64-v8a`, and libxposed API 101/102.
+
+### Fixes
+
+- Fix display names for hotspot, Do Not Disturb, and night mode actions.
+- Fix display names for play/pause, previous, and next media actions.
+
+### Runtime and Lifecycle
+
+- Improve runtime availability of global actions in system services and SystemUI.
+- Improve runtime synchronization and host lifecycle handling for action configuration.
+
+### Artifact Information
+
+- APK: `CustoMIUIzer-A14-r14.20.8.apk`
+- Size: `3882830` bytes
+- SHA-256: `25E9B5EA763419843E9EE78E579BC8C43B00382DF6BFCED38893793709BC7911`
+- versionCode / versionName: `205 / r14.20.8`
+
+---
+
 ## r14.20.2 — 2026-08-17
 
 Targeting HyperOS 1 / Android 14 (SDK 34), `arm64-v8a`, and libxposed API 101/102.

@@ -2,6 +2,29 @@
 
 [English](CHANGELOG.md) | 简体中文
 
+## r14.20.8 — 2026-08-19
+
+面向 HyperOS 1 / Android 14（SDK 34）、`arm64-v8a` 与 libxposed API 101/102。
+
+### 修复
+
+- 修复热点、勿扰模式和深色模式动作的显示名称。
+- 修复播放/暂停、上一首和下一首媒体动作的显示名称。
+
+### 运行期与生命周期
+
+- 改进全局动作在系统服务与系统界面中的运行时可用性。
+- 改进动作配置的运行时同步与宿主生命周期处理。
+
+### 产物信息
+
+- APK：`CustoMIUIzer-A14-r14.20.8.apk`
+- 大小：`3882830` bytes
+- SHA-256：`25E9B5EA763419843E9EE78E579BC8C43B00382DF6BFCED38893793709BC7911`
+- versionCode / versionName：`205 / r14.20.8`
+
+---
+
 ## r14.20.2 — 2026-08-17
 
 面向 HyperOS 1 / Android 14（SDK 34）、`arm64-v8a` 与 libxposed API 101/102。
