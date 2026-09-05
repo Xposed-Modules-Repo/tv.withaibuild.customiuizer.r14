@@ -8,12 +8,13 @@ CustoMIUIzer A14 is a system UI and interaction customization module for HyperOS
 
 | Item | Value |
 | --- | --- |
-| Version | `r14.20.8` |
-| versionCode | `205` |
+| Prerelease | `r14.20.9` |
+| Stable | `r14.20.8` |
+| versionCode | `206` |
 | Application ID | `tv.withaibuild.customiuizer.r14` |
-| APK | `CustoMIUIzer-A14-r14.20.8.apk` |
-| Size | `3882830` bytes |
-| APK SHA-256 | `25E9B5EA763419843E9EE78E579BC8C43B00382DF6BFCED38893793709BC7911` |
+| APK | `CustoMIUIzer-A14-r14.20.9.apk` |
+| Size | `3882834` bytes |
+| APK SHA-256 | `BB179572B7CF9FB6D80DC5E078126EAE383375486EF9D93816345CDCC5C1B9DC` |
 
 ## Compatibility and Requirements
 
@@ -32,19 +33,19 @@ CustoMIUIzer A14 is a system UI and interaction customization module for HyperOS
 - Navigation bar, buttons, custom actions, power menu, and system animations;
 - App, permission, installer, sharing, privacy-app, and app-lock behavior.
 
-`r14.20.8` fixes display names for hotspot, Do Not Disturb, and night mode actions, fixes display names for play/pause, previous, and next media actions, improves runtime availability of global actions in system services and SystemUI, and improves runtime synchronization and host lifecycle handling for action configuration. See [CHANGELOG.md](CHANGELOG.md) for details.
+`r14.20.9` is a prerelease: system_server does not install preference-gated features before the snapshot is ready, a fast SystemUI restart no longer skips the hook catalog, WindowManager type errors stay in the hook, and status-bar height resource replacement is limited to android, SystemUI, and the launcher. See [CHANGELOG.md](CHANGELOG.md) for details.
 
 ## Installation and Upgrade
 
-- Download `CustoMIUIzer-A14-r14.20.8.apk` from this repository's Release;
+- Download `CustoMIUIzer-A14-r14.20.9.apk` from this repository's Release;
 - Enable the module;
 - Confirm that scope includes `system`, the launcher, and the other required apps;
 - Fully reboot the device.
 
 ## Risk Notice
 
-This module changes system processes through Hooks. Availability depends on the ROM and system-app versions, and ROM updates may change classes, methods, or resources. If a problem occurs, disable the related feature first and retain the logs.
+This module changes system processes through Hooks. Availability depends on the ROM and system-app versions, and ROM updates may change classes, methods, or resources. If a problem occurs, disable the related feature first and retain the logs. This is a prerelease; the current stable release remains `r14.20.8`.
 
-This release passes the complete offline gates, formal Release/R8 build, version, v2 signature, zip alignment, `debuggable=false`, and Xposed metadata checks. A full reboot is required after enabling. If USB is already connected after changing the default purpose, unplug and replug once.
+This prerelease passes the formal Release/R8 build, version, v2 signature, zip alignment, `debuggable=false`, Xposed metadata, and provenance checks. A full reboot is required after enabling.
 
 Source and issue reporting: <https://github.com/tomthenpc/customiuizer-a14>

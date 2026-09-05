@@ -2,6 +2,26 @@
 
 [English](CHANGELOG.md) | 简体中文
 
+## r14.20.9 — 2026-09-05
+
+预发布。面向 HyperOS 1 / Android 14（SDK 34）、`arm64-v8a`、libxposed API 101/102。当前正式版仍为 `r14.20.8`。
+
+### 稳定性
+
+- system_server 在偏好快照未就绪时不再安装业务功能；快照首次加载后再补装尚未安装的功能。
+- SystemUI 快速重启不再跳过整份 Hook catalog，避免杀进程应用设置后功能未生效。
+- WindowManager 热路径上的类型错误不再打穿系统窗口管理；构造函数按参数类型定位 flags。
+- 自定义状态栏高度的资源替换只进入 `android`、系统界面和桌面；窗口高度仍由 system_server 的 insets / layout 生效。
+
+### 产物信息
+
+- APK：`CustoMIUIzer-A14-r14.20.9.apk`
+- 大小：`3882834` bytes
+- SHA-256：`BB179572B7CF9FB6D80DC5E078126EAE383375486EF9D93816345CDCC5C1B9DC`
+- versionCode / versionName：`206 / r14.20.9`
+
+---
+
 ## r14.20.8 — 2026-08-19
 
 面向 HyperOS 1 / Android 14（SDK 34）、`arm64-v8a` 与 libxposed API 101/102。

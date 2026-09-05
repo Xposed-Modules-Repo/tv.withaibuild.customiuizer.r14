@@ -8,12 +8,13 @@ CustoMIUIzer A14 是面向 HyperOS 1 / Android 14 的系统界面与交互定制
 
 | 项目 | 值 |
 | --- | --- |
-| 版本 | `r14.20.8` |
-| versionCode | `205` |
+| 预发布 | `r14.20.9` |
+| 正式版 | `r14.20.8` |
+| versionCode | `206` |
 | 应用 ID | `tv.withaibuild.customiuizer.r14` |
-| APK | `CustoMIUIzer-A14-r14.20.8.apk` |
-| 大小 | `3882830` bytes |
-| APK SHA-256 | `25E9B5EA763419843E9EE78E579BC8C43B00382DF6BFCED38893793709BC7911` |
+| APK | `CustoMIUIzer-A14-r14.20.9.apk` |
+| 大小 | `3882834` bytes |
+| APK SHA-256 | `BB179572B7CF9FB6D80DC5E078126EAE383375486EF9D93816345CDCC5C1B9DC` |
 
 ## 兼容范围与要求
 
@@ -32,19 +33,19 @@ CustoMIUIzer A14 是面向 HyperOS 1 / Android 14 的系统界面与交互定制
 - 导航栏、按键、自定义动作、电源菜单和系统动画；
 - 应用、权限、安装、分享、隐私应用和应用锁行为。
 
-`r14.20.8` 修复热点、勿扰模式和深色模式动作的显示名称，修复播放/暂停、上一首和下一首媒体动作的显示名称，改进全局动作在系统服务与系统界面中的运行时可用性，并改进动作配置的运行时同步与宿主生命周期处理。详细变化见 [CHANGELOG_CN.md](CHANGELOG_CN.md)。
+`r14.20.9` 是预发布：system_server 在偏好快照未就绪时不再安装业务功能，SystemUI 快速重启不再跳过 Hook catalog，WindowManager 热路径类型错误不再打穿系统窗口管理，自定义状态栏高度资源替换只进入 android、系统界面和桌面。详细变化见 [CHANGELOG_CN.md](CHANGELOG_CN.md)。
 
 ## 安装与升级
 
-1. 从本仓库 Release 下载 `CustoMIUIzer-A14-r14.20.8.apk`；
+1. 从本仓库 Release 下载 `CustoMIUIzer-A14-r14.20.9.apk`；
 2. 启用模块；
 3. 确认作用域包含 `system`、桌面等必要应用；
 4. 完整重启设备。
 
 ## 风险提示
 
-模块通过 Hook 修改系统进程，功能可用性取决于设备 ROM 与系统应用版本。ROM 更新可能改变类、方法或资源结构，异常时请先停用相关功能并保留日志。
+模块通过 Hook 修改系统进程，功能可用性取决于设备 ROM 与系统应用版本。ROM 更新可能改变类、方法或资源结构，异常时请先停用相关功能并保留日志。本版本为预发布，当前正式版仍为 `r14.20.8`。
 
-本版本已通过完整离线门禁、正式 Release/R8 构建、版本、v2 签名、zipalign、`debuggable=false` 和 Xposed 元数据校验。启用后请完整重启；USB 默认用途在改选项后如线已接入，需拔插一次。
+本预发布已通过正式 Release/R8 构建、版本、v2 签名、zipalign、`debuggable=false`、Xposed 元数据与 provenance 校验。启用后请完整重启。
 
 源码与问题反馈：<https://github.com/tomthenpc/customiuizer-a14>
