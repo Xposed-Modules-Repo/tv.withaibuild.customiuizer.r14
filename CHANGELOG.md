@@ -2,9 +2,32 @@
 
 English | [简体中文](CHANGELOG_CN.md)
 
+## r14.21.5 — 2026-09-06
+
+Targeting HyperOS 1 / Android 14 (SDK 34), `arm64-v8a`, libxposed API 101/102.
+
+### Settings UI
+
+- Optimized the settings UI.
+
+### Notifications
+
+- Open channel settings now opens the system channel page for the current notification.
+- Notification importance works with both ChannelNotificationSettings implementations.
+- Extra notification-row actions keep the last item on screen.
+
+### Artifact Information
+
+- APK: `CustoMIUIzer-A14-r14.21.5.apk`
+- Size: `3886062` bytes
+- SHA-256: `3F952F37A4E1EAB18C9D2BD17AF4B72DBFB231F7DB3309D054538B7E5141B820`
+- versionCode / versionName: `212 / r14.21.5`
+
+---
+
 ## r14.20.9 — 2026-09-05
 
-Prerelease. Targeting HyperOS 1 / Android 14 (SDK 34), `arm64-v8a`, libxposed API 101/102. Current stable release remains `r14.20.8`.
+Targeting HyperOS 1 / Android 14 (SDK 34), `arm64-v8a`, libxposed API 101/102.
 
 ### Stability
 

@@ -2,9 +2,32 @@
 
 [English](CHANGELOG.md) | 简体中文
 
+## r14.21.5 — 2026-09-06
+
+面向 HyperOS 1 / Android 14（SDK 34）、`arm64-v8a`、libxposed API 101/102。
+
+### 设置界面
+
+- 优化了设置界面。
+
+### 通知
+
+- 修复「打开频道设置」，按当前通知打开系统频道设置页。
+- 「通知重要性」同时兼容新旧 ChannelNotificationSettings。
+- 修复扩展通知菜单最右侧一项被裁切。
+
+### 产物信息
+
+- APK：`CustoMIUIzer-A14-r14.21.5.apk`
+- 大小：`3886062` bytes
+- SHA-256：`3F952F37A4E1EAB18C9D2BD17AF4B72DBFB231F7DB3309D054538B7E5141B820`
+- versionCode / versionName：`212 / r14.21.5`
+
+---
+
 ## r14.20.9 — 2026-09-05
 
-预发布。面向 HyperOS 1 / Android 14（SDK 34）、`arm64-v8a`、libxposed API 101/102。当前正式版仍为 `r14.20.8`。
+面向 HyperOS 1 / Android 14（SDK 34）、`arm64-v8a`、libxposed API 101/102。
 
 ### 稳定性
 
