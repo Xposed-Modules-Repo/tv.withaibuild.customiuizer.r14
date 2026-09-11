@@ -8,12 +8,13 @@ CustoMIUIzer A14 是面向 HyperOS 1 / Android 14 的系统界面与交互定制
 
 | 项目 | 值 |
 | --- | --- |
-| 版本 | `r14.21.5` |
-| versionCode | `212` |
+| 版本 | `r14.21.7` |
+| versionCode | `216` |
+| 维护与开发 | `thetvplus` |
 | 应用 ID | `tv.withaibuild.customiuizer.r14` |
-| APK | `CustoMIUIzer-A14-r14.21.5.apk` |
-| 大小 | `3886062` bytes |
-| APK SHA-256 | `3F952F37A4E1EAB18C9D2BD17AF4B72DBFB231F7DB3309D054538B7E5141B820` |
+| APK | `CustoMIUIzer-A14-r14.21.7.apk` |
+| 大小 | `3915378` bytes |
+| APK SHA-256 | `EA0C999DA76BC3F0C57156AC8CF7F7FA318045A3FB8A56627DA556EAB14BE103` |
 
 ## 兼容范围与要求
 
@@ -32,11 +33,11 @@ CustoMIUIzer A14 是面向 HyperOS 1 / Android 14 的系统界面与交互定制
 - 导航栏、按键、自定义动作、电源菜单和系统动画；
 - 应用、权限、安装、分享、隐私应用和应用锁行为。
 
-`r14.21.5` 优化了设置界面，并修复通知频道设置入口。详细变化见 [CHANGELOG_CN.md](CHANGELOG_CN.md)。
+`r14.21.7` 修复状态栏图标左移和设置页过渡，新增左侧图标微调，并扩充设置搜索。详细变化见 [CHANGELOG_CN.md](CHANGELOG_CN.md)。
 
 ## 安装与升级
 
-1. 从本仓库 Release 下载 `CustoMIUIzer-A14-r14.21.5.apk`；
+1. 从本仓库 Release 下载 `CustoMIUIzer-A14-r14.21.7.apk`；
 2. 启用模块；
 3. 确认作用域包含 `system`、桌面等必要应用；
 4. 完整重启设备。
@@ -47,4 +48,4 @@ CustoMIUIzer A14 是面向 HyperOS 1 / Android 14 的系统界面与交互定制
 
 本版本已通过正式 Release/R8 构建、版本、v2 签名、zipalign、`debuggable=false`、Xposed 元数据与 provenance 校验。启用后请完整重启。
 
-源码与问题反馈：<https://github.com/tomthenpc/customiuizer-a14>
+源码与问题反馈：<https://github.com/thetvplus/customiuizer-a14>

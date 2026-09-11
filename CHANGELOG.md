@@ -2,6 +2,21 @@
 
 English | [简体中文](CHANGELOG_CN.md)
 
+## r14.21.7 — 2026-09-11
+
+versionCode 216, for HyperOS 1 / Android 14.
+
+Changes since r14.21.5:
+
+- Fix moving mobile signal and Wi-Fi icons to the left side of the status bar, and improve their size and vertical alignment.
+- Add left-side icon size (75%–125%) and vertical offset (−6–6 dp) controls. Restart System UI after changing these settings.
+- Fix content shifting upward during the transition into the System → Control center settings page.
+- Expand settings search to include switches on standalone pages such as Hide icons. Support combined page-path and keyword queries, Wi-Fi/WIFI matching, and direct navigation to the matching option.
+- Remove the duplicate pressed background from switch rows while preserving switch feedback and search highlighting.
+- Update the About-page maintainer to thetvplus.
+
+---
+
 ## r14.21.5 — 2026-09-06
 
 Targeting HyperOS 1 / Android 14 (SDK 34), `arm64-v8a`, libxposed API 101/102.
