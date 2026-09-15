@@ -8,13 +8,13 @@ CustoMIUIzer A14 is a system UI and interaction customization module for HyperOS
 
 | Item | Value |
 | --- | --- |
-| Version | `r14.21.7` |
-| versionCode | `216` |
+| Version | `r14.21.8` |
+| versionCode | `217` |
 | Maintainer | `thetvplus` |
 | Application ID | `tv.withaibuild.customiuizer.r14` |
-| APK | `CustoMIUIzer-A14-r14.21.7.apk` |
-| Size | `3915378` bytes |
-| APK SHA-256 | `EA0C999DA76BC3F0C57156AC8CF7F7FA318045A3FB8A56627DA556EAB14BE103` |
+| APK | `CustoMIUIzer-A14-r14.21.8.apk` |
+| Size | `3915382` bytes |
+| APK SHA-256 | `9A5E6AB33AE9715740E62ADF7F06E240918E4D49F306497BAF377A32EC06AF57` |
 
 ## Compatibility and Requirements
 
@@ -33,11 +33,11 @@ CustoMIUIzer A14 is a system UI and interaction customization module for HyperOS
 - Navigation bar, buttons, custom actions, power menu, and system animations;
 - App, permission, installer, sharing, privacy-app, and app-lock behavior.
 
-`r14.21.7` fixes left-side status bar icons and settings transitions, adds icon size and offset controls, and expands settings search. See [CHANGELOG.md](CHANGELOG.md) for details.
+`r14.21.8` improves sorting, search, and result updates in app-lock, privacy-app, and shortcut lists, reduces repeated queries and temporary allocations, and fixes missing icons in affected lists. See [CHANGELOG.md](CHANGELOG.md) for details.
 
 ## Installation and Upgrade
 
-- Download `CustoMIUIzer-A14-r14.21.7.apk` from this repository's Release;
+- Download `CustoMIUIzer-A14-r14.21.8.apk` from this repository's Release;
 - Enable the module;
 - Confirm that scope includes `system`, the launcher, and the other required apps;
 - Fully reboot the device.
