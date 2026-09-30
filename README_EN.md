@@ -4,13 +4,13 @@
 
 CustoMIUIzer A14 is a system UI and interaction customization module maintained for **HyperOS 1 / Android 14 (SDK 34)**. It has an independent package and release line and is not an official upstream release.
 
-- Current version: `r14.21.8` (Release, versionCode 217)
+- Current version: `r14.21.9` (Release, versionCode 218)
 - Development and maintenance: `thetvplus`
 - Application ID: `tv.withaibuild.customiuizer.r14`
 - Source: <https://github.com/thetvplus/customiuizer-a14>
 - User downloads: <https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases>
 
-`r14.21.8` improves sorting, search, and result updates in app-lock, privacy-app, and shortcut lists, reduces repeated queries and temporary allocations, and fixes missing icons in affected lists. See [CHANGELOG.md](CHANGELOG.md) for details.
+`r14.21.9` prevents control-center step refreshes from accumulating during slow queries and cancels obsolete refresh work when the screen turns off, the last view is removed, or the controller is reinitialized. See [CHANGELOG.md](CHANGELOG.md) for details.
 
 ## Core Features
 

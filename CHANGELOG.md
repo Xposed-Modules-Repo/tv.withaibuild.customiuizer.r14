@@ -2,6 +2,18 @@
 
 English | [简体中文](CHANGELOG_CN.md)
 
+## r14.21.9 — 2026-09-30
+
+versionCode 218, for HyperOS 1 / Android 14.
+
+Changes since r14.21.8:
+
+- Coalesce repeated control-center step refresh requests so slow queries do not accumulate waiting work.
+- Cancel obsolete refreshes when the screen turns off, the last step view is removed, or the controller is reinitialized, preventing queued queries and stale view updates after exit.
+- Keep provider queries serialized across rapid screen changes and controller replacement; add regression coverage for slow queries, lifecycle cleanup, and refresh recovery.
+
+---
+
 ## r14.21.8 — 2026-09-15
 
 versionCode 217, for HyperOS 1 / Android 14.
