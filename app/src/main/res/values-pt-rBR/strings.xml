@@ -1061,4 +1061,10 @@
     <string name="system_statusbar_lefticons_adjust_summ" formatted="false">Ajusta todo o grupo de ícones movidos para a esquerda. 100% mantém o tamanho do sistema. Requer reiniciar a interface do sistema.</string>
     <string name="system_statusbar_lefticons_verticaloffset_title">Deslocamento vertical dos ícones à esquerda</string>
     <string name="system_statusbar_lefticons_offset_summ">Valores negativos movem para cima e positivos para baixo. 0 dp mantém a posição do sistema. Requer reiniciar a interface do sistema.</string>
+    <string name="system_statusbar_duo_title">Duo: ícone de status três em um</string>
+    <string name="system_statusbar_duo_summ">Anel da bateria, Wi-Fi e sinal móvel em um ícone; com dois SIMs, usa o SIM de dados padrão</string>
+    <string name="system_statusbar_duo_restart">Reinicie a interface do sistema após ativar, desativar ou alterar as configurações. Dispositivos incompatíveis mantêm os ícones originais.</string>
+    <string name="system_statusbar_duo_percent_title">Mostrar porcentagem da bateria</string>
+    <string name="system_statusbar_duo_size_title">Tamanho máximo do ícone</string>
+    <string name="system_statusbar_duo_size_summ">O ícone se ajusta à altura atual da barra de status.</string>
 </resources>

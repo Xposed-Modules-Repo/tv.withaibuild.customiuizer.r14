@@ -1066,4 +1066,10 @@ ss - iki basamaklı saniye(09)</string>
     <string name="system_statusbar_lefticons_adjust_summ" formatted="false">Sola taşınan simge grubunun tamamını ayarlar. %100, sistem boyutunu korur. Sistem arayüzünün yeniden başlatılması gerekir.</string>
     <string name="system_statusbar_lefticons_verticaloffset_title">Soldaki simgelerin dikey kaydırması</string>
     <string name="system_statusbar_lefticons_offset_summ">Negatif değerler yukarı, pozitif değerler aşağı kaydırır. 0 dp, sistem konumunu korur. Sistem arayüzünün yeniden başlatılması gerekir.</string>
+    <string name="system_statusbar_duo_title">Duo: üçü bir arada durum simgesi</string>
+    <string name="system_statusbar_duo_summ">Pil halkası, Wi-Fi ve mobil sinyal tek simgede; çift SIM için varsayılan veri SIM kartı kullanılır</string>
+    <string name="system_statusbar_duo_restart">Etkinleştirme, devre dışı bırakma veya ayar değişikliğinden sonra sistem arayüzünü yeniden başlatın. Uyumsuz cihazlarda özgün simgeler korunur.</string>
+    <string name="system_statusbar_duo_percent_title">Pil yüzdesini göster</string>
+    <string name="system_statusbar_duo_size_title">En büyük simge boyutu</string>
+    <string name="system_statusbar_duo_size_summ">Simge mevcut durum çubuğu yüksekliğine sığar.</string>
 </resources>

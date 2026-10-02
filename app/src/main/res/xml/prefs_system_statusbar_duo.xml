@@ -1,0 +1,25 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:miuizer="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <tv.withaibuild.customiuizer.prefs.CheckBoxPreferenceEx
+        android:key="pref_key_system_statusbar_duo"
+        android:title="@string/enable_mod"
+        android:summary="@string/system_statusbar_duo_restart"
+        android:defaultValue="false" />
+
+    <tv.withaibuild.customiuizer.prefs.CheckBoxPreferenceEx
+        android:key="pref_key_system_statusbar_duo_percent"
+        android:title="@string/system_statusbar_duo_percent_title"
+        android:dependency="pref_key_system_statusbar_duo"
+        android:defaultValue="true" />
+
+    <tv.withaibuild.customiuizer.prefs.SeekBarPreference
+        android:key="pref_key_system_statusbar_duo_size"
+        android:title="@string/system_statusbar_duo_size_title"
+        android:summary="@string/system_statusbar_duo_size_summ"
+        android:dependency="pref_key_system_statusbar_duo"
+        android:defaultValue="28"
+        miuizer:minValue="20" miuizer:maxValue="40"
+        miuizer:stepValue="1" miuizer:format="%s dip" />
+</PreferenceScreen>

@@ -2,6 +2,18 @@
 
 English | [简体中文](CHANGELOG_CN.md)
 
+## r14.21.10 — 2026-10-03
+
+versionCode 219, for HyperOS 1 / Android 14.
+
+Changes since r14.21.9:
+
+- Add the optional Duo three-in-one status icon: battery ring, Wi-Fi and default data SIM signal, with percentage, charging, saver, low battery, airplane mode and native tint. Disabled by default; setting changes require a SystemUI restart.
+- Use native Canvas and existing system state callbacks with no new runtime libraries, polling or continuous animation. Keep original icons on missing state/ABI and restore them on ordinary runtime failures.
+- Target HyperOS 1 visual, interaction, CPU and memory acceptance remains pending.
+
+---
+
 ## r14.21.9 — 2026-09-30
 
 versionCode 218, for HyperOS 1 / Android 14.

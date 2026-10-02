@@ -1060,4 +1060,10 @@
     <string name="system_statusbar_lefticons_adjust_summ" formatted="false">Изменяет всю группу значков, перенесённых влево. 100% сохраняет системный размер. Требуется перезапуск интерфейса системы.</string>
     <string name="system_statusbar_lefticons_verticaloffset_title">Смещение значков слева по вертикали</string>
     <string name="system_statusbar_lefticons_offset_summ">Отрицательные значения сдвигают вверх, положительные — вниз. 0 dp сохраняет системное положение. Требуется перезапуск интерфейса системы.</string>
+    <string name="system_statusbar_duo_title">Duo: значок состояния «три в одном»</string>
+    <string name="system_statusbar_duo_summ">Кольцо заряда, Wi-Fi и мобильный сигнал в одном значке; для двух SIM используется SIM для передачи данных по умолчанию</string>
+    <string name="system_statusbar_duo_restart">Перезапустите системный интерфейс после включения, отключения или изменения настроек. На несовместимых устройствах сохраняются исходные значки.</string>
+    <string name="system_statusbar_duo_percent_title">Показывать заряд в процентах</string>
+    <string name="system_statusbar_duo_size_title">Максимальный размер значка</string>
+    <string name="system_statusbar_duo_size_summ">Значок вписывается в текущую высоту строки состояния.</string>
 </resources>

@@ -4,17 +4,18 @@
 
 CustoMIUIzer A14 is a system UI and interaction customization module maintained for **HyperOS 1 / Android 14 (SDK 34)**. It has an independent package and release line and is not an official upstream release.
 
-- Current version: `r14.21.9` (Release, versionCode 218)
+- Current version: `r14.21.10` (Release, versionCode 219)
 - Development and maintenance: `thetvplus`
 - Application ID: `tv.withaibuild.customiuizer.r14`
 - Source: <https://github.com/thetvplus/customiuizer-a14>
 - User downloads: <https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases>
 
-`r14.21.9` prevents control-center step refreshes from accumulating during slow queries and cancels obsolete refresh work when the screen turns off, the last view is removed, or the controller is reinitialized. See [CHANGELOG.md](CHANGELOG.md) for details.
+`r14.21.10` adds the optional Duo status icon combining the battery ring, Wi-Fi and default data SIM signal, using native drawing and existing system callbacks. Disabled by default; setting changes require a SystemUI restart. Target HyperOS 1 device acceptance remains pending. See [CHANGELOG.md](CHANGELOG.md) for details.
 
 ## Core Features
 
 - Status bar icons, battery, signal, network speed, date, and temperature;
+- Duo three-in-one status icon: native battery ring, Wi-Fi and default data SIM signal, disabled by default; open System → Status bar → Duo and restart System UI after changes;
 - Status capsule / Dynamic Island, USB default purpose, volume, and brightness;
 - Control center, notifications, lock screen, charging, and media UI;
 - Launcher, recents, folders, icons, and home-screen gestures;

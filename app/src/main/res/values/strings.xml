@@ -1094,4 +1094,10 @@
     <string name="system_statusbar_lefticons_adjust_summ" formatted="false">Adjust the group of icons moved to the left. 100% uses the system size. Restart System UI after changing.</string>
     <string name="system_statusbar_lefticons_verticaloffset_title">Left icon vertical offset</string>
     <string name="system_statusbar_lefticons_offset_summ">Negative values move up; positive values move down. 0 keeps system alignment. Restart System UI after changing.</string>
+    <string name="system_statusbar_duo_title">Duo three-in-one status icon</string>
+    <string name="system_statusbar_duo_summ">Battery ring, Wi-Fi and cellular signal in one icon; dual SIM uses the default data SIM</string>
+    <string name="system_statusbar_duo_restart">Restart System UI after enabling, disabling or changing settings. Incompatible devices keep their original icons.</string>
+    <string name="system_statusbar_duo_percent_title">Show battery percentage</string>
+    <string name="system_statusbar_duo_size_title">Maximum icon size</string>
+    <string name="system_statusbar_duo_size_summ">The icon fits within the existing status bar row height.</string>
 </resources>

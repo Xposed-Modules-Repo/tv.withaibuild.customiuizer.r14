@@ -1060,4 +1060,10 @@
     <string name="system_statusbar_lefticons_adjust_summ" formatted="false">調整移至左側的整組圖示。100% 使用系統原生大小，修改後需重新啟動系統介面。</string>
     <string name="system_statusbar_lefticons_verticaloffset_title">左側圖示垂直偏移</string>
     <string name="system_statusbar_lefticons_offset_summ">負數上移、正數下移，0 dp 使用原生位置。修改後需重新啟動系統介面。</string>
+    <string name="system_statusbar_duo_title">Duo 三合一狀態列</string>
+    <string name="system_statusbar_duo_summ">電量圓環、Wi-Fi 與行動訊號合為一個圖示；雙卡顯示預設數據卡訊號</string>
+    <string name="system_statusbar_duo_restart">開啟、關閉或修改設定後請重新啟動系統介面。不相容時保留原生圖示。</string>
+    <string name="system_statusbar_duo_percent_title">顯示電量百分比</string>
+    <string name="system_statusbar_duo_size_title">圖示最大尺寸</string>
+    <string name="system_statusbar_duo_size_summ">圖示配合現有狀態列高度。</string>
 </resources>

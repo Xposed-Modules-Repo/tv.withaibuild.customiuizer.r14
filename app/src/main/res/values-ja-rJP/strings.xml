@@ -1061,4 +1061,10 @@
     <string name="system_statusbar_lefticons_adjust_summ" formatted="false">左側に移動したアイコン全体を調整します。100% でシステム標準のサイズになります。システム UI の再起動が必要です。</string>
     <string name="system_statusbar_lefticons_verticaloffset_title">左側アイコンの上下位置</string>
     <string name="system_statusbar_lefticons_offset_summ">負の値で上、正の値で下に移動します。0 dp でシステム標準の位置になります。システム UI の再起動が必要です。</string>
+    <string name="system_statusbar_duo_title">Duo：3つの状態を1つのアイコンに</string>
+    <string name="system_statusbar_duo_summ">バッテリーリング、Wi-Fi、携帯電話の電波を1つに表示。デュアルSIMでは既定のデータSIMを使用</string>
+    <string name="system_statusbar_duo_restart">有効化、無効化、設定変更後はシステムUIを再起動してください。非対応端末では標準のアイコンを維持します。</string>
+    <string name="system_statusbar_duo_percent_title">バッテリー残量の割合を表示</string>
+    <string name="system_statusbar_duo_size_title">アイコンの最大サイズ</string>
+    <string name="system_statusbar_duo_size_summ">現在のステータスバーの高さに合わせて表示します。</string>
 </resources>

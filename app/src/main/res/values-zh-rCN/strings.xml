@@ -1071,4 +1071,10 @@
     <string name="system_statusbar_lefticons_adjust_summ" formatted="false">调整移至左侧的整组图标，100% 使用系统尺寸。修改后需重启系统界面。</string>
     <string name="system_statusbar_lefticons_verticaloffset_title">左侧图标垂直偏移</string>
     <string name="system_statusbar_lefticons_offset_summ">负值向上，正值向下，0 保持系统对齐。修改后需重启系统界面。</string>
+    <string name="system_statusbar_duo_title">Duo 三合一状态栏</string>
+    <string name="system_statusbar_duo_summ">电量圆环、Wi-Fi 与蜂窝信号合为一个图标；双卡显示默认数据卡信号</string>
+    <string name="system_statusbar_duo_restart">开启、关闭或修改设置后请重启系统界面。不兼容时保留原生图标。</string>
+    <string name="system_statusbar_duo_percent_title">显示电量百分比</string>
+    <string name="system_statusbar_duo_size_title">图标最大尺寸</string>
+    <string name="system_statusbar_duo_size_summ">图标适配现有状态栏行高。</string>
 </resources>

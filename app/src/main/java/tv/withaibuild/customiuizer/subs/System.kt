@@ -141,6 +141,7 @@ class System : SubFragment() {
                 findPreference<Preference>("pref_key_system_statusbar_batterytempandcurrent_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.xml.prefs_system_statusbar_batterytempandcurrent); true }
                 findPreference<Preference>("prefs_system_statusbar_showdevicetemperature_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.xml.prefs_system_statusbar_showdevicetemperature); true }
                 findPreference<Preference>("pref_key_system_statusbar_batterystyle_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, false, R.xml.prefs_system_statusbar_batterystyle); true }
+                findPreference<Preference>("pref_key_system_statusbar_duo_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.xml.prefs_system_statusbar_duo); true }
                 findPreference<Preference>("pref_key_system_statusbar_mobile_signal_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.xml.prefs_system_statusbar_mobilesignal); true }
                 findPreference<Preference>("pref_key_system_statusbaricons_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.xml.prefs_system_hideicons); true }
                 findPreference<Preference>("pref_key_system_statusbaricons_atright_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.xml.prefs_system_statusbar_righticons); true }

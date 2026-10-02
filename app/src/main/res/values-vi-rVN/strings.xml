@@ -1061,4 +1061,10 @@
     <string name="system_statusbar_lefticons_adjust_summ" formatted="false">Điều chỉnh toàn bộ nhóm biểu tượng đã chuyển sang trái. 100% giữ kích thước hệ thống. Cần khởi động lại giao diện hệ thống.</string>
     <string name="system_statusbar_lefticons_verticaloffset_title">Độ lệch dọc của biểu tượng bên trái</string>
     <string name="system_statusbar_lefticons_offset_summ">Giá trị âm dịch lên, giá trị dương dịch xuống. 0 dp giữ vị trí hệ thống. Cần khởi động lại giao diện hệ thống.</string>
+    <string name="system_statusbar_duo_title">Duo: biểu tượng trạng thái ba trong một</string>
+    <string name="system_statusbar_duo_summ">Vòng pin, Wi-Fi và tín hiệu di động trong một biểu tượng; hai SIM dùng SIM dữ liệu mặc định</string>
+    <string name="system_statusbar_duo_restart">Khởi động lại giao diện hệ thống sau khi bật, tắt hoặc thay đổi cài đặt. Thiết bị không tương thích giữ nguyên biểu tượng gốc.</string>
+    <string name="system_statusbar_duo_percent_title">Hiển thị phần trăm pin</string>
+    <string name="system_statusbar_duo_size_title">Kích thước biểu tượng tối đa</string>
+    <string name="system_statusbar_duo_size_summ">Biểu tượng vừa với chiều cao thanh trạng thái hiện tại.</string>
 </resources>
