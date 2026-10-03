@@ -7,9 +7,8 @@ package tv.withaibuild.customiuizer.mods.duostatusbar
  */
 internal class DuoNetworkState {
     private val ids = intArrayOf(-1, -1)
-    private val levels = intArrayOf(-1, -1)
-    private val maxLevels = intArrayOf(4, 4)
-    private val types = intArrayOf(0, 0)
+    // Ready-to-publish cellular bits for each SIM; -1 until its native level arrives.
+    private val cells = intArrayOf(-1, -1)
     private val connected = booleanArrayOf(false, false)
     private val dataSim = booleanArrayOf(false, false)
     private var subscriptionsKnown = false
@@ -36,9 +35,7 @@ internal class DuoNetworkState {
     private fun replaceSlot(slot: Int, id: Int) {
         if (ids[slot] == id) return
         ids[slot] = id
-        levels[slot] = -1
-        maxLevels[slot] = 4
-        types[slot] = 0
+        cells[slot] = -1
         connected[slot] = false
         dataSim[slot] = false
     }
@@ -51,9 +48,9 @@ internal class DuoNetworkState {
         if (maxLevel !in 4..5) return false
         if (subscriptionsKnown && ids[slot] != id) return false // retired controller callback
         replaceSlot(slot, id)
-        levels[slot] = level.coerceIn(0, maxLevel)
-        maxLevels[slot] = maxLevel
-        types[slot] = if (cellularType in 2..5) cellularType else 0
+        cells[slot] = (level.coerceIn(0, maxLevel) shl CELL_SHIFT) or
+            (if (maxLevel == 5) CELL_FIVE_LEVELS else 0) or
+            ((if (cellularType in 2..5) cellularType else 0) shl CELL_TYPE_SHIFT)
         connected[slot] = hasService
         dataSim[slot] = isDataSim
         // A new default-data controller takes priority even before the old one refreshes.
@@ -78,24 +75,22 @@ internal class DuoNetworkState {
 
     private fun publish(): Boolean {
         val selected = when {
-            dataSim[0] && levels[0] >= 0 -> 0
-            dataSim[1] && levels[1] >= 0 -> 1
-            ids[0] >= 0 && ids[1] < 0 && levels[0] >= 0 -> 0
-            ids[1] >= 0 && ids[0] < 0 && levels[1] >= 0 -> 1
+            dataSim[0] && cells[0] >= 0 -> 0
+            dataSim[1] && cells[1] >= 0 -> 1
+            ids[0] >= 0 && ids[1] < 0 && cells[0] >= 0 -> 0
+            ids[1] >= 0 && ids[0] < 0 && cells[1] >= 0 -> 1
             else -> -1
         }
         val noSims = subscriptionsKnown && ids[0] < 0 && ids[1] < 0
         val mobileReady = supported && (noSims || selected >= 0)
         val hasService = !airplane && selected >= 0 && connected[selected]
-        val cell = if (hasService) levels[selected] else 0
+        val cell = if (hasService) cells[selected] else 0
         val next = (if (wifiKnown) WIFI_READY else 0) or
             (if (mobileReady) MOBILE_READY else 0) or
             (if (wifiConnected) WIFI_CONNECTED else 0) or
             (if (airplane) AIRPLANE else 0) or (if (wifiUnvalidated) WIFI_UNVALIDATED else 0) or
             (if (hasService) MOBILE_SERVICE else 0) or
-            (if (hasService && maxLevels[selected] == 5) CELL_FIVE_LEVELS else 0) or
-            ((if (hasService) types[selected] else 0) shl CELL_TYPE_SHIFT) or
-            (wifiLevel shl WIFI_SHIFT) or (cell shl CELL_SHIFT)
+            (wifiLevel shl WIFI_SHIFT) or cell
         if (next == snapshot) return false
         snapshot = next
         return true
