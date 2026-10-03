@@ -4,73 +4,13 @@ English | [简体中文](CHANGELOG_CN.md)
 
 ## r14.22.1 — 2026-10-03
 
-versionCode 224, for HyperOS 1 / Android 14. Changes since the published r14.21.9:
+For HyperOS 1 / Android 14, versionCode 224. Changes since the previous official r14.21.9:
 
-- Add the optional native Duo battery ring, Wi-Fi and default-data-SIM signal, including percentage, charging, power saver, low battery and airplane states. Cover apps, the lock screen, Control Center and its native closing-transition host.
-- Restore the rounded triangular Wi-Fi marker and arc geometry from Status Trio; include Apache-2.0 attribution. Native sizing fits the current row; reduce the r14.21.14 automatic size by about 1%, retaining manual sizing and optional bold strokes.
-- Add short center crossfades and gentle scale transitions, about 180 ms, disabled in power saver or with system animations off. Rapid events share a bounded deadline; hidden/detached views stop immediately, and idle icons schedule no frames.
-- Keep Bluetooth audio a three-second connection hint and wired headphones persistent. Refine the silhouettes, with selectable earbuds/over-ear styles and size. Fresh, unambiguous native Bluetooth battery reports can color the hint red up to 20% or amber up to 50%; blue includes unknown battery and is not a full-charge claim. The ring remains phone battery.
-- Add bounded vertical adjustment in 0.5dp steps and cellular/no-service fallback when Wi-Fi disconnects. Preserve native foreground alpha and adapt Bluetooth contrast for light/dark backgrounds.
-- Retain default-off installation, API 101 compatibility, bounded weak ownership, optional audio interfaces and original-icon rollback. No new runtime library, receiver, polling service or background thread.
-- Merge the reviewed Android SDK setup action update from PR #31; explicitly enforce Temurin download signature verification in both CI workflows.
-
-## r14.21.14 — 2026-10-03
-
-versionCode 223, for HyperOS 1 / Android 14.
-
-- Include the native HyperOS 1 Control Center closing-transition status host in Duo, retaining native animation so the combined icon is present during the handoff.
-- Restore the Status Trio Wi-Fi rounded triangular marker and arc geometry; level one lights only the marker, level two adds the inner arc. Include upstream attribution and Apache-2.0 license.
-- Increase automatic sizing from 1.1 to 1.155 while keeping the 20–24dp and native row bounds; the target device allocation changes from 65px to 68px.
-- Retain the three-second Bluetooth connection hint and optional bold strokes. The transition host shares the existing snapshots and four weak-reference limit, with no new animation, polling or recurring task.
-
-## r14.21.13 — 2026-10-03
-
-versionCode 222, for HyperOS 1 / Android 14.
-
-Changes since r14.21.12:
-
-- Show Bluetooth audio as a 3-second connection hint, then restore the network glyph. Initial synchronization, duplicate callbacks and host reattachment do not replay the hint.
-- Remove the small Bluetooth badge next to the headphone silhouette; add optional bolder icon strokes without enlarging the icon.
-- Keep at most one expiry per connection and cancel it on final detach or failure, with no periodic task or continuous animation.
-
----
-
-## r14.21.12 — 2026-10-03
-
-versionCode 221, for HyperOS 1 / Android 14.
-
-Changes since r14.21.11:
-
-- Size Duo automatically from the native icon height instead of a fixed 28dp; preserve manual sizing and honor configuration changes and row constraints.
-- Use the same native Duo view in the HyperOS 1 Control Center status icon host, including its native tint and lifecycle.
-- Add optional wired headphone and Bluetooth audio connection indicators with network warning priority. Observe existing callbacks with no new receivers, polling, services or threads. Audio failure leaves battery and network indicators intact.
-- Make automatic and manual sizing mutually exclusive. Keep Duo percentage and size independent of native icon hiding and styling, with regression coverage for priorities, duplicate events, concurrency and optional interfaces.
-
----
-
-## r14.21.11 — 2026-10-03
-
-versionCode 220, for HyperOS 1 / Android 14.
-
-Changes since r14.21.10:
-
-- Fix Duo having no effect after enabling: resolve the actual HyperOS 1 Xiaomi Wi-Fi controller and concrete Wi-Fi/mobile state types instead of treating the erased base return type as the complete state.
-- Add regression coverage for full ABI resolution, inherited fields, erased return types and failure boundaries, plus a one-time installation log for diagnosis.
-- Verify the live ROM interfaces; see the Duo notes for display and interaction acceptance status.
-
----
-
-## r14.21.10 — 2026-10-03
-
-versionCode 219, for HyperOS 1 / Android 14.
-
-Changes since r14.21.9:
-
-- Add the optional Duo three-in-one status icon: battery ring, Wi-Fi and default data SIM signal, with percentage, charging, saver, low battery, airplane mode and native tint. Disabled by default; setting changes require a SystemUI restart.
-- Use native Canvas and existing system state callbacks with no new runtime libraries, polling or continuous animation. Keep original icons on missing state/ABI and restore them on ordinary runtime failures.
-- Target HyperOS 1 visual, interaction, CPU and memory acceptance remains pending.
-
----
+- Add optional Duo, combining battery, Wi-Fi and cellular signal across apps, the lock screen, Control Center and its closing transition.
+- Adapt automatic size to the device and current row, with manual size, bold strokes and vertical adjustment. Refine the smallest Wi-Fi shape and colors on light/dark backgrounds.
+- Add lightweight short transitions; switch directly in power saver or with system animations off, with no continuous idle refresh.
+- Show Bluetooth headphones for three seconds on connection and wired headphones persistently. Choose headphone style and size; use battery hint colors when reported, while the outer ring remains phone battery.
+- Optionally replace disconnected Wi-Fi with cellular/no-service glyphs. Refine setting dependencies and native fallback. Disabled by default; restart System UI after setting changes.
 
 ## r14.21.9 — 2026-09-30
 
