@@ -5,13 +5,18 @@ internal class DuoAudioState {
     private var wired = false
     private var bluetoothAudio = false
     private var batteryStep = 0
+    private var wiredExpiresAt = 0L
+    private var bluetoothExpiresAt = 0L
     @Volatile var snapshot = 0
         private set
     @Volatile var expiresAt = 0L
         private set
 
-    @Synchronized fun wired(connected: Boolean): Boolean {
+    @Synchronized fun wired(connected: Boolean, nowMillis: Long, notify: Boolean): Boolean {
+        if (connected && !wired && notify) wiredExpiresAt = nowMillis + CONNECTION_HINT_MS
+        if (!connected) wiredExpiresAt = 0L
         wired = connected
+        expireHints(nowMillis)
         return publish()
     }
 
@@ -20,26 +25,29 @@ internal class DuoAudioState {
     ): Boolean {
         val next = enabled && connected && (audioOnly || active)
         if (next != bluetoothAudio) batteryStep = 0 // never carry an old device's battery into a new hint
-        if (next && !bluetoothAudio && notify) expiresAt = nowMillis + BLUETOOTH_HINT_MS
-        if (!next || (expiresAt != 0L && expiresAt <= nowMillis)) expiresAt = 0L
+        if (next && !bluetoothAudio && notify) bluetoothExpiresAt = nowMillis + CONNECTION_HINT_MS
+        if (!next) bluetoothExpiresAt = 0L
         bluetoothAudio = next
+        expireHints(nowMillis)
         return publish()
     }
 
     @Synchronized fun expire(nowMillis: Long): Boolean {
         if (expiresAt == 0L || nowMillis < expiresAt) return false
-        return finishHint()
+        expireHints(nowMillis)
+        return publish()
     }
 
     @Synchronized fun finishHint(): Boolean {
-        expiresAt = 0L
+        wiredExpiresAt = 0L
+        bluetoothExpiresAt = 0L
         batteryStep = 0
         return publish()
     }
 
     /** HyperOS reports hands-free battery in ten steps; absent/ambiguous reports stay unknown. */
     @Synchronized fun bluetoothBattery(step: Int, singleDevice: Boolean): Boolean {
-        batteryStep = if (bluetoothAudio && expiresAt != 0L && singleDevice && step in 1..10) step else 0
+        batteryStep = if (bluetoothAudio && bluetoothExpiresAt != 0L && singleDevice && step in 1..10) step else 0
         return publish()
     }
 
@@ -47,13 +55,27 @@ internal class DuoAudioState {
         wired = false
         bluetoothAudio = false
         batteryStep = 0
-        expiresAt = 0L
+        wiredExpiresAt = 0L
+        bluetoothExpiresAt = 0L
         return publish()
     }
 
+    private fun expireHints(nowMillis: Long) {
+        if (wiredExpiresAt <= nowMillis) wiredExpiresAt = 0L
+        if (bluetoothExpiresAt <= nowMillis) {
+            bluetoothExpiresAt = 0L
+            batteryStep = 0
+        }
+    }
+
     private fun publish(): Boolean {
-        val next = (if (wired) WIRED else 0) or
-            (if (expiresAt != 0L) BLUETOOTH or (batteryStep shl 2) else 0)
+        expiresAt = when {
+            wiredExpiresAt == 0L -> bluetoothExpiresAt
+            bluetoothExpiresAt == 0L -> wiredExpiresAt
+            else -> minOf(wiredExpiresAt, bluetoothExpiresAt)
+        }
+        val next = (if (wiredExpiresAt != 0L) WIRED else 0) or
+            (if (bluetoothExpiresAt != 0L) BLUETOOTH or (batteryStep shl 2) else 0)
         if (next == snapshot) return false
         snapshot = next
         return true
@@ -62,7 +84,7 @@ internal class DuoAudioState {
     companion object {
         const val WIRED = 1
         const val BLUETOOTH = 2
-        const val BLUETOOTH_HINT_MS = 3000L
+        const val CONNECTION_HINT_MS = 3000L
         const val WIFI_GLYPH = 0
         const val PLANE_GLYPH = 1
         const val WIRED_GLYPH = 2

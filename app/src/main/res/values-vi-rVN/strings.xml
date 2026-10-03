@@ -1070,11 +1070,11 @@
     <string name="system_statusbar_duo_autosize_title">Kích thước biểu tượng tự động</string>
     <string name="system_statusbar_duo_autosize_summ">Điều chỉnh theo chiều cao biểu tượng hệ thống và hàng hiện tại. Tắt để chỉnh thủ công.</string>
     <string name="system_statusbar_duo_audio_title">Hiển thị kết nối tai nghe</string>
-    <string name="system_statusbar_duo_audio_summ">Tai nghe có dây luôn hiển thị khi kết nối. Âm thanh Bluetooth hiển thị 3 giây khi kết nối rồi trở lại biểu tượng mạng. Cảnh báo mạng được ưu tiên.</string>
+    <string name="system_statusbar_duo_audio_summ">Tai nghe có dây hoặc Bluetooth hiện trong 3 giây khi có kết nối mới, rồi trở lại Wi-Fi hoặc biểu tượng mạng. Sự kiện lặp không kéo dài hay hiện lại thông báo. Cảnh báo mạng được ưu tiên.</string>
     <string name="system_statusbar_duo_bold_title">Nét biểu tượng đậm hơn</string>
     <string name="system_statusbar_duo_bold_summ">Làm đậm vòng pin và nét Wi-Fi, tai nghe.</string>
     <string name="system_statusbar_duo_transitions_title">Chuyển biểu tượng ngắn</string>
-    <string name="system_statusbar_duo_transitions_summ">Mờ dần và thu phóng nhẹ ở giữa trong 180 ms. Đổi ngay khi tiết kiệm pin hoặc tắt hoạt ảnh hệ thống.</string>
+    <string name="system_statusbar_duo_transitions_summ">Mờ đi rồi hiện lại trong khoảng 180 ms, giữ nguyên kích thước. Đổi ngay khi tiết kiệm pin hoặc tắt hoạt ảnh hệ thống.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Chỉnh vị trí dọc</string>
     <string name="system_statusbar_duo_verticaloffset_summ">Căn giữa trong hàng, mỗi bước 0,5 dp. Độ lệch theo chiều cao; thu nhỏ ở mép để tránh cắt biểu tượng.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Kiểu biểu tượng tai nghe</string>
@@ -1083,7 +1083,10 @@
     <string name="system_statusbar_duo_headphone_earbuds">Tai nghe nhét tai</string>
     <string name="system_statusbar_duo_headphonescale_title">Kích thước tai nghe</string>
     <string name="system_statusbar_duo_networkfallback_title">Thay Wi-Fi đã ngắt</string>
-    <string name="system_statusbar_duo_networkfallback_summ">Hiện mạng di động hoặc mất dịch vụ khi không có Wi-Fi. Bluetooth vẫn chỉ báo trong 3 giây.</string>
+    <string name="system_statusbar_duo_networkfallback_summ">Không có Wi-Fi thì hiện hình hoặc loại mạng hiện tại; loại chưa rõ dùng hình. Tai nghe chỉ hiện 3 giây khi kết nối.</string>
     <string name="system_statusbar_duo_btbattery_title">Màu pin Bluetooth</string>
-    <string name="system_statusbar_duo_btbattery_summ">Một thiết bị và báo cáo mới: đỏ đến 20%, hổ phách đến 50%. Xanh biểu thị Bluetooth kể cả pin chưa rõ; vòng vẫn là pin điện thoại.</string>
+    <string name="system_statusbar_duo_btbattery_summ">Một thiết bị và báo cáo mới: đỏ đến 20%, hổ phách đến 50%. Mức khác hoặc chưa rõ dùng màu hệ thống; vòng vẫn là pin điện thoại.</string>
+    <string name="system_statusbar_duo_cellularstyle_title">Kiểu mạng di động ở giữa</string>
+    <string name="system_statusbar_duo_cellular_graphic">Hình</string>
+    <string name="system_statusbar_duo_cellular_text">Chữ (2G/3G/4G/5G)</string>
 </resources>

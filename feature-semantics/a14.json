@@ -11330,14 +11330,14 @@
       "targetPackage": "com.android.systemui",
       "installPhase": "PACKAGE_READY",
       "runtimeReadMode": "INSTALL_TIME_SNAPSHOT",
-      "enableEffect": "Shows wired connection or a 3-second Bluetooth audio connection hint in the center glyph with network warning priority",
+      "enableEffect": "Shows a 3-second wired or Bluetooth audio connection hint in the center glyph, then restores the network glyph, with network warning priority",
       "disableEffect": "Keeps the Wi-Fi or airplane center glyph; native audio icons remain available",
       "valueChangeEffect": "Installs or omits optional audio hooks after SystemUI restart",
       "restartTarget": "SYSTEMUI",
       "hotReloadable": false,
       "confidence": "CODE_VERIFIED",
       "evidence": "DuoAudioAbi, DuoAudioState and DuoStatusBarHooks.installAudio/scheduleAudioExpiry",
-      "notes": "Default on under the disabled-by-default Duo master. Wired headphones are persistent; Bluetooth audio appears for 3 seconds only on a new connection. Seed, duplicate events and reattachment do not replay or extend the hint. One bounded expiry is canceled on detach or failure. Network warnings take priority. Audio failure leaves network and battery intact."
+      "notes": "Default on under the disabled-by-default Duo master. Wired and Bluetooth audio appear for 3 seconds only on a new connection, then restore Wi-Fi or the network glyph while still connected. Seed, duplicate events and reattachment do not replay or extend the hint. Independent hint deadlines share one bounded expiry, canceled on detach or failure. Network warnings take priority. Audio failure leaves network and battery intact."
     },
     {
       "featureId": "system_statusbar_duo_autosize",
@@ -11522,6 +11522,29 @@
       "confidence": "CODE_VERIFIED",
       "evidence": "DuoConfig.read and DuoStatusBarView / DuoStatusBarHooks",
       "notes": "Subordinate to the Duo master; headphone style, scale and battery colors also depend on audio indicators. No independent business hook while disabled."
+    },
+    {
+      "featureId": "system_statusbar_duo_cellularstyle",
+      "featureName": "Duo cellular center style",
+      "preferenceKeys": [
+        "system_statusbar_duo_cellularstyle",
+        "pref_key_system_statusbar_duo_cellularstyle"
+      ],
+      "xmlSource": "app/src/main/res/xml/prefs_system_statusbar_duo.xml",
+      "defaultValue": "1",
+      "sourceFile": "app/src/main/java/tv/withaibuild/customiuizer/mods/duostatusbar/DuoConfig.kt",
+      "installer": "app/src/main/java/tv/withaibuild/customiuizer/mods/duostatusbar/DuoConfig.kt:read",
+      "targetPackage": "com.android.systemui",
+      "installPhase": "PACKAGE_READY",
+      "runtimeReadMode": "INSTALL_TIME_SNAPSHOT",
+      "enableEffect": "Chooses default cellular artwork or native network generation text while Wi-Fi is disconnected",
+      "disableEffect": "Ignored while Duo or its disconnected Wi-Fi fallback is disabled",
+      "valueChangeEffect": "Applies this setting after SystemUI restart",
+      "restartTarget": "SYSTEMUI",
+      "hotReloadable": false,
+      "confidence": "CODE_VERIFIED",
+      "evidence": "DuoCellularType, DuoNetworkState, DuoCenter.key and DuoStatusBarView.drawCenterGlyph",
+      "notes": "Default 1 artwork; 2 text. Reads the selected data SIM native showName through existing callbacks only in text mode. Unknown names or unavailable optional metadata fall back to artwork. Wi-Fi, network warnings and short audio hints retain their priority. No new hook, listener, query or polling."
     },
     {
       "featureId": "system_statusbar_duo_btbattery",

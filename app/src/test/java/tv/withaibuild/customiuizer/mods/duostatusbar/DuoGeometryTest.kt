@@ -5,6 +5,52 @@ import org.junit.Test
 import tv.withaibuild.customiuizer.utils.PrefMap
 
 class DuoGeometryTest {
+    @Test fun continuousBatterySweepCrossesTheTopWithNoSecondSegment() {
+        var previous = 0f
+        for (level in 0..100) {
+            val sweep = DuoGeometry.continuousFill(level)
+            assertEquals(DuoGeometry.leftFill(level, DuoGeometry.sideSweep(0f)) +
+                DuoGeometry.rightFill(level, DuoGeometry.sideSweep(0f)), sweep, 0.001f)
+            assertTrue(sweep >= previous)
+            previous = sweep
+        }
+        assertEquals(270f, DuoGeometry.RING_START + DuoGeometry.continuousFill(50), 0.001f)
+        assertEquals(0f, DuoGeometry.continuousFill(-99), 0f)
+        assertEquals(242.6f, DuoGeometry.continuousFill(999), 0.001f)
+    }
+
+    @Test fun realFakeAndHeaderRowsUseTheSameDrawingBoundsIncludingDoubleRows() {
+        for (referenceHeight in intArrayOf(30, 45, 59)) {
+            for (offset in -40..40) {
+                val sourceRow = DuoSizing.sharedHeight(referenceHeight, 59)
+                val headerRow = DuoSizing.sharedHeight(DuoSizing.sharedHeight(59, 59), sourceRow)
+                val fakeRow = DuoSizing.sharedHeight(DuoSizing.sharedHeight(109, 59), sourceRow)
+                val sourceOffset = DuoSizing.offset(sourceRow, offset / 2f)
+                val sourceSize = DuoSizing.drawingSize(67, sourceRow, sourceOffset)
+                assertEquals(sourceSize, DuoSizing.drawingSize(67, headerRow,
+                    DuoSizing.offset(headerRow, offset / 2f)), 0f)
+                assertEquals(sourceSize, DuoSizing.drawingSize(67, fakeRow,
+                    DuoSizing.offset(fakeRow, offset / 2f)), 0f)
+            }
+        }
+        assertEquals(59, DuoSizing.sharedHeight(109, 59))
+        assertEquals(30, DuoSizing.sharedHeight(30, 59))
+        assertEquals(30, DuoSizing.sharedHeight(30, 0))
+    }
+
+    @Test fun signalTintPreservesNativeAlphaAndChangesAtEveryXiaomiStep() {
+        val state = DuoNetworkState()
+        state.subscriptions(10, -1, true)
+        val foreground = 0x99ffffff.toInt()
+        var last = -1
+        for (level in 0..5) {
+            state.mobile(0, 10, level, true, true, 5)
+            val alpha = (0..3).sumOf { DuoGeometry.signalColor(foreground, state.snapshot, it) ushr 24 }
+            assertTrue(alpha > last)
+            for (dot in 0..3) assertTrue(DuoGeometry.signalColor(foreground, state.snapshot, dot) ushr 24 in 33..153)
+            last = alpha
+        }
+    }
     @Test fun percentAndChargingOpenOnlyTheAppropriateTopGap() {
         assertEquals(0f, DuoGeometry.topGap(false, false), 0f)
         assertEquals(71.3f, DuoGeometry.topGap(true, false), 0f)
@@ -103,7 +149,9 @@ class DuoGeometryTest {
         assertEquals(DuoGeometry.bluetoothColor(native, 0), DuoGeometry.bluetoothColor(native, 10))
         assertNotEquals(DuoGeometry.bluetoothColor(native, 0), DuoGeometry.bluetoothColor(native, 1))
         assertNotEquals(DuoGeometry.bluetoothColor(native, 0), DuoGeometry.bluetoothColor(native, 5))
-        assertNotEquals(DuoGeometry.bluetoothColor(-1, 0), DuoGeometry.bluetoothColor(0xff000000.toInt(), 0))
+        assertEquals(native, DuoGeometry.bluetoothColor(native, 0))
+        assertEquals(native, DuoGeometry.bluetoothColor(native, 10))
+        assertEquals(0xff000000.toInt(), DuoGeometry.bluetoothColor(0xff000000.toInt(), 0))
     }
 
     @Test fun repeatedHidingDoesNotLoseTheOriginalVisibility() {

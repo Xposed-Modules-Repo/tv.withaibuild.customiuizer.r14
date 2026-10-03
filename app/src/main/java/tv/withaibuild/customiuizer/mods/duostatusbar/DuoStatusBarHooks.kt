@@ -27,6 +27,7 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
     private val network = DuoNetworkState()
     private val audio = DuoAudioState()
     private val audioAbi = if (config.showAudio) DuoAudioAbi.resolve(abi, config.bluetoothBatteryColor) else null
+    private val cellularType = if (config.networkFallback && config.cellularStyle == 2) DuoCellularType.resolve(abi) else null
     private val handler = Handler(Looper.getMainLooper())
     private val queued = AtomicBoolean(false)
     private val bindings = arrayOfNulls<WeakReference<DuoBinding>>(4)
@@ -101,6 +102,22 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
             bits and 256 != 0, network.snapshot, audio.snapshot)
     }
 
+    /** Layout events only. The four weak bindings share the source row, per display, before drawing. */
+    private fun refreshGeometry() = protect {
+        if (failed) return@protect
+        for (reference in bindings) {
+            val binding = reference?.get() ?: continue
+            var height = 0
+            for (sourceReference in bindings) {
+                val source = sourceReference?.get() ?: continue
+                if (!source.primaryHost || source.displayId != binding.displayId) continue
+                val row = source.view.rowHeightPx
+                if (row > 0) height = if (height == 0) row else minOf(height, row)
+            }
+            binding.view.shareHeight(height)
+        }
+    }
+
     private inline fun protectAudio(block: () -> Unit) {
         if (audioFailed) return
         try { block() } catch (t: Throwable) {
@@ -120,10 +137,11 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
         if (DuoAudioState.batteryStep(audio.snapshot) != 0) readBluetoothBattery(controller, false)
     }
 
-    private fun readWired(policy: Any) = protectAudio {
+    private fun readWired(policy: Any, notify: Boolean) = protectAudio {
         val fields = audioAbi ?: return@protectAudio
         if (audioPolicy?.get() !== policy) return@protectAudio // retired native receiver
-        if (audio.wired(!(fields.headsetMap.get(policy) as Map<*, *>).isEmpty())) queueRefresh()
+        if (audio.wired(!(fields.headsetMap.get(policy) as Map<*, *>).isEmpty(),
+                SystemClock.uptimeMillis(), notify && bindingCount > 0)) queueRefresh()
     }
 
     private fun readBluetoothBattery(controller: Any, fresh: Boolean) {
@@ -162,7 +180,8 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
         val state = abi.mobileState.get(controller) ?: return
         val info = abi.subscription.get(controller) as SubscriptionInfo
         if (network.mobile(info.simSlotIndex, info.subscriptionId, abi.mobileLevel.getInt(state),
-                abi.mobileConnected.getBoolean(state), abi.mobileDataSim.getBoolean(state))) queueRefresh()
+                abi.mobileConnected.getBoolean(state), abi.mobileDataSim.getBoolean(state),
+                abi.mobileMaxLevel, cellularType?.read(state) ?: 0)) queueRefresh()
     }
 
     private fun readSubscriptions(subscriptions: List<*>) {
@@ -199,7 +218,7 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
         if (audioAbi != null && !audioFailed) protectAudio {
             ModuleHelper.getDepInstance(loader, "com.android.systemui.statusbar.policy.BluetoothController")
                 ?.let { readBluetooth(it, false) }
-            audioPolicy?.get()?.let(::readWired)
+            audioPolicy?.get()?.let { readWired(it, false) }
         }
     }
 
@@ -228,7 +247,7 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
         val slot = bindings.indexOfFirst { it?.get() == null }
         if (slot < 0) return // bounded multi-display capacity; excess hosts stay native
         seed()
-        val view = DuoStatusBarView(owner.context, config, ::fail)
+        val view = DuoStatusBarView(owner.context, config, ::fail, ::refreshGeometry)
         view.visibility = View.GONE
         val binding = DuoBinding(owner, root, view, abi)
         view.binding = binding
@@ -236,6 +255,7 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
         bindingCount++
         owner.addView(view, ViewGroup.LayoutParams(view.iconSizePx, ViewGroup.LayoutParams.MATCH_PARENT))
         reconcile(binding)
+        refreshGeometry()
         val host = when {
             abi.statusBar.isInstance(root) -> 1
             abi.keyguard.isInstance(root) -> 2
@@ -253,6 +273,7 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
         for (i in bindings.indices) if (bindings[i]?.get() === binding) bindings[i] = null
         bindingCount = bindings.count { it?.get() != null }
         binding.release()
+        refreshGeometry()
         if (bindings.all { it?.get() == null }) {
             handler.removeCallbacks(refresh)
             queued.set(false)
@@ -281,7 +302,7 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
                     protectAudio {
                         val policy = param.getThisObject() ?: return@protectAudio
                         audioPolicy = WeakReference(policy)
-                        readWired(policy)
+                        readWired(policy, false)
                     }
                 }
             }
@@ -306,7 +327,7 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
                     protectAudio {
                         if ((param.getArgs()[1] as? Intent)?.action != Intent.ACTION_HEADSET_PLUG) return@protectAudio
                         param.getThisObject()?.let { receiver ->
-                            fields.receiverOwner.get(receiver)?.let(::readWired)
+                            fields.receiverOwner.get(receiver)?.let { readWired(it, true) }
                         }
                     }
                 }

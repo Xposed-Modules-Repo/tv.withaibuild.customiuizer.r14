@@ -27,6 +27,13 @@ internal class DuoTransition {
     }
 
     fun finish() { previous = current; duration = 0L }
+
+    /** Fade through one glyph at a fixed size; never superimpose two silhouettes. */
+    fun drawKey(progress: Float) = if (progress < 0.5f) previous else current
+    fun drawAlpha(progress: Float): Int {
+        val part = kotlin.math.abs(2f * progress.coerceIn(0f, 1f) - 1f)
+        return (part * part * (3f - 2f * part) * 255f + 0.5f).toInt()
+    }
 }
 
 /** Only center changes animate. Phone battery and the lower cellular dots remain continuously visible. */
@@ -37,6 +44,7 @@ internal object DuoCenter {
         val value = when (glyph) {
             DuoAudioState.WIFI_GLYPH -> DuoNetworkState.wifiLevel(network)
             DuoAudioState.BLUETOOTH_GLYPH -> if (config.bluetoothBatteryColor) DuoAudioState.batteryStep(audio) else 0
+            DuoAudioState.CELLULAR_GLYPH -> if (config.cellularStyle == 2) DuoNetworkState.cellularType(network) else 0
             else -> 0
         }
         return glyph or (value shl 3) or (if (network and DuoNetworkState.WIFI_UNVALIDATED != 0) WARNING else 0)

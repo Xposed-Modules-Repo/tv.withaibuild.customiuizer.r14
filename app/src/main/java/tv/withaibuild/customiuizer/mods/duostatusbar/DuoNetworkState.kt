@@ -8,6 +8,8 @@ package tv.withaibuild.customiuizer.mods.duostatusbar
 internal class DuoNetworkState {
     private val ids = intArrayOf(-1, -1)
     private val levels = intArrayOf(-1, -1)
+    private val maxLevels = intArrayOf(4, 4)
+    private val types = intArrayOf(0, 0)
     private val connected = booleanArrayOf(false, false)
     private val dataSim = booleanArrayOf(false, false)
     private var subscriptionsKnown = false
@@ -35,16 +37,23 @@ internal class DuoNetworkState {
         if (ids[slot] == id) return
         ids[slot] = id
         levels[slot] = -1
+        maxLevels[slot] = 4
+        types[slot] = 0
         connected[slot] = false
         dataSim[slot] = false
     }
 
     @Synchronized
-    fun mobile(slot: Int, id: Int, level: Int, hasService: Boolean, isDataSim: Boolean): Boolean {
+    fun mobile(slot: Int, id: Int, level: Int, hasService: Boolean, isDataSim: Boolean,
+        maxLevel: Int = 4, cellularType: Int = 0,
+    ): Boolean {
         if (slot !in 0..1 || !supported || id < 0) return false
+        if (maxLevel !in 4..5) return false
         if (subscriptionsKnown && ids[slot] != id) return false // retired controller callback
         replaceSlot(slot, id)
-        levels[slot] = level.coerceIn(0, 4)
+        levels[slot] = level.coerceIn(0, maxLevel)
+        maxLevels[slot] = maxLevel
+        types[slot] = if (cellularType in 2..5) cellularType else 0
         connected[slot] = hasService
         dataSim[slot] = isDataSim
         // A new default-data controller takes priority even before the old one refreshes.
@@ -84,6 +93,8 @@ internal class DuoNetworkState {
             (if (wifiConnected) WIFI_CONNECTED else 0) or
             (if (airplane) AIRPLANE else 0) or (if (wifiUnvalidated) WIFI_UNVALIDATED else 0) or
             (if (hasService) MOBILE_SERVICE else 0) or
+            (if (hasService && maxLevels[selected] == 5) CELL_FIVE_LEVELS else 0) or
+            ((if (hasService) types[selected] else 0) shl CELL_TYPE_SHIFT) or
             (wifiLevel shl WIFI_SHIFT) or (cell shl CELL_SHIFT)
         if (next == snapshot) return false
         snapshot = next
@@ -97,10 +108,21 @@ internal class DuoNetworkState {
         const val AIRPLANE = 8
         const val WIFI_UNVALIDATED = 1024
         const val MOBILE_SERVICE = 2048
+        private const val CELL_FIVE_LEVELS = 4096
         private const val WIFI_SHIFT = 4
         private const val CELL_SHIFT = 7
+        private const val CELL_TYPE_SHIFT = 13
         fun wifiLevel(bits: Int) = (bits shr WIFI_SHIFT) and 7
-        fun cellLevel(bits: Int) = (bits shr CELL_SHIFT) and 7
+        private fun cellMax(bits: Int) = if (bits and CELL_FIVE_LEVELS != 0) 5 else 4
+        fun cellLevel(bits: Int) = ((bits shr CELL_SHIFT) and 7) * 4 / cellMax(bits)
+        fun cellularType(bits: Int) = (bits shr CELL_TYPE_SHIFT) and 7
+        /** Four dots keep every native strength step, including Xiaomi's distinct 4/5 levels. */
+        fun dotCoverage(bits: Int, dot: Int): Int {
+            if (dot !in 0..3) return 0
+            val max = cellMax(bits)
+            val level = ((bits shr CELL_SHIFT) and 7).coerceAtMost(max)
+            return (level * 4 - dot * max).coerceIn(0, max) * 255 / max
+        }
     }
 }
 

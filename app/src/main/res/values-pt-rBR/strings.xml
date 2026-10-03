@@ -1070,11 +1070,11 @@
     <string name="system_statusbar_duo_autosize_title">Tamanho automático do ícone</string>
     <string name="system_statusbar_duo_autosize_summ">Ajusta pela altura dos ícones do sistema e da linha. Desative para definir o tamanho manualmente.</string>
     <string name="system_statusbar_duo_audio_title">Mostrar conexão de fones</string>
-    <string name="system_statusbar_duo_audio_summ">Fones com fio permanecem visíveis. Ao conectar áudio Bluetooth, são mostrados por 3 segundos e depois retorna o símbolo de rede. Alertas de rede têm prioridade.</string>
+    <string name="system_statusbar_duo_audio_summ">Fones com fio ou Bluetooth aparecem por 3 segundos em uma nova conexão, depois retornam Wi-Fi ou o símbolo de rede. Eventos repetidos não prolongam nem repetem o aviso. Alertas de rede têm prioridade.</string>
     <string name="system_statusbar_duo_bold_title">Linhas mais grossas</string>
     <string name="system_statusbar_duo_bold_summ">Anel de bateria e linhas de Wi-Fi e fones mais grossos.</string>
     <string name="system_statusbar_duo_transitions_title">Transições curtas</string>
-    <string name="system_statusbar_duo_transitions_summ">Transição suave com leve escala do centro por 180 ms. Sem animação na economia de energia ou com animações do sistema desligadas.</string>
+    <string name="system_statusbar_duo_transitions_summ">O centro desaparece e reaparece em cerca de 180 ms, sem mudar de tamanho. Troca direta na economia de energia ou com animações desativadas.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Ajuste vertical</string>
     <string name="system_statusbar_duo_verticaloffset_summ">Centralizado na linha, passos de 0,5 dp. Deslocamento limitado; o ícone diminui na borda para evitar cortes.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Estilo dos fones</string>
@@ -1083,7 +1083,10 @@
     <string name="system_statusbar_duo_headphone_earbuds">Fones intra-auriculares</string>
     <string name="system_statusbar_duo_headphonescale_title">Tamanho dos fones</string>
     <string name="system_statusbar_duo_networkfallback_title">Substituir Wi-Fi desconectado</string>
-    <string name="system_statusbar_duo_networkfallback_summ">Mostrar rede móvel ou sem serviço quando não há Wi-Fi. Bluetooth continua como aviso de 3 segundos.</string>
+    <string name="system_statusbar_duo_networkfallback_summ">Sem Wi-Fi, mostra um ícone ou o tipo de rede atual; tipos desconhecidos usam o ícone. Fones aparecem por apenas 3 segundos ao conectar.</string>
     <string name="system_statusbar_duo_btbattery_title">Cores da bateria Bluetooth</string>
-    <string name="system_statusbar_duo_btbattery_summ">Um dispositivo e um novo relatório: vermelho até 20%, âmbar até 50%. Azul indica Bluetooth, inclusive bateria desconhecida; o anel é a bateria do telefone.</string>
+    <string name="system_statusbar_duo_btbattery_summ">Um dispositivo e informação recente: vermelho até 20%, âmbar até 50%. Outros níveis ou carga desconhecida usam a cor do sistema; o anel indica a bateria do telefone.</string>
+    <string name="system_statusbar_duo_cellularstyle_title">Estilo da rede móvel no centro</string>
+    <string name="system_statusbar_duo_cellular_graphic">Ícone</string>
+    <string name="system_statusbar_duo_cellular_text">Texto (2G/3G/4G/5G)</string>
 </resources>

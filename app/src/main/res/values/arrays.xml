@@ -1,4 +1,11 @@
 <resources>
+    <string-array name="duo_cellular_style_entries">
+        <item>@string/system_statusbar_duo_cellular_graphic</item>
+        <item>@string/system_statusbar_duo_cellular_text</item>
+    </string-array>
+    <string-array name="duo_cellular_style_values">
+        <item>1</item><item>2</item>
+    </string-array>
     <string-array name="duo_headphone_style_entries">
         <item>@string/system_statusbar_duo_headphone_auto</item>
         <item>@string/system_statusbar_duo_headphone_overear</item>

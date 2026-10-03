@@ -11,6 +11,8 @@ internal class DuoBinding(
     val view: DuoStatusBarView,
     private val abi: DuoAbi,
 ) {
+    val displayId = root.display?.displayId ?: -1
+    val primaryHost = abi.statusBar.isInstance(root) || abi.keyguard.isInstance(root)
     private class Original(val view: View) {
         val visibility = DuoVisibility(view.visibility)
         fun hide() {

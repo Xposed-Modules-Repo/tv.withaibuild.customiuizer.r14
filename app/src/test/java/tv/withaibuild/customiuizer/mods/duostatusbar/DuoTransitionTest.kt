@@ -4,6 +4,21 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class DuoTransitionTest {
+    @Test fun eachTransitionFrameDrawsOnlyOneGlyphAndEndsAtFullOpacity() {
+        val state = DuoTransition()
+        state.change(1, 0L, 180L)
+        state.change(2, 100L, 180L)
+        for (time in 100L..280L) {
+            val progress = state.fraction(time)
+            assertEquals(if (time < 190L) 1 else 2, state.drawKey(progress))
+            assertTrue(state.drawAlpha(progress) in 0..255)
+        }
+        assertEquals(255, state.drawAlpha(0f))
+        assertEquals(0, state.drawAlpha(0.5f))
+        assertEquals(255, state.drawAlpha(1f))
+        assertEquals(2, state.drawKey(1f))
+    }
+
     @Test fun seedAndDisabledAnimationsSnapAndDuplicatesDoNoWork() {
         val state = DuoTransition()
         assertTrue(state.change(1, 0L, 180L))

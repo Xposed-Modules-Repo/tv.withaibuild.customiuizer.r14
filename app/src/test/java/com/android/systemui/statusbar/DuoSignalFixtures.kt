@@ -12,6 +12,7 @@ class SignalIcon {
     }
     class MobileState : State() {
         @JvmField var dataSim = false
+        @JvmField var showName: String? = null
     }
 }
 

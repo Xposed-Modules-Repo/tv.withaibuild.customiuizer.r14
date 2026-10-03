@@ -43,6 +43,15 @@
         android:defaultValue="true" />
 
     <tv.withaibuild.customiuizer.prefs.ListPreferenceEx
+        android:key="pref_key_system_statusbar_duo_cellularstyle"
+        android:title="@string/system_statusbar_duo_cellularstyle_title"
+        android:entries="@array/duo_cellular_style_entries"
+        android:entryValues="@array/duo_cellular_style_values"
+        android:dependency="pref_key_system_statusbar_duo_networkfallback"
+        miuizer:valueAsSummary="true"
+        android:defaultValue="1" />
+
+    <tv.withaibuild.customiuizer.prefs.ListPreferenceEx
         android:key="pref_key_system_statusbar_duo_headphonestyle"
         android:title="@string/system_statusbar_duo_headphonestyle_title"
         android:entries="@array/duo_headphone_style_entries"

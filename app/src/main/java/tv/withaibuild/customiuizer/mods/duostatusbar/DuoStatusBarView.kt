@@ -6,6 +6,7 @@ import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Rect
 import android.os.SystemClock
 import android.view.View
 import tv.withaibuild.customiuizer.mods.utils.FatalErrors
@@ -13,6 +14,7 @@ import tv.withaibuild.customiuizer.mods.utils.FatalErrors
 /** Native vectors only. Short event-driven transitions reuse the same drawing state and paths. */
 internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
     private val onFailure: (Throwable) -> Unit,
+    private val onGeometryChanged: () -> Unit,
 ) : View(context) {
     private val stroke = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
@@ -25,6 +27,16 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
         textSize = 30f
         isFakeBoldText = true
     }
+    private val cellularText = if (config.networkFallback && config.cellularStyle == 2) Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textAlign = Paint.Align.CENTER
+        textSize = 35f
+        isFakeBoldText = true
+    } else null
+    private val cellularBaseline = cellularText?.let { paint ->
+        val bounds = Rect()
+        paint.getTextBounds("5G", 0, 2, bounds)
+        61f - (bounds.top + bounds.bottom) / 2f
+    } ?: 0f
     private val bolt = Path().apply {
         moveTo(64f, 0f); lineTo(47f, 20f); lineTo(58f, 20f)
         lineTo(54f, 34f); lineTo(72f, 13f); lineTo(61f, 13f); close()
@@ -36,18 +48,19 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
         lineTo(56f, 70f); lineTo(37f, 75f); lineTo(37f, 69f); lineTo(55f, 59f); close()
     }
     private val headphones = Path().apply {
-        moveTo(39f, 72f); lineTo(39f, 62f)
-        cubicTo(39f, 36f, 80f, 36f, 80f, 62f); lineTo(80f, 72f)
+        moveTo(38.5f, 72f); lineTo(38.5f, 61f)
+        cubicTo(38.5f, 36f, 80.5f, 36f, 80.5f, 61f); lineTo(80.5f, 72f)
     }
     private val earbuds = Path().apply {
-        moveTo(42f, 47f)
-        cubicTo(36f, 47f, 35f, 59f, 41f, 62f)
-        cubicTo(46f, 66f, 52f, 60f, 52f, 55f)
-        cubicTo(52f, 50f, 48f, 47f, 42f, 47f); close()
-        moveTo(77f, 47f)
-        cubicTo(83f, 47f, 84f, 59f, 78f, 62f)
-        cubicTo(73f, 66f, 67f, 60f, 67f, 55f)
-        cubicTo(67f, 50f, 71f, 47f, 77f, 47f); close()
+        // Each bud and stem is one silhouette with an open gap between the two earpieces.
+        moveTo(44f, 46f)
+        cubicTo(35f, 46f, 33f, 59f, 40f, 64f)
+        lineTo(40f, 81f); cubicTo(40f, 86f, 48f, 86f, 48f, 81f)
+        lineTo(48f, 63f); cubicTo(57f, 60f, 56f, 46f, 44f, 46f); close()
+        moveTo(75f, 46f)
+        cubicTo(84f, 46f, 86f, 59f, 79f, 64f)
+        lineTo(79f, 81f); cubicTo(79f, 86f, 71f, 86f, 71f, 81f)
+        lineTo(71f, 63f); cubicTo(62f, 60f, 63f, 46f, 75f, 46f); close()
     }
     // Wi-Fi marker geometry adapted from Status Trio (Apache-2.0).
     // Attribution and license: assets/licenses/status-trio.txt.
@@ -73,6 +86,8 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
     private var network = 0
     private val transition = DuoTransition()
     private var offsetPx = 0f
+    private var nativeHeightPx = 0
+    private var sharedHeightPx = 0
     private var label = ""
     private var failed = false
 
@@ -85,6 +100,7 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
 
     private fun updateSize() {
         val nativeHeight = if (nativeHeightId == 0) 0 else resources.getDimensionPixelSize(nativeHeightId)
+        nativeHeightPx = nativeHeight
         iconSizePx = DuoSizing.pixels(config, nativeHeight, resources.displayMetrics.density)
         offsetPx = config.offsetDp * resources.displayMetrics.density
     }
@@ -95,6 +111,7 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
         try {
             updateSize()
             layoutParams?.let { it.width = iconSizePx }
+            onGeometryChanged()
             requestLayout()
         } catch (t: Throwable) {
             FatalErrors.unwrapAndRethrowIfFatal(t)
@@ -107,7 +124,8 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
         val key = DuoCenter.key(network, audio, config)
         if (this.level == level && this.charging == charging && this.saver == saver &&
             this.foreground == foreground && this.network == network && transition.current == key) return
-        val duration = if (this.level >= 0 && transition.current != key && config.transitions && !saver &&
+        val duration = if (this.level >= 0 && DuoCenter.glyph(transition.current) != DuoCenter.glyph(key) &&
+            config.transitions && !saver &&
             isShown && windowVisibility == VISIBLE && ValueAnimator.areAnimatorsEnabled())
             (180f * ValueAnimator.getDurationScale().coerceIn(0f, 2f)).toLong() else 0L
         transition.change(key, SystemClock.uptimeMillis(), duration)
@@ -122,6 +140,20 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
     }
 
     fun stopTransition() { transition.finish() }
+
+    val rowHeightPx: Int
+        get() = DuoSizing.sharedHeight((height - paddingTop - paddingBottom).coerceAtLeast(0), nativeHeightPx)
+
+    fun shareHeight(height: Int) {
+        if (sharedHeightPx == height) return
+        sharedHeightPx = height
+        invalidate()
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        if (!failed) onGeometryChanged()
+    }
 
     override fun onVisibilityAggregated(isVisible: Boolean) {
         super.onVisibilityAggregated(isVisible)
@@ -150,8 +182,10 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
         try {
             val contentWidth = width - paddingLeft - paddingRight
             val contentHeight = height - paddingTop - paddingBottom
-            val offset = DuoSizing.offset(contentHeight, offsetPx)
-            val size = DuoSizing.drawingSize(contentWidth, contentHeight, offset)
+            val rowHeight = DuoSizing.sharedHeight(
+                DuoSizing.sharedHeight(contentHeight, nativeHeightPx), sharedHeightPx)
+            val offset = DuoSizing.offset(rowHeight, offsetPx)
+            val size = DuoSizing.drawingSize(contentWidth, rowHeight, offset)
             if (size <= 0f) return
             val scale = size / 120f
             canvas.translate(paddingLeft + (contentWidth - size) / 2f,
@@ -174,14 +208,24 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
         val track = DuoGeometry.dim(foreground)
         val tint = DuoGeometry.batteryColor(foreground, level, charging, saver)
         stroke.strokeWidth = if (config.bold) 10f else 8f
-        stroke.color = track
-        canvas.drawArc(8f, 10f, 111f, 113f, DuoGeometry.RING_START, side, false, stroke)
-        canvas.drawArc(8f, 10f, 111f, 113f, rightStart, side, false, stroke)
-        stroke.color = tint
-        val left = DuoGeometry.leftFill(level, side)
-        val right = DuoGeometry.rightFill(level, side)
-        if (left > 0f) canvas.drawArc(8f, 10f, 111f, 113f, DuoGeometry.RING_START, left, false, stroke)
-        if (right > 0f) canvas.drawArc(8f, 10f, 111f, 113f, rightStart, right, false, stroke)
+        if (gap == 0f) {
+            // One arc has no rounded-cap overlap at twelve o'clock, including the dim track.
+            stroke.color = track
+            canvas.drawArc(8f, 10f, 111f, 113f, DuoGeometry.RING_START,
+                360f - DuoGeometry.BOTTOM_GAP, false, stroke)
+            stroke.color = tint
+            val sweep = DuoGeometry.continuousFill(level)
+            if (sweep > 0f) canvas.drawArc(8f, 10f, 111f, 113f, DuoGeometry.RING_START, sweep, false, stroke)
+        } else {
+            stroke.color = track
+            canvas.drawArc(8f, 10f, 111f, 113f, DuoGeometry.RING_START, side, false, stroke)
+            canvas.drawArc(8f, 10f, 111f, 113f, rightStart, side, false, stroke)
+            stroke.color = tint
+            val left = DuoGeometry.leftFill(level, side)
+            val right = DuoGeometry.rightFill(level, side)
+            if (left > 0f) canvas.drawArc(8f, 10f, 111f, 113f, DuoGeometry.RING_START, left, false, stroke)
+            if (right > 0f) canvas.drawArc(8f, 10f, 111f, 113f, rightStart, right, false, stroke)
+        }
 
         if (charging) {
             fill.color = tint
@@ -192,30 +236,23 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
         }
 
         val progress = transition.fraction(SystemClock.uptimeMillis())
-        val eased = progress * progress * (3f - 2f * progress)
-        if (progress < 1f) drawCenter(canvas, transition.previous, ((1f - eased) * 255f).toInt(), 1f - 0.04f * eased)
-        drawCenter(canvas, transition.current, (eased * 255f).toInt(), 0.96f + 0.04f * eased)
+        drawCenter(canvas, transition.drawKey(progress), transition.drawAlpha(progress))
         if (progress < 1f && isShown && windowVisibility == VISIBLE) postInvalidateOnAnimation()
 
-        val cell = DuoNetworkState.cellLevel(network)
-        fill.color = if (cell >= 1) foreground else track
+        fill.color = DuoGeometry.signalColor(foreground, network, 0)
         canvas.drawCircle(33f, 104.2f, 5.5f, fill)
-        fill.color = if (cell >= 2) foreground else track
+        fill.color = DuoGeometry.signalColor(foreground, network, 1)
         canvas.drawCircle(50.5f, 111.2f, 5.5f, fill)
-        fill.color = if (cell >= 3) foreground else track
+        fill.color = DuoGeometry.signalColor(foreground, network, 2)
         canvas.drawCircle(68.5f, 111.7f, 5.5f, fill)
-        fill.color = if (cell >= 4) foreground else track
+        fill.color = DuoGeometry.signalColor(foreground, network, 3)
         canvas.drawCircle(86f, 105.8f, 5.5f, fill)
     }
 
-    private fun drawCenter(canvas: Canvas, key: Int, alpha: Int, scale: Float) {
+    private fun drawCenter(canvas: Canvas, key: Int, alpha: Int) {
         if (key < 0 || alpha <= 0) return
-        val saved = canvas.save()
-        try {
-            canvas.scale(scale, scale, 59.5f, 65f)
-            val foreground = DuoGeometry.withAlpha(this.foreground, (this.foreground ushr 24) * alpha / 255)
-            drawCenterGlyph(canvas, key, foreground)
-        } finally { canvas.restoreToCount(saved) }
+        val foreground = DuoGeometry.withAlpha(this.foreground, (this.foreground ushr 24) * alpha / 255)
+        drawCenterGlyph(canvas, key, foreground)
     }
 
     private fun drawCenterGlyph(canvas: Canvas, key: Int, foreground: Int) {
@@ -235,24 +272,26 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
                 fill.color = tint
                 if (config.headphoneStyle == 3 || (config.headphoneStyle == 1 && glyph == DuoAudioState.BLUETOOTH_GLYPH)) {
                     canvas.drawPath(earbuds, fill)
-                    canvas.drawRoundRect(40f, 58f, 47f, 83f, 3.5f, 3.5f, fill)
-                    canvas.drawRoundRect(72f, 58f, 79f, 83f, 3.5f, 3.5f, fill)
                 } else {
                     canvas.drawPath(headphones, stroke)
-                    canvas.drawRoundRect(33f, 63f, 46f, 82f, 5f, 5f, fill)
-                    canvas.drawRoundRect(73f, 63f, 86f, 82f, 5f, 5f, fill)
+                    canvas.drawRoundRect(32.5f, 61f, 46.5f, 84f, 6f, 6f, fill)
+                    canvas.drawRoundRect(72.5f, 61f, 86.5f, 84f, 6f, 6f, fill)
                 }
             } finally { canvas.restoreToCount(saved) }
         } else if (glyph == DuoAudioState.CELLULAR_GLYPH) {
+            if (cellularText != null && value in 2..5) {
+                cellularText.color = foreground
+                canvas.drawText(DuoCellularType.label(value), 59.5f, cellularBaseline, cellularText)
+                return
+            }
             stroke.color = foreground
-            stroke.strokeWidth = if (config.bold) 6f else 5f
-            canvas.drawLine(59.5f, 59f, 50.5f, 82f, stroke)
-            canvas.drawLine(59.5f, 59f, 68.5f, 82f, stroke)
-            canvas.drawLine(54.5f, 73f, 64.5f, 73f, stroke)
-            canvas.drawArc(42.5f, 37f, 76.5f, 71f, 135f, 90f, false, stroke)
-            canvas.drawArc(42.5f, 37f, 76.5f, 71f, 315f, 90f, false, stroke)
+            stroke.strokeWidth = if (config.bold) 9f else 7f
+            // The dot is at both arcs' center; leave a visible gap even with rounded bold caps.
+            canvas.drawLine(59.5f, 72f, 59.5f, 85f, stroke)
+            canvas.drawArc(40.5f, 37f, 78.5f, 75f, 140f, 80f, false, stroke)
+            canvas.drawArc(40.5f, 37f, 78.5f, 75f, 320f, 80f, false, stroke)
             fill.color = foreground
-            canvas.drawCircle(59.5f, 54f, 3.5f, fill)
+            canvas.drawCircle(59.5f, 56f, if (config.bold) 5.5f else 4.5f, fill)
         } else if (glyph == DuoAudioState.OFFLINE_GLYPH) {
             stroke.color = foreground
             stroke.strokeWidth = if (config.bold) 7f else 5f

@@ -15,6 +15,7 @@ class DuoAbiTest {
         assertSame(MiuiWifiSignalController::class.java, abi.wifiController)
         assertSame(BatteryControllerImpl::class.java, abi.batteryLevel.declaringClass)
         assertSame(BatteryControllerImpl::class.java, abi.saverChanged.declaringClass)
+        assertEquals(5, abi.mobileMaxLevel)
     }
 
     @Test fun erasedCleanStateReturnDoesNotHideConcreteMobileDataSim() {

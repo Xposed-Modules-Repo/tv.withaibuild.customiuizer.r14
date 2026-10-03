@@ -4,13 +4,14 @@
 
 CustoMIUIzer A14 is a system UI and interaction customization module maintained for **HyperOS 1 / Android 14 (SDK 34)**. It has an independent package and release line and is not an official upstream release.
 
-- Current version: `r14.22.1` (Release, versionCode 224)
+- Current local build: `r14.22.2` (officially signed, versionCode 225; device acceptance and publication pending)
+- Update notes: `r14.21.9 → r14.22.2`; this series uses one consolidated current entry
 - Development and maintenance: `thetvplus`
 - Application ID: `tv.withaibuild.customiuizer.r14`
 - Source: <https://github.com/thetvplus/customiuizer-a14>
 - User downloads: <https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases>
 
-`r14.22.1` adds a native Duo three-in-one status icon across apps, the lock screen, Control Center and its closing transition. Short transitions, headphone styles and size, vertical adjustment, disconnected Wi-Fi fallback and Bluetooth battery hint colors are configurable. Automatic sizing follows native dimensions and row bounds; Bluetooth remains a three-second hint and idle icons do not refresh. Disabled by default; setting changes require a SystemUI restart. See [CHANGELOG.md](CHANGELOG.md) and the [Duo notes](docs/DUO_STATUS_BAR.md) for rules and verification limits.
+Compared with `r14.21.9`, `r14.22.2` adds optional Duo: a continuous phone battery ring, Wi-Fi and default data SIM signal in one icon. Choose simplified cellular artwork or larger, visually centered network generation text, with shared drawing sizes during Control Center handoffs. Headphones normally follow native colors, with hints for explicitly reported low battery; wired and Bluetooth headphones appear for three seconds on connection, then restore the network glyph. Duo remains disabled by default; setting changes require a SystemUI restart and idle icons do not refresh. See the consolidated [CHANGELOG.md](CHANGELOG.md) and [Duo notes](docs/DUO_STATUS_BAR.md) for rules and verification limits.
 
 ## Core Features
 

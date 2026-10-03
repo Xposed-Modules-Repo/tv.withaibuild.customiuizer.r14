@@ -1068,11 +1068,11 @@
     <string name="system_statusbar_duo_autosize_title">Tamaño automático del icono</string>
     <string name="system_statusbar_duo_autosize_summ">Escala según la altura de los iconos del sistema y de la fila. Desactiva para ajustar el tamaño manualmente.</string>
     <string name="system_statusbar_duo_audio_title">Mostrar conexión de auriculares</string>
-    <string name="system_statusbar_duo_audio_summ">Los auriculares por cable permanecen visibles. Al conectar audio Bluetooth se muestran durante 3 segundos y luego vuelve el símbolo de red. Los avisos de red tienen prioridad.</string>
+    <string name="system_statusbar_duo_audio_summ">Los auriculares por cable o Bluetooth aparecen durante 3 segundos con una nueva conexión y luego vuelve Wi-Fi o el símbolo de red. Los eventos duplicados no prolongan ni repiten el aviso. Los avisos de red tienen prioridad.</string>
     <string name="system_statusbar_duo_bold_title">Líneas más gruesas</string>
     <string name="system_statusbar_duo_bold_summ">Anillo de batería y líneas de Wi-Fi y auriculares más gruesos.</string>
     <string name="system_statusbar_duo_transitions_title">Transiciones breves</string>
-    <string name="system_statusbar_duo_transitions_summ">Fundido y escala suave del centro durante 180 ms. Cambio directo con ahorro de energía o animaciones del sistema desactivadas.</string>
+    <string name="system_statusbar_duo_transitions_summ">El centro se desvanece y reaparece en unos 180 ms, sin cambiar de tamaño. Cambio directo con ahorro de energía o animaciones desactivadas.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Ajuste vertical</string>
     <string name="system_statusbar_duo_verticaloffset_summ">Centrado en la fila, pasos de 0,5 dp. Desplazamiento limitado; el icono se reduce en el borde para evitar recortes.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Estilo de auriculares</string>
@@ -1081,7 +1081,10 @@
     <string name="system_statusbar_duo_headphone_earbuds">Auriculares intraaurales</string>
     <string name="system_statusbar_duo_headphonescale_title">Tamaño de auriculares</string>
     <string name="system_statusbar_duo_networkfallback_title">Sustituir Wi-Fi desconectado</string>
-    <string name="system_statusbar_duo_networkfallback_summ">Mostrar red móvil o sin servicio cuando no hay Wi-Fi. Bluetooth solo aparece durante 3 segundos.</string>
+    <string name="system_statusbar_duo_networkfallback_summ">Sin Wi-Fi, muestra un icono o el tipo de red actual; los tipos desconocidos usan el icono. Los auriculares solo aparecen 3 segundos al conectar.</string>
     <string name="system_statusbar_duo_btbattery_title">Colores de batería Bluetooth</string>
-    <string name="system_statusbar_duo_btbattery_summ">Un dispositivo y un informe nuevo: rojo hasta 20 %, ámbar hasta 50 %. Azul significa Bluetooth, incluso con batería desconocida; el anillo es del teléfono.</string>
+    <string name="system_statusbar_duo_btbattery_summ">Un dispositivo y un informe reciente: rojo hasta 20 %, ámbar hasta 50 %. Otros niveles o batería desconocida usan el color del sistema; el anillo es del teléfono.</string>
+    <string name="system_statusbar_duo_cellularstyle_title">Estilo de red móvil en el centro</string>
+    <string name="system_statusbar_duo_cellular_graphic">Icono</string>
+    <string name="system_statusbar_duo_cellular_text">Texto (2G/3G/4G/5G)</string>
 </resources>

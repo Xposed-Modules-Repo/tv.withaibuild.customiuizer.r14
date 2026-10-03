@@ -69,6 +69,12 @@ internal class DuoAbi(private val loader: ClassLoader) {
     val mobileLevel = field(mobileStateType, "level", Int::class.javaPrimitiveType)
     val mobileConnected = field(mobileStateType, "connected", Boolean::class.javaPrimitiveType)
     val mobileDataSim = field(mobileStateType, "dataSim", Boolean::class.javaPrimitiveType)
+    // Xiaomi publishes 0..5, AOSP-like variants 0..4. Resolve the scale once, never per frame.
+    val mobileMaxLevel = (field(cls("statusbar.mobile.TelephonyIcons"), "TELEPHONY_SIGNAL_STRENGTH",
+        IntArray::class.java).get(null) as IntArray).size.let { size ->
+        require(size in 5..6) { "Duo: unsupported cellular strength scale" }
+        size - 1
+    }
     val subscription = field(mobileController, "mSubscriptionInfo")
 
     val networkController = cls("statusbar.connectivity.NetworkControllerImpl")

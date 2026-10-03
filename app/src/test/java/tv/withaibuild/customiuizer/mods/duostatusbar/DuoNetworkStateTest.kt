@@ -5,6 +5,80 @@ import org.junit.Test
 import java.util.concurrent.CountDownLatch
 
 class DuoNetworkStateTest {
+    @Test fun cellularTypeFollowsDefaultDataSimAndNeverSurvivesServiceLossOrReplacement() {
+        val state = DuoNetworkState()
+        state.subscriptions(10, 20, true)
+        assertTrue(state.mobile(0, 10, 4, true, true, 5, 4))
+        assertFalse(state.mobile(0, 10, 4, true, true, 5, 4))
+        assertFalse(state.mobile(1, 20, 4, true, false, 5, 5))
+        assertEquals(4, DuoNetworkState.cellularType(state.snapshot))
+        assertTrue(state.mobile(0, 10, 4, true, true, 5, 5))
+        assertEquals(5, DuoNetworkState.cellularType(state.snapshot))
+        assertTrue(state.mobile(1, 20, 4, true, true, 5, 3))
+        assertEquals(3, DuoNetworkState.cellularType(state.snapshot))
+        state.airplane(true)
+        assertEquals(0, DuoNetworkState.cellularType(state.snapshot))
+        state.airplane(false)
+        assertEquals(3, DuoNetworkState.cellularType(state.snapshot))
+        state.mobile(1, 20, 4, false, true, 5, 3)
+        assertEquals(0, DuoNetworkState.cellularType(state.snapshot))
+        state.subscriptions(-1, 30, true)
+        assertFalse(state.mobile(1, 20, 4, true, true, 5, 5))
+        assertEquals(0, DuoNetworkState.cellularType(state.snapshot))
+        state.mobile(1, 30, 4, true, true, 5, 99)
+        assertEquals(0, DuoNetworkState.cellularType(state.snapshot))
+    }
+
+    @Test fun allSixXiaomiStrengthStatesReachTheFourDotsWithoutSaturation() {
+        val state = DuoNetworkState()
+        state.subscriptions(10, -1, true)
+        var lastCoverage = -1
+        for (level in 0..5) {
+            assertTrue(state.mobile(0, 10, level, true, true, 5))
+            val coverage = (0..3).sumOf { DuoNetworkState.dotCoverage(state.snapshot, it) }
+            assertEquals(level * 204, coverage)
+            assertTrue(coverage > lastCoverage)
+            assertFalse(state.mobile(0, 10, level, true, true, 5))
+            lastCoverage = coverage
+        }
+        state.mobile(0, 10, 4, true, true, 5)
+        assertEquals(51, DuoNetworkState.dotCoverage(state.snapshot, 3))
+        state.mobile(0, 10, 5, true, true, 5)
+        assertEquals(255, DuoNetworkState.dotCoverage(state.snapshot, 3))
+    }
+
+    @Test fun fourLevelRomStillLightsWholeDotsAndNoServiceClearsPartialDots() {
+        val state = DuoNetworkState()
+        state.subscriptions(10, -1, true)
+        for (level in 0..4) {
+            state.mobile(0, 10, level, true, true, 4)
+            for (dot in 0..3) assertEquals(if (dot < level) 255 else 0,
+                DuoNetworkState.dotCoverage(state.snapshot, dot))
+        }
+        state.mobile(0, 10, 5, true, true, 5)
+        state.mobile(0, 10, 5, false, true, 5)
+        for (dot in 0..3) assertEquals(0, DuoNetworkState.dotCoverage(state.snapshot, dot))
+        state.mobile(0, 10, 5, true, true, 5)
+        state.airplane(true)
+        for (dot in 0..3) assertEquals(0, DuoNetworkState.dotCoverage(state.snapshot, dot))
+    }
+
+    @Test fun signalScaleBelongsToTheSelectedSubscriptionAndIsResetOnReplacement() {
+        val state = DuoNetworkState()
+        state.subscriptions(10, 20, true)
+        state.mobile(0, 10, 4, true, true, 5)
+        state.mobile(1, 20, 4, true, false, 4)
+        assertEquals(51, DuoNetworkState.dotCoverage(state.snapshot, 3))
+        state.mobile(1, 20, 4, true, true, 4)
+        assertEquals(255, DuoNetworkState.dotCoverage(state.snapshot, 3))
+        state.subscriptions(-1, 30, true)
+        assertFalse(state.mobile(1, 20, 5, true, true, 5))
+        state.mobile(1, 30, 1, true, true, 4)
+        assertEquals(255, DuoNetworkState.dotCoverage(state.snapshot, 0))
+        assertEquals(0, DuoNetworkState.dotCoverage(state.snapshot, 1))
+        assertFalse(state.mobile(1, 30, 1, true, true, 6))
+    }
+
     @Test fun unknownStateDoesNotReplaceAnyNativeIcon() {
         val state = DuoNetworkState()
         assertEquals(0, state.snapshot)

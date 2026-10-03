@@ -4,13 +4,14 @@
 
 CustoMIUIzer A14 是面向 **HyperOS 1 / Android 14（SDK 34）** 的系统界面与交互定制模块，基于 CustoMIUIzer 项目持续维护。它使用独立包名和版本线，不是上游官方版本。
 
-- 当前版本：`r14.22.1`（Release，versionCode 224）
+- 当前本地构建：`r14.22.2`（正式签名，versionCode 225；实机验收与发布待定）
+- 更新说明：`r14.21.9 → r14.22.2`，本系列文档统一为当前版本
 - 维护与开发：`thetvplus`
 - 应用 ID：`tv.withaibuild.customiuizer.r14`
 - 源码仓库：<https://github.com/thetvplus/customiuizer-a14>
 - 用户下载：<https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases>
 
-`r14.22.1` 加入原生绘制的 Duo 三合一状态栏，覆盖锁屏、应用、控制中心及收起过渡；支持短过渡、耳机样式与大小、垂直微调、Wi-Fi 断连替代图案及有系统电量报告时的蓝牙提示颜色。自动尺寸适应原生图标与当前行高，蓝牙只提示 3 秒，静止时不刷新。默认关闭，设置变更后需重启系统界面。详细规则与验证边界见 [CHANGELOG_CN.md](CHANGELOG_CN.md) 和 [Duo 说明](docs/DUO_STATUS_BAR.md)。
+`r14.22.2` 相比 `r14.21.9` 新增可选 Duo 三合一状态栏：连续电量圆环、Wi-Fi 和默认数据卡信号合为一个图标，蜂窝中心可选简化图形或加大并居中对齐的网络类型文字，控制中心交接共享绘制尺寸。普通耳机颜色跟随系统，明确低电量时显示提示色；有线和蓝牙耳机连接时仅提示 3 秒，随后恢复网络图案。Duo 默认关闭，设置变更后需重启系统界面，静止时不刷新。完整合并更新与验证边界见 [CHANGELOG_CN.md](CHANGELOG_CN.md) 和 [Duo 说明](docs/DUO_STATUS_BAR.md)。
 
 ## 核心功能
 
