@@ -2,6 +2,16 @@
 
 [English](CHANGELOG.md) | 简体中文
 
+## r14.22.1 — 2026-10-03
+
+适用于 HyperOS 1 / Android 14，versionCode 224。相对上一正式版 r14.21.9：
+
+- 新增可选 Duo 三合一状态栏，将电量、Wi-Fi 和蜂窝信号合为一个图标，支持应用、锁屏、控制中心及收起过渡。
+- 自动尺寸适应设备和当前行高，支持手动大小、线条加粗与垂直微调；优化 Wi-Fi 最小图案和深浅背景下的颜色。
+- 新增轻量短过渡，省电或系统关闭动画时直接切换，静止时不持续刷新。
+- 蓝牙耳机连接时提示3秒，有线耳机保持显示；可选耳机样式和大小，有电量数据时支持低电量提示色，外环仍显示手机电量。
+- Wi-Fi 未连接时可显示蜂窝／无服务图案；完善开关依赖和异常回退，默认关闭，修改设置后需重启系统界面。
+
 ## r14.21.9 — 2026-09-30
 
 versionCode 218。面向 HyperOS 1 / Android 14。
@@ -59,8 +69,6 @@ versionCode 216。面向 HyperOS 1 / Android 14。
 ### 产物信息
 
 - APK：`CustoMIUIzer-A14-r14.21.5.apk`
-- 大小：`3886062` bytes
-- SHA-256：`3F952F37A4E1EAB18C9D2BD17AF4B72DBFB231F7DB3309D054538B7E5141B820`
 - versionCode / versionName：`212 / r14.21.5`
 
 ---
@@ -79,35 +87,32 @@ versionCode 216。面向 HyperOS 1 / Android 14。
 ### 产物信息
 
 - APK：`CustoMIUIzer-A14-r14.20.9.apk`
-- 大小：`3882834` bytes
-- SHA-256：`BB179572B7CF9FB6D80DC5E078126EAE383375486EF9D93816345CDCC5C1B9DC`
 - versionCode / versionName：`206 / r14.20.9`
 
 ---
 
 ## r14.20.8 — 2026-08-19
 
-面向 HyperOS 1 / Android 14（SDK 34）、`arm64-v8a` 与 libxposed API 101/102。
+面向 HyperOS 1 / Android 14（SDK 34）、`arm64-v8a`、libxposed API 101/102。
 
 ### 修复
 
+- 修复部分系统级设置在首次配置后无法立即生效的问题。
+- 修复部分全局动作首次配置后需要额外重启才能工作的情况。
 - 修复热点、勿扰模式和深色模式动作的显示名称。
 - 修复播放/暂停、上一首和下一首媒体动作的显示名称。
-
-### 运行期与生命周期
-
 - 改进全局动作在系统服务与系统界面中的运行时可用性。
+
+### 改进
+
 - 改进动作配置的运行时同步与宿主生命周期处理。
 
 ### 产物信息
 
 - APK：`CustoMIUIzer-A14-r14.20.8.apk`
-- 大小：`3882830` bytes
-- SHA-256：`25E9B5EA763419843E9EE78E579BC8C43B00382DF6BFCED38893793709BC7911`
 - versionCode / versionName：`205 / r14.20.8`
 
 ---
-
 
 ## r14.20.7 — 2026-08-19
 

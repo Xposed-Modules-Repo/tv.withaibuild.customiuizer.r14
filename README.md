@@ -8,13 +8,13 @@ CustoMIUIzer A14 是面向 HyperOS 1 / Android 14 的系统界面与交互定制
 
 | 项目 | 值 |
 | --- | --- |
-| 版本 | `r14.21.9` |
-| versionCode | `218` |
+| 版本 | `r14.22.1` |
+| versionCode | `224` |
 | 维护与开发 | `thetvplus` |
 | 应用 ID | `tv.withaibuild.customiuizer.r14` |
-| APK | `CustoMIUIzer-A14-r14.21.9.apk` |
-| 大小 | `3915382` bytes |
-| APK SHA-256 | `7306B389B364A027F22767DB1B3C4223BF72E2185F814410EF4D6D67CB7CC911` |
+| APK | `CustoMIUIzer-A14-r14.22.1.apk` |
+| 大小 | `3963343` bytes |
+| APK SHA-256 | `F3F5E0809DAEB258CDA5E6D4D214272EB4DDC400107550F7A77556EC20FF2F12` |
 
 ## 兼容范围与要求
 
@@ -27,17 +27,18 @@ CustoMIUIzer A14 是面向 HyperOS 1 / Android 14 的系统界面与交互定制
 ## 主要功能
 
 - 状态栏图标、电池、信号、网速、日期与温度；
+- Duo 三合一状态栏：原生绘制，支持短过渡、耳机提示与垂直微调；
 - 灵动额头 / 动态岛、USB 默认用途、音量与亮度面板；
 - 控制中心、通知、锁屏、充电和媒体界面；
 - Launcher、最近任务、文件夹、图标与桌面手势；
 - 导航栏、按键、自定义动作、电源菜单和系统动画；
 - 应用、权限、安装、分享、隐私应用和应用锁行为。
 
-`r14.21.9` 修复控制中心计步刷新任务积压，减少慢查询期间的重复请求，并在熄屏、界面移除或控制器重新初始化时取消过期刷新。详细变化见 [CHANGELOG_CN.md](CHANGELOG_CN.md)。
+`r14.22.1` 新增 Duo 三合一状态栏，支持自动大小、耳机样式、短过渡和垂直微调；蓝牙连接提示3秒，Wi-Fi断连可显示蜂窝或无服务图案。保留原生双排行高，默认关闭，设置变更后重启系统界面。详细变化见 [CHANGELOG_CN.md](CHANGELOG_CN.md)。
 
 ## 安装与升级
 
-1. 从本仓库 Release 下载 `CustoMIUIzer-A14-r14.21.9.apk`；
+1. 从本仓库 Release 下载 `CustoMIUIzer-A14-r14.22.1.apk`；
 2. 启用模块；
 3. 确认作用域包含 `system`、桌面等必要应用；
 4. 完整重启设备。
@@ -46,6 +47,6 @@ CustoMIUIzer A14 是面向 HyperOS 1 / Android 14 的系统界面与交互定制
 
 模块通过 Hook 修改系统进程，功能可用性取决于设备 ROM 与系统应用版本。ROM 更新可能改变类、方法或资源结构，异常时请先停用相关功能并保留日志。
 
-本版本已通过正式 Release/R8 构建、版本、v2 签名、zipalign、`debuggable=false`、Xposed 元数据与 provenance 校验。启用后请完整重启。
+已完成本地检查及 HyperOS 1 / Android 14 实机验证。启用后请完整重启。
 
 源码与问题反馈：<https://github.com/thetvplus/customiuizer-a14>

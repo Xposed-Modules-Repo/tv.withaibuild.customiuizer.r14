@@ -2,6 +2,16 @@
 
 English | [简体中文](CHANGELOG_CN.md)
 
+## r14.22.1 — 2026-10-03
+
+For HyperOS 1 / Android 14, versionCode 224. Changes since the previous official r14.21.9:
+
+- Add optional Duo, combining battery, Wi-Fi and cellular signal across apps, the lock screen, Control Center and its closing transition.
+- Adapt automatic size to the device and current row, with manual size, bold strokes and vertical adjustment. Refine the smallest Wi-Fi shape and colors on light/dark backgrounds.
+- Add lightweight short transitions; switch directly in power saver or with system animations off, with no continuous idle refresh.
+- Show Bluetooth headphones for three seconds on connection and wired headphones persistently. Choose headphone style and size; use battery hint colors when reported, while the outer ring remains phone battery.
+- Optionally replace disconnected Wi-Fi with cellular/no-service glyphs. Refine setting dependencies and native fallback. Disabled by default; restart System UI after setting changes.
+
 ## r14.21.9 — 2026-09-30
 
 versionCode 218, for HyperOS 1 / Android 14.
@@ -59,8 +69,6 @@ Targeting HyperOS 1 / Android 14 (SDK 34), `arm64-v8a`, libxposed API 101/102.
 ### Artifact Information
 
 - APK: `CustoMIUIzer-A14-r14.21.5.apk`
-- Size: `3886062` bytes
-- SHA-256: `3F952F37A4E1EAB18C9D2BD17AF4B72DBFB231F7DB3309D054538B7E5141B820`
 - versionCode / versionName: `212 / r14.21.5`
 
 ---
@@ -79,35 +87,32 @@ Targeting HyperOS 1 / Android 14 (SDK 34), `arm64-v8a`, libxposed API 101/102.
 ### Artifact Information
 
 - APK: `CustoMIUIzer-A14-r14.20.9.apk`
-- Size: `3882834` bytes
-- SHA-256: `BB179572B7CF9FB6D80DC5E078126EAE383375486EF9D93816345CDCC5C1B9DC`
 - versionCode / versionName: `206 / r14.20.9`
 
 ---
 
 ## r14.20.8 — 2026-08-19
 
-Targeting HyperOS 1 / Android 14 (SDK 34), `arm64-v8a`, and libxposed API 101/102.
+Targeting HyperOS 1 / Android 14 (SDK 34), `arm64-v8a`, libxposed API 101/102.
 
 ### Fixes
 
-- Fix display names for hotspot, Do Not Disturb, and night mode actions.
-- Fix display names for play/pause, previous, and next media actions.
+- Some system-level settings now take effect immediately after being configured for the first time.
+- Some global actions no longer need an extra restart after being configured for the first time.
+- Corrected the display names of the Hotspot, Do not disturb and Dark mode actions.
+- Corrected the display names of the Play/Pause, Next and Previous media actions.
+- Improved the runtime availability of global actions in the system service and the system UI.
 
-### Runtime and Lifecycle
+### Improvements
 
-- Improve runtime availability of global actions in system services and SystemUI.
-- Improve runtime synchronization and host lifecycle handling for action configuration.
+- Improved runtime synchronization of action settings and host lifecycle handling.
 
 ### Artifact Information
 
 - APK: `CustoMIUIzer-A14-r14.20.8.apk`
-- Size: `3882830` bytes
-- SHA-256: `25E9B5EA763419843E9EE78E579BC8C43B00382DF6BFCED38893793709BC7911`
 - versionCode / versionName: `205 / r14.20.8`
 
 ---
-
 
 ## r14.20.7 — 2026-08-19
 
