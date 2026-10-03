@@ -7,7 +7,7 @@ English | [简体中文](CHANGELOG_CN.md)
 For HyperOS 1 / Android 14, versionCode 224. Changes since the previous official r14.21.9:
 
 - Add optional Duo, combining battery, Wi-Fi and cellular signal across apps, the lock screen, Control Center and its closing transition.
-- Adapt automatic size to the device and current row, with manual size, bold strokes and vertical adjustment. Refine the smallest Wi-Fi shape and colors on light/dark backgrounds.
+- Adapt automatic size to the device and available space, spanning both rows when enabled, with manual size, bold strokes and vertical adjustment. Refine the smallest Wi-Fi shape and colors on light/dark backgrounds.
 - Add lightweight short transitions; switch directly in power saver or with system animations off, with no continuous idle refresh.
 - Show Bluetooth headphones for three seconds on connection and wired headphones persistently. Choose headphone style and size; use battery hint colors when reported, while the outer ring remains phone battery.
 - Optionally replace disconnected Wi-Fi with cellular/no-service glyphs. Refine setting dependencies and native fallback. Disabled by default; restart System UI after setting changes.

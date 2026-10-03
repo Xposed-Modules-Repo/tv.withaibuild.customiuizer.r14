@@ -1065,9 +1065,9 @@
     <string name="system_statusbar_duo_restart">設定變更後請重新啟動系統介面。Duo 的百分比與尺寸獨立控制，原生圖示隱藏與樣式選項不覆蓋它們。不相容時保留原生圖示。</string>
     <string name="system_statusbar_duo_percent_title">顯示電量百分比</string>
     <string name="system_statusbar_duo_size_title">手動圖示尺寸</string>
-    <string name="system_statusbar_duo_size_summ">關閉自動尺寸後生效，受目前列高限制。</string>
+    <string name="system_statusbar_duo_size_summ">關閉自動尺寸後生效，受可用高度限制。</string>
     <string name="system_statusbar_duo_autosize_title">自動圖示尺寸</string>
-    <string name="system_statusbar_duo_autosize_summ">依裝置原生圖示高度縮放，並配合目前列高。關閉後使用手動尺寸。</string>
+    <string name="system_statusbar_duo_autosize_summ">依裝置原生圖示與可用空間調整，雙排時跨兩排顯示。關閉後使用手動尺寸。</string>
     <string name="system_statusbar_duo_audio_title">顯示耳機連線狀態</string>
     <string name="system_statusbar_duo_audio_summ">有線耳機保持顯示；藍牙音訊連線時提示 3 秒，然後恢復網路圖案。網路異常提示優先。</string>
     <string name="system_statusbar_duo_bold_title">圖示線條加粗</string>
@@ -1075,7 +1075,7 @@
     <string name="system_statusbar_duo_transitions_title">圖示短過渡</string>
     <string name="system_statusbar_duo_transitions_summ">中間圖案切換時淡入並輕微縮放，約180毫秒；省電或系統關閉動畫時直接切換。</string>
     <string name="system_statusbar_duo_verticaloffset_title">垂直微調</string>
-    <string name="system_statusbar_duo_verticaloffset_summ">預設在目前行內置中，每格0.5dp；偏移受行高限制，邊界處自動縮小，避免裁切。</string>
+    <string name="system_statusbar_duo_verticaloffset_summ">預設在可用區域內置中，每格0.5dp；偏移受高度限制，邊界處自動縮小，避免裁切。</string>
     <string name="system_statusbar_duo_headphonestyle_title">耳機圖示樣式</string>
     <string name="system_statusbar_duo_headphone_auto">依連線方式：藍牙耳塞、有線頭戴</string>
     <string name="system_statusbar_duo_headphone_overear">頭戴式耳機</string>

@@ -1066,9 +1066,9 @@
     <string name="system_statusbar_duo_restart">Reinicie a interface do sistema após alterar os ajustes. A porcentagem e o tamanho do Duo independem da ocultação e do estilo dos ícones originais. Dispositivos incompatíveis mantêm seus ícones.</string>
     <string name="system_statusbar_duo_percent_title">Mostrar porcentagem da bateria</string>
     <string name="system_statusbar_duo_size_title">Tamanho manual do ícone</string>
-    <string name="system_statusbar_duo_size_summ">Usado sem tamanho automático; limitado pela altura da linha.</string>
+    <string name="system_statusbar_duo_size_summ">Usado sem tamanho automático; limitado pela altura disponível.</string>
     <string name="system_statusbar_duo_autosize_title">Tamanho automático do ícone</string>
-    <string name="system_statusbar_duo_autosize_summ">Ajusta pela altura dos ícones do sistema e da linha. Desative para definir o tamanho manualmente.</string>
+    <string name="system_statusbar_duo_autosize_summ">Ajusta aos ícones do sistema e ao espaço disponível. Ocupa as duas linhas numa barra de duas linhas. Desative para definir manualmente.</string>
     <string name="system_statusbar_duo_audio_title">Mostrar conexão de fones</string>
     <string name="system_statusbar_duo_audio_summ">Fones com fio permanecem visíveis. Ao conectar áudio Bluetooth, são mostrados por 3 segundos e depois retorna o símbolo de rede. Alertas de rede têm prioridade.</string>
     <string name="system_statusbar_duo_bold_title">Linhas mais grossas</string>
@@ -1076,7 +1076,7 @@
     <string name="system_statusbar_duo_transitions_title">Transições curtas</string>
     <string name="system_statusbar_duo_transitions_summ">Transição suave com leve escala do centro por 180 ms. Sem animação na economia de energia ou com animações do sistema desligadas.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Ajuste vertical</string>
-    <string name="system_statusbar_duo_verticaloffset_summ">Centralizado na linha, passos de 0,5 dp. Deslocamento limitado; o ícone diminui na borda para evitar cortes.</string>
+    <string name="system_statusbar_duo_verticaloffset_summ">Centralizado na área disponível, passos de 0,5 dp. Deslocamento limitado; o ícone diminui na borda para evitar cortes.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Estilo dos fones</string>
     <string name="system_statusbar_duo_headphone_auto">Por conexão: Bluetooth intra-auriculares, cabo com arco</string>
     <string name="system_statusbar_duo_headphone_overear">Fones com arco</string>

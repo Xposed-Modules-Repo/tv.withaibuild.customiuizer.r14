@@ -1066,9 +1066,9 @@
     <string name="system_statusbar_duo_restart">Khởi động lại giao diện hệ thống sau khi đổi cài đặt. Phần trăm và kích thước Duo độc lập với việc ẩn và kiểu biểu tượng gốc. Thiết bị không tương thích giữ biểu tượng gốc.</string>
     <string name="system_statusbar_duo_percent_title">Hiển thị phần trăm pin</string>
     <string name="system_statusbar_duo_size_title">Kích thước biểu tượng thủ công</string>
-    <string name="system_statusbar_duo_size_summ">Dùng khi tắt kích thước tự động; giới hạn bởi chiều cao hàng.</string>
+    <string name="system_statusbar_duo_size_summ">Dùng khi tắt kích thước tự động; giới hạn bởi chiều cao khả dụng.</string>
     <string name="system_statusbar_duo_autosize_title">Kích thước biểu tượng tự động</string>
-    <string name="system_statusbar_duo_autosize_summ">Điều chỉnh theo chiều cao biểu tượng hệ thống và hàng hiện tại. Tắt để chỉnh thủ công.</string>
+    <string name="system_statusbar_duo_autosize_summ">Điều chỉnh theo biểu tượng hệ thống và không gian khả dụng. Trải qua cả hai hàng trên thanh trạng thái hai hàng. Tắt để chỉnh thủ công.</string>
     <string name="system_statusbar_duo_audio_title">Hiển thị kết nối tai nghe</string>
     <string name="system_statusbar_duo_audio_summ">Tai nghe có dây luôn hiển thị khi kết nối. Âm thanh Bluetooth hiển thị 3 giây khi kết nối rồi trở lại biểu tượng mạng. Cảnh báo mạng được ưu tiên.</string>
     <string name="system_statusbar_duo_bold_title">Nét biểu tượng đậm hơn</string>
@@ -1076,7 +1076,7 @@
     <string name="system_statusbar_duo_transitions_title">Chuyển biểu tượng ngắn</string>
     <string name="system_statusbar_duo_transitions_summ">Mờ dần và thu phóng nhẹ ở giữa trong 180 ms. Đổi ngay khi tiết kiệm pin hoặc tắt hoạt ảnh hệ thống.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Chỉnh vị trí dọc</string>
-    <string name="system_statusbar_duo_verticaloffset_summ">Căn giữa trong hàng, mỗi bước 0,5 dp. Độ lệch theo chiều cao; thu nhỏ ở mép để tránh cắt biểu tượng.</string>
+    <string name="system_statusbar_duo_verticaloffset_summ">Căn giữa vùng khả dụng, mỗi bước 0,5 dp. Độ lệch theo chiều cao; thu nhỏ ở mép để tránh cắt biểu tượng.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Kiểu biểu tượng tai nghe</string>
     <string name="system_statusbar_duo_headphone_auto">Theo kết nối: Bluetooth nhét tai, có dây chụp tai</string>
     <string name="system_statusbar_duo_headphone_overear">Tai nghe chụp tai</string>

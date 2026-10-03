@@ -25,6 +25,9 @@ internal class DuoBinding(
     }
     private val batteryChildren = ArrayList<Original>(owner.childCount)
     private val signals = ArrayList<Original>(4)
+    private val dualRows = DuoDualRowsLayout.prepare(owner, root, abi)
+    var relocating = false
+        private set
     private var active = false
     private var supported = true
 
@@ -50,6 +53,7 @@ internal class DuoBinding(
     }
 
     fun reconcile(level: Int, charging: Boolean, saver: Boolean, bits: Int, audio: Int) {
+        if (relocating) return // native reattachment can synchronously deliver the same state
         val ready = supported && level in 0..100 &&
             bits and (DuoNetworkState.WIFI_READY or DuoNetworkState.MOBILE_READY) == 3
         if (!ready) {
@@ -57,6 +61,7 @@ internal class DuoBinding(
             return
         }
         val text = abi.percentView.get(owner) as TextView
+        relocate { dualRows?.apply() }
         view.render(level, charging, saver, text.currentTextColor, bits, audio)
         view.visibility = View.VISIBLE
         active = true
@@ -103,6 +108,7 @@ internal class DuoBinding(
     fun restore() {
         active = false
         view.stopTransition()
+        relocate { dualRows?.restore() }
         restoreBattery()
         for (i in signals.indices) signals[i].restore()
         view.visibility = View.GONE
@@ -114,5 +120,10 @@ internal class DuoBinding(
         batteryChildren.clear()
         view.binding = null
         owner.removeView(view)
+    }
+
+    private inline fun relocate(action: () -> Unit) {
+        relocating = true
+        try { action() } finally { relocating = false }
     }
 }
