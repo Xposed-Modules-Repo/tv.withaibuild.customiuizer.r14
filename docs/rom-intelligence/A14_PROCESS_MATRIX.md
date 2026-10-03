@@ -314,3 +314,4 @@ This matrix is generated from source (`tools/extract_process_matrix.py`). It rec
 | 251 | USB Default Function | `system_usb_default_function` | SYSTEM_SERVER | SYSTEM_SERVER_STARTING | SystemServerFeatures | `(default base install)` | system_server |  |
 | 252 | Hide IME Dismiss Button | `controls_hide_ime_dismiss_button` | SYSTEM_UI | PACKAGE_READY | SystemUiFeatures | `Controls.HideImeDismissButtonHook(lpparam)` | com.android.systemui | miui.systemui.plugin (ClassLoader extracted at runtime) |
 | 253 | Status Bar Content Geometry | `system_statusbar_content_vertical_offset` | SYSTEM_UI | PACKAGE_READY | SystemUiFeatures | `StatusBarContentGeometryHooks.hook(lpparam)` | com.android.systemui | miui.systemui.plugin (ClassLoader extracted at runtime) |
+| 254 | Duo Status Bar | `system_statusbar_duo` | SYSTEM_UI | PACKAGE_READY | SystemUiFeatures | `(default base install)` | com.android.systemui | miui.systemui.plugin (ClassLoader extracted at runtime) |

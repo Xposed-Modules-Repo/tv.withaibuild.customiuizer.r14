@@ -35,7 +35,7 @@
       "phase": "SYSTEM_SERVER_STARTING",
       "installer": "SystemServerFeatures",
       "installHook": "Controls.NavBarActionsHook(lpparam)",
-      "enableCondition": "prefs.getInt(\"controls_backlong_action\", 1) > 1 || prefs.getInt(\"controls_homelong_action\", 1) > 1 || prefs.getInt(\"controls_menulong_action\", 1) > 1",
+      "enableCondition": "{ prefs -> NavBarActionsFeature.evaluateEnabled(prefs) }",
       "allowedProcess": "system_server",
       "deniedProcess": ""
     },
@@ -48,7 +48,7 @@
       "phase": "SYSTEM_SERVER_STARTING",
       "installer": "SystemServerFeatures",
       "installHook": "Controls.PowerDoubleTapActionHook(lpparam)",
-      "enableCondition": "prefs.getInt(\"controls_powerdt_action\", 1) > 1 || prefs.getBoolean(\"controls_volumedowndt_torch\")",
+      "enableCondition": "{ prefs -> PowerDoubleTapActionFeature.evaluateEnabled(prefs) }",
       "allowedProcess": "system_server",
       "deniedProcess": ""
     },
@@ -1881,7 +1881,7 @@
       "phase": "PACKAGE_READY",
       "installer": "CommonPackageFeatures (MainModule)",
       "installHook": "ModsSystem.StatusBarHeightHook(lpparam)",
-      "enableCondition": "prefs.getInt(\"system_statusbarheight\", 11) > 11",
+      "enableCondition": "prefs.getInt(\"system_statusbarheight\", 11) > 11 && packageName in RESOURCE_PACKAGES",
       "allowedProcess": "any scoped package where hasEnabledFeature() is true",
       "deniedProcess": ""
     },
@@ -3272,7 +3272,20 @@
       "phase": "PACKAGE_READY",
       "installer": "SystemUiFeatures",
       "installHook": "StatusBarContentGeometryHooks.hook(lpparam)",
-      "enableCondition": "{ true }",
+      "enableCondition": "true",
+      "allowedProcess": "com.android.systemui",
+      "deniedProcess": "miui.systemui.plugin (ClassLoader extracted at runtime)"
+    },
+    {
+      "featureIdInt": 254,
+      "featureIdName": "systemui_duo_status_bar",
+      "name": "Duo Status Bar",
+      "preferenceKey": "system_statusbar_duo",
+      "target": "SYSTEM_UI",
+      "phase": "PACKAGE_READY",
+      "installer": "SystemUiFeatures",
+      "installHook": "(default base install)",
+      "enableCondition": "{ prefs -> DuoStatusBarFeature.evaluateEnabled(prefs) }",
       "allowedProcess": "com.android.systemui",
       "deniedProcess": "miui.systemui.plugin (ClassLoader extracted at runtime)"
     }
