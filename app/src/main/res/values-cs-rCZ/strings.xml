@@ -1070,8 +1070,12 @@
     <string name="system_statusbar_lefticons_offset_summ">Záporné hodnoty posouvají nahoru, kladné dolů. 0 dp zachovává systémovou polohu. Vyžaduje restart systémového rozhraní.</string>
     <string name="system_statusbar_duo_title">Duo: stavová ikona tři v jednom</string>
     <string name="system_statusbar_duo_summ">Kruh baterie, Wi-Fi a mobilní signál v jedné ikoně; u dvou SIM se používá výchozí datová SIM</string>
-    <string name="system_statusbar_duo_restart">Po zapnutí, vypnutí nebo změně nastavení restartujte systémové rozhraní. Na nekompatibilních zařízeních zůstanou původní ikony.</string>
+    <string name="system_statusbar_duo_restart">Po změně nastavení restartujte systémové rozhraní. Procenta a velikost Duo jsou nezávislé na skrytí a stylu systémových ikon. Nekompatibilní zařízení zachovají původní ikony.</string>
     <string name="system_statusbar_duo_percent_title">Zobrazit procenta baterie</string>
-    <string name="system_statusbar_duo_size_title">Maximální velikost ikony</string>
-    <string name="system_statusbar_duo_size_summ">Ikona se přizpůsobí stávající výšce stavového řádku.</string>
+    <string name="system_statusbar_duo_size_title">Ruční velikost ikony</string>
+    <string name="system_statusbar_duo_size_summ">Platí bez automatické velikosti; omezena výškou řádku.</string>
+    <string name="system_statusbar_duo_autosize_title">Automatická velikost ikony</string>
+    <string name="system_statusbar_duo_autosize_summ">Velikost podle výšky systémových ikon a aktuálního řádku. Pro ruční velikost vypněte.</string>
+    <string name="system_statusbar_duo_audio_title">Zobrazovat připojení sluchátek</string>
+    <string name="system_statusbar_duo_audio_summ">Kabelová sluchátka nebo zvuk Bluetooth nahradí středový symbol. Varování sítě mají přednost.</string>
 </resources>

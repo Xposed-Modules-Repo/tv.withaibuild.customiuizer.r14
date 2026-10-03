@@ -22,3 +22,14 @@ class MiuiWifiSignalController : SignalController(WifiState()) {
     override fun cleanState(): SignalIcon.State = WifiState()
     override fun notifyListeners(callback: SignalCallback?) {}
 }
+
+@Suppress("UNUSED_PARAMETER")
+class BluetoothControllerImpl {
+    @JvmField var mEnabled = false
+    @JvmField var mConnectionState = 0
+    @JvmField var mAudioProfileOnly = false
+    @JvmField var mIsActive = false
+    fun onConnectionStatusFetched(status: Any?) {}
+    fun onActiveDeviceChanged(profile: Int, device: Any?) {}
+    fun onBluetoothStateChanged(state: Int) {}
+}

@@ -7,13 +7,13 @@ import tv.withaibuild.customiuizer.mods.utils.XposedHelpers
 
 /** Per-install/ClassLoader metadata only. A missing required member leaves every native icon alone. */
 internal class DuoAbi(private val loader: ClassLoader) {
-    private fun cls(name: String): Class<*> = Class.forName("com.android.systemui.$name", false, loader)
-    private fun field(type: Class<*>, name: String, valueType: Class<*>? = null): Field {
+    fun cls(name: String): Class<*> = Class.forName("com.android.systemui.$name", false, loader)
+    fun field(type: Class<*>, name: String, valueType: Class<*>? = null): Field {
         val result = XposedHelpers.findField(type, name)
         require(valueType == null || result.type == valueType) { "Duo: incompatible $name" }
         return result
     }
-    private fun method(type: Class<*>, name: String, count: Int): Method {
+    fun method(type: Class<*>, name: String, count: Int): Method {
         var current: Class<*>? = type
         while (current != null && current.name.startsWith("com.android.systemui.")) {
             val found = current.declaredMethods.firstOrNull {
@@ -28,6 +28,11 @@ internal class DuoAbi(private val loader: ClassLoader) {
     val batteryView = cls("statusbar.views.MiuiBatteryMeterView")
     val statusBar = cls("statusbar.phone.MiuiPhoneStatusBarView")
     val keyguard = cls("statusbar.phone.KeyguardStatusBarView")
+    // This is a SystemUI view embedded by the plugin, using the same battery and signal classes.
+    // Optional so an absent Control Center host cannot disable the regular status bar.
+    val controlCenter: Class<*>? = try {
+        cls("controlcenter.phone.widget.ControlCenterStatusBarIcon")
+    } catch (_: ClassNotFoundException) { null }
     val wifiView = cls("statusbar.StatusBarWifiView")
     val mobileView = cls("statusbar.StatusBarMobileView")
     val attach = method(batteryView, "onAttachedToWindow", 0)

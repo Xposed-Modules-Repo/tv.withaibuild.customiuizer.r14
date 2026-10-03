@@ -40,14 +40,29 @@ class DuoGeometryTest {
 
     @Test fun configHasSafeDefaultsAndBoundsImportedSettings() {
         val defaults = DuoConfig.read(PrefMap())
-        assertTrue(defaults.showPercent); assertEquals(28, defaults.sizeDp)
+        assertTrue(defaults.showPercent); assertEquals(24, defaults.sizeDp)
+        assertTrue(defaults.autoSize); assertTrue(defaults.showAudio)
         val imported = PrefMap().apply {
             put("system_statusbar_duo_percent", false)
             put("system_statusbar_duo_size", 999)
+            put("system_statusbar_duo_autosize", false)
+            put("system_statusbar_duo_audio", false)
         }
         assertFalse(DuoConfig.read(imported).showPercent)
         assertEquals(40, DuoConfig.read(imported).sizeDp)
+        assertFalse(DuoConfig.read(imported).autoSize)
+        assertFalse(DuoConfig.read(imported).showAudio)
         assertEquals(20, DuoConfig(true, -999).sizeDp)
+    }
+
+    @Test fun automaticSizeUsesNativeDensityAndKeepsImportedManualSizeSeparate() {
+        val auto = DuoConfig(true, 28)
+        assertEquals(65, DuoSizing.pixels(auto, 59, 2.8875f))
+        assertEquals(44, DuoSizing.pixels(auto, 0, 2f))
+        assertEquals(40, DuoSizing.pixels(auto, 10, 2f))
+        assertEquals(48, DuoSizing.pixels(auto, 200, 2f))
+        assertEquals(56, DuoSizing.pixels(DuoConfig(true, 28, autoSize = false), 59, 2f))
+        assertEquals(1, DuoSizing.pixels(auto, 0, 0.001f))
     }
 
     @Test fun repeatedHidingDoesNotLoseTheOriginalVisibility() {

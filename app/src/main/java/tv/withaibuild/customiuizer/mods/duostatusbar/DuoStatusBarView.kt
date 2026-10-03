@@ -1,6 +1,7 @@
 package tv.withaibuild.customiuizer.mods.duostatusbar
 
 import android.content.Context
+import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
@@ -32,12 +33,25 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
         lineTo(60f, 88f); lineTo(49f, 91f); lineTo(49f, 87f); lineTo(56f, 81f)
         lineTo(56f, 70f); lineTo(37f, 75f); lineTo(37f, 69f); lineTo(55f, 59f); close()
     }
+    private val headphones = Path().apply {
+        moveTo(37f, 72f); lineTo(37f, 62f)
+        cubicTo(37f, 34f, 82f, 34f, 82f, 62f); lineTo(82f, 72f)
+    }
+    private val bluetooth = Path().apply {
+        moveTo(88f, 46f); lineTo(100f, 58f); lineTo(88f, 69f); lineTo(88f, 46f)
+        moveTo(80f, 52f); lineTo(100f, 69f); lineTo(88f, 80f); lineTo(88f, 58f)
+    }
+    // Resolve once on attachment. Resource reads recur only on configuration changes.
+    private val nativeHeightId = resources.getIdentifier("status_bar_icon_height", "dimen", "com.android.systemui")
+    var iconSizePx = 0
+        private set
     var binding: DuoBinding? = null
     private var level = -1
     private var charging = false
     private var saver = false
     private var foreground = -1
     private var network = 0
+    private var glyph = DuoAudioState.WIFI_GLYPH
     private var label = ""
     private var failed = false
 
@@ -45,23 +59,45 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
         isClickable = false
         isFocusable = false
+        updateSize()
     }
 
-    fun render(level: Int, charging: Boolean, saver: Boolean, foreground: Int, network: Int) {
+    private fun updateSize() {
+        val nativeHeight = if (nativeHeightId == 0) 0 else resources.getDimensionPixelSize(nativeHeightId)
+        iconSizePx = DuoSizing.pixels(config, nativeHeight, resources.displayMetrics.density)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        if (failed) return
+        try {
+            updateSize()
+            layoutParams?.let { it.width = iconSizePx }
+            requestLayout()
+        } catch (t: Throwable) {
+            FatalErrors.unwrapAndRethrowIfFatal(t)
+            failed = true
+            onFailure(t)
+        }
+    }
+
+    fun render(level: Int, charging: Boolean, saver: Boolean, foreground: Int, network: Int, audio: Int) {
+        val glyph = DuoAudioState.glyph(network, if (config.showAudio) audio else 0)
         if (this.level == level && this.charging == charging && this.saver == saver &&
-            this.foreground == foreground && this.network == network) return
+            this.foreground == foreground && this.network == network && this.glyph == glyph) return
         if (this.level != level && config.showPercent) label = level.toString()
         this.level = level
         this.charging = charging
         this.saver = saver
         this.foreground = foreground
         this.network = network
+        this.glyph = glyph
         invalidate()
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         // A wrap-content battery host must retain a height after its original children are hidden.
-        val desired = (config.sizeDp * resources.displayMetrics.density + 0.5f).toInt()
+        val desired = iconSizePx
         setMeasuredDimension(resolveSize(desired, widthMeasureSpec), resolveSize(desired, heightMeasureSpec))
     }
 
@@ -108,9 +144,21 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
 
         val wifi = DuoNetworkState.wifiLevel(network)
         val wifiOn = network and DuoNetworkState.WIFI_CONNECTED != 0
-        if (!wifiOn && network and DuoNetworkState.AIRPLANE != 0) {
+        if (glyph == DuoAudioState.PLANE_GLYPH) {
             fill.color = foreground
             canvas.drawPath(plane, fill)
+        } else if (glyph == DuoAudioState.WIRED_GLYPH || glyph == DuoAudioState.BLUETOOTH_GLYPH) {
+            val tint = if (glyph == DuoAudioState.BLUETOOTH_GLYPH) 0xff0a84ff.toInt() else foreground
+            stroke.strokeWidth = 7f
+            stroke.color = tint
+            canvas.drawPath(headphones, stroke)
+            fill.color = tint
+            canvas.drawRoundRect(31f, 62f, 44f, 83f, 5f, 5f, fill)
+            canvas.drawRoundRect(75f, 62f, 88f, 83f, 5f, 5f, fill)
+            if (glyph == DuoAudioState.BLUETOOTH_GLYPH) {
+                stroke.strokeWidth = 3f
+                canvas.drawPath(bluetooth, stroke)
+            }
         } else {
             stroke.strokeWidth = 7f
             stroke.color = if (wifiOn && wifi >= 3) foreground else track

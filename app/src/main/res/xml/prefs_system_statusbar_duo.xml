@@ -14,12 +14,27 @@
         android:dependency="pref_key_system_statusbar_duo"
         android:defaultValue="true" />
 
+    <tv.withaibuild.customiuizer.prefs.CheckBoxPreferenceEx
+        android:key="pref_key_system_statusbar_duo_audio"
+        android:title="@string/system_statusbar_duo_audio_title"
+        android:summary="@string/system_statusbar_duo_audio_summ"
+        android:dependency="pref_key_system_statusbar_duo"
+        android:defaultValue="true" />
+
+    <tv.withaibuild.customiuizer.prefs.CheckBoxPreferenceEx
+        android:key="pref_key_system_statusbar_duo_autosize"
+        android:title="@string/system_statusbar_duo_autosize_title"
+        android:summary="@string/system_statusbar_duo_autosize_summ"
+        android:dependency="pref_key_system_statusbar_duo"
+        android:disableDependentsState="true"
+        android:defaultValue="true" />
+
     <tv.withaibuild.customiuizer.prefs.SeekBarPreference
         android:key="pref_key_system_statusbar_duo_size"
         android:title="@string/system_statusbar_duo_size_title"
         android:summary="@string/system_statusbar_duo_size_summ"
-        android:dependency="pref_key_system_statusbar_duo"
-        android:defaultValue="28"
+        android:dependency="pref_key_system_statusbar_duo_autosize"
+        android:defaultValue="24"
         miuizer:minValue="20" miuizer:maxValue="40"
         miuizer:stepValue="1" miuizer:format="%s dip" />
 </PreferenceScreen>

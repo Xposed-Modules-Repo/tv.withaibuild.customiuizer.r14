@@ -1073,8 +1073,12 @@
     <string name="system_statusbar_lefticons_offset_summ">负值向上，正值向下，0 保持系统对齐。修改后需重启系统界面。</string>
     <string name="system_statusbar_duo_title">Duo 三合一状态栏</string>
     <string name="system_statusbar_duo_summ">电量圆环、Wi-Fi 与蜂窝信号合为一个图标；双卡显示默认数据卡信号</string>
-    <string name="system_statusbar_duo_restart">开启、关闭或修改设置后请重启系统界面。不兼容时保留原生图标。</string>
+    <string name="system_statusbar_duo_restart">设置变更后请重启系统界面。Duo 的百分比和尺寸独立控制，原生图标隐藏和样式选项不覆盖它们。不兼容时保留原生图标。</string>
     <string name="system_statusbar_duo_percent_title">显示电量百分比</string>
-    <string name="system_statusbar_duo_size_title">图标最大尺寸</string>
-    <string name="system_statusbar_duo_size_summ">图标适配现有状态栏行高。</string>
+    <string name="system_statusbar_duo_size_title">手动图标尺寸</string>
+    <string name="system_statusbar_duo_size_summ">关闭自动尺寸后生效，受当前行高限制。</string>
+    <string name="system_statusbar_duo_autosize_title">自动图标尺寸</string>
+    <string name="system_statusbar_duo_autosize_summ">默认按设备原生图标高度缩放，并适配当前行高。关闭后使用手动尺寸。</string>
+    <string name="system_statusbar_duo_audio_title">显示耳机连接状态</string>
+    <string name="system_statusbar_duo_audio_summ">有线耳机或蓝牙音频连接时替换中间图案；网络异常提示优先。</string>
 </resources>

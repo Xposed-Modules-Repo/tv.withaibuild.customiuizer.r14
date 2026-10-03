@@ -1062,8 +1062,12 @@
     <string name="system_statusbar_lefticons_offset_summ">負數上移、正數下移，0 dp 使用原生位置。修改後需重新啟動系統介面。</string>
     <string name="system_statusbar_duo_title">Duo 三合一狀態列</string>
     <string name="system_statusbar_duo_summ">電量圓環、Wi-Fi 與行動訊號合為一個圖示；雙卡顯示預設數據卡訊號</string>
-    <string name="system_statusbar_duo_restart">開啟、關閉或修改設定後請重新啟動系統介面。不相容時保留原生圖示。</string>
+    <string name="system_statusbar_duo_restart">設定變更後請重新啟動系統介面。Duo 的百分比與尺寸獨立控制，原生圖示隱藏與樣式選項不覆蓋它們。不相容時保留原生圖示。</string>
     <string name="system_statusbar_duo_percent_title">顯示電量百分比</string>
-    <string name="system_statusbar_duo_size_title">圖示最大尺寸</string>
-    <string name="system_statusbar_duo_size_summ">圖示配合現有狀態列高度。</string>
+    <string name="system_statusbar_duo_size_title">手動圖示尺寸</string>
+    <string name="system_statusbar_duo_size_summ">關閉自動尺寸後生效，受目前列高限制。</string>
+    <string name="system_statusbar_duo_autosize_title">自動圖示尺寸</string>
+    <string name="system_statusbar_duo_autosize_summ">依裝置原生圖示高度縮放，並配合目前列高。關閉後使用手動尺寸。</string>
+    <string name="system_statusbar_duo_audio_title">顯示耳機連線狀態</string>
+    <string name="system_statusbar_duo_audio_summ">有線耳機或藍牙音訊連線時替換中央圖案；網路異常提示優先。</string>
 </resources>

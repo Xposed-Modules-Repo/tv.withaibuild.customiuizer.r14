@@ -2,6 +2,19 @@
 
 English | [简体中文](CHANGELOG_CN.md)
 
+## r14.21.12 — 2026-10-03
+
+versionCode 221, for HyperOS 1 / Android 14.
+
+Changes since r14.21.11:
+
+- Size Duo automatically from the native icon height instead of a fixed 28dp; preserve manual sizing and honor configuration changes and row constraints.
+- Use the same native Duo view in the HyperOS 1 Control Center status icon host, including its native tint and lifecycle.
+- Add optional wired headphone and Bluetooth audio connection indicators with network warning priority. Observe existing callbacks with no new receivers, polling, services or threads. Audio failure leaves battery and network indicators intact.
+- Make automatic and manual sizing mutually exclusive. Keep Duo percentage and size independent of native icon hiding and styling, with regression coverage for priorities, duplicate events, concurrency and optional interfaces.
+
+---
+
 ## r14.21.11 — 2026-10-03
 
 versionCode 220, for HyperOS 1 / Android 14.

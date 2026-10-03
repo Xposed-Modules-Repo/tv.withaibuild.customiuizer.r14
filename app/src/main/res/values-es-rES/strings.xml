@@ -1061,8 +1061,12 @@
     <string name="system_statusbar_lefticons_offset_summ">Los valores negativos desplazan hacia arriba y los positivos hacia abajo. 0 dp conserva la posición del sistema. Requiere reiniciar la interfaz del sistema.</string>
     <string name="system_statusbar_duo_title">Duo: icono de estado tres en uno</string>
     <string name="system_statusbar_duo_summ">Anillo de batería, Wi-Fi y señal móvil en un icono; con dos SIM se usa la SIM de datos predeterminada</string>
-    <string name="system_statusbar_duo_restart">Reinicia la interfaz del sistema después de activar, desactivar o cambiar los ajustes. Los dispositivos incompatibles conservan los iconos originales.</string>
+    <string name="system_statusbar_duo_restart">Reinicia la interfaz del sistema tras cambiar los ajustes. El porcentaje y tamaño de Duo son independientes de la ocultación y estilo de los iconos originales. Los dispositivos incompatibles conservan sus iconos.</string>
     <string name="system_statusbar_duo_percent_title">Mostrar porcentaje de batería</string>
-    <string name="system_statusbar_duo_size_title">Tamaño máximo del icono</string>
-    <string name="system_statusbar_duo_size_summ">El icono se ajusta a la altura actual de la barra de estado.</string>
+    <string name="system_statusbar_duo_size_title">Tamaño manual del icono</string>
+    <string name="system_statusbar_duo_size_summ">Se usa sin tamaño automático; limitado por la altura de la fila.</string>
+    <string name="system_statusbar_duo_autosize_title">Tamaño automático del icono</string>
+    <string name="system_statusbar_duo_autosize_summ">Escala según la altura de los iconos del sistema y de la fila. Desactiva para ajustar el tamaño manualmente.</string>
+    <string name="system_statusbar_duo_audio_title">Mostrar conexión de auriculares</string>
+    <string name="system_statusbar_duo_audio_summ">Los auriculares por cable o el audio Bluetooth sustituyen el símbolo central. Los avisos de red tienen prioridad.</string>
 </resources>

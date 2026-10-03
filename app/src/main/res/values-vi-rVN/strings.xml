@@ -1063,8 +1063,12 @@
     <string name="system_statusbar_lefticons_offset_summ">Giá trị âm dịch lên, giá trị dương dịch xuống. 0 dp giữ vị trí hệ thống. Cần khởi động lại giao diện hệ thống.</string>
     <string name="system_statusbar_duo_title">Duo: biểu tượng trạng thái ba trong một</string>
     <string name="system_statusbar_duo_summ">Vòng pin, Wi-Fi và tín hiệu di động trong một biểu tượng; hai SIM dùng SIM dữ liệu mặc định</string>
-    <string name="system_statusbar_duo_restart">Khởi động lại giao diện hệ thống sau khi bật, tắt hoặc thay đổi cài đặt. Thiết bị không tương thích giữ nguyên biểu tượng gốc.</string>
+    <string name="system_statusbar_duo_restart">Khởi động lại giao diện hệ thống sau khi đổi cài đặt. Phần trăm và kích thước Duo độc lập với việc ẩn và kiểu biểu tượng gốc. Thiết bị không tương thích giữ biểu tượng gốc.</string>
     <string name="system_statusbar_duo_percent_title">Hiển thị phần trăm pin</string>
-    <string name="system_statusbar_duo_size_title">Kích thước biểu tượng tối đa</string>
-    <string name="system_statusbar_duo_size_summ">Biểu tượng vừa với chiều cao thanh trạng thái hiện tại.</string>
+    <string name="system_statusbar_duo_size_title">Kích thước biểu tượng thủ công</string>
+    <string name="system_statusbar_duo_size_summ">Dùng khi tắt kích thước tự động; giới hạn bởi chiều cao hàng.</string>
+    <string name="system_statusbar_duo_autosize_title">Kích thước biểu tượng tự động</string>
+    <string name="system_statusbar_duo_autosize_summ">Điều chỉnh theo chiều cao biểu tượng hệ thống và hàng hiện tại. Tắt để chỉnh thủ công.</string>
+    <string name="system_statusbar_duo_audio_title">Hiển thị kết nối tai nghe</string>
+    <string name="system_statusbar_duo_audio_summ">Tai nghe có dây hoặc âm thanh Bluetooth thay biểu tượng giữa. Cảnh báo mạng được ưu tiên.</string>
 </resources>

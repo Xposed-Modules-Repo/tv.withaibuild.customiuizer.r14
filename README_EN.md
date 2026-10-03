@@ -4,13 +4,13 @@
 
 CustoMIUIzer A14 is a system UI and interaction customization module maintained for **HyperOS 1 / Android 14 (SDK 34)**. It has an independent package and release line and is not an official upstream release.
 
-- Current version: `r14.21.11` (Release, versionCode 220)
+- Current version: `r14.21.12` (Release, versionCode 221)
 - Development and maintenance: `thetvplus`
 - Application ID: `tv.withaibuild.customiuizer.r14`
 - Source: <https://github.com/thetvplus/customiuizer-a14>
 - User downloads: <https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases>
 
-`r14.21.11` fixes Duo resolution of the Xiaomi Wi-Fi controller and concrete network state types, preventing an ABI mismatch from leaving the enabled feature uninstalled. Disabled by default; setting changes require a SystemUI restart. See [CHANGELOG.md](CHANGELOG.md) and the [Duo notes](docs/DUO_STATUS_BAR.md) for changes and acceptance limits.
+`r14.21.12` adds native-height automatic sizing, Control Center display and headphone connection indicators to Duo. Disabled by default; setting changes require a SystemUI restart. See [CHANGELOG.md](CHANGELOG.md) and the [Duo notes](docs/DUO_STATUS_BAR.md) for changes and acceptance limits.
 
 ## Core Features
 

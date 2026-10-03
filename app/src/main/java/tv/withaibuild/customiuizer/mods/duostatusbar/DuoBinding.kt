@@ -49,7 +49,7 @@ internal class DuoBinding(
         for (i in batteryChildren.indices) batteryChildren[i].restore()
     }
 
-    fun reconcile(level: Int, charging: Boolean, saver: Boolean, bits: Int) {
+    fun reconcile(level: Int, charging: Boolean, saver: Boolean, bits: Int, audio: Int) {
         val ready = supported && level in 0..100 &&
             bits and (DuoNetworkState.WIFI_READY or DuoNetworkState.MOBILE_READY) == 3
         if (!ready) {
@@ -57,7 +57,7 @@ internal class DuoBinding(
             return
         }
         val text = abi.percentView.get(owner) as TextView
-        view.render(level, charging, saver, text.currentTextColor, bits)
+        view.render(level, charging, saver, text.currentTextColor, bits, audio)
         view.visibility = View.VISIBLE
         active = true
         for (i in batteryChildren.indices) batteryChildren[i].hide()

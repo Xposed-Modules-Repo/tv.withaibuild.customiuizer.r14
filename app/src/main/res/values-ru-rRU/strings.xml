@@ -1062,8 +1062,12 @@
     <string name="system_statusbar_lefticons_offset_summ">Отрицательные значения сдвигают вверх, положительные — вниз. 0 dp сохраняет системное положение. Требуется перезапуск интерфейса системы.</string>
     <string name="system_statusbar_duo_title">Duo: значок состояния «три в одном»</string>
     <string name="system_statusbar_duo_summ">Кольцо заряда, Wi-Fi и мобильный сигнал в одном значке; для двух SIM используется SIM для передачи данных по умолчанию</string>
-    <string name="system_statusbar_duo_restart">Перезапустите системный интерфейс после включения, отключения или изменения настроек. На несовместимых устройствах сохраняются исходные значки.</string>
+    <string name="system_statusbar_duo_restart">После изменения настроек перезапустите интерфейс системы. Процент и размер Duo не зависят от скрытия и оформления системных значков. При несовместимости сохраняются исходные значки.</string>
     <string name="system_statusbar_duo_percent_title">Показывать заряд в процентах</string>
-    <string name="system_statusbar_duo_size_title">Максимальный размер значка</string>
-    <string name="system_statusbar_duo_size_summ">Значок вписывается в текущую высоту строки состояния.</string>
+    <string name="system_statusbar_duo_size_title">Размер значка вручную</string>
+    <string name="system_statusbar_duo_size_summ">Действует без автоматического размера; ограничен высотой строки.</string>
+    <string name="system_statusbar_duo_autosize_title">Автоматический размер значка</string>
+    <string name="system_statusbar_duo_autosize_summ">Размер зависит от высоты системных значков и строки. Отключите для ручной настройки.</string>
+    <string name="system_statusbar_duo_audio_title">Показывать подключение наушников</string>
+    <string name="system_statusbar_duo_audio_summ">Проводные наушники или аудио Bluetooth заменяют центральный символ. Предупреждения сети имеют приоритет.</string>
 </resources>

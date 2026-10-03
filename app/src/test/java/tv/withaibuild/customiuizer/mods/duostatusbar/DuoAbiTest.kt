@@ -42,6 +42,34 @@ class DuoAbiTest {
         assertNull(DuoAbi.resolve(absent))
     }
 
+    @Test fun controlCenterHostIsOptionalAndUsesTheSystemUiLoader() {
+        val name = "com.android.systemui.controlcenter.phone.widget.ControlCenterStatusBarIcon"
+        assertEquals(name, requireNotNull(DuoAbi.resolve(loader)).controlCenter?.name)
+        val absent = object : ClassLoader(loader) {
+            override fun loadClass(type: String, resolve: Boolean): Class<*> {
+                if (type == name) throw ClassNotFoundException(type)
+                return super.loadClass(type, resolve)
+            }
+        }
+        assertNull(requireNotNull(DuoAbi.resolve(absent)).controlCenter)
+    }
+
+    @Test fun audioFollowsTheNativeReceiverTypeAndIsAnIndependentCompatibilityBoundary() {
+        val abi = requireNotNull(DuoAbi.resolve(loader))
+        val audio = requireNotNull(DuoAudioAbi.resolve(abi))
+        assertEquals("HeadsetReceiver", audio.headsetChanged.declaringClass.simpleName)
+        val policy = com.android.systemui.statusbar.phone.MiuiPhoneStatusBarPolicy()
+        assertSame(policy, audio.receiverOwner.get(policy.mIntentReceiver))
+        assertTrue((audio.headsetMap.get(policy) as Map<*, *>).isEmpty())
+        val absent = object : ClassLoader(loader) {
+            override fun loadClass(name: String, resolve: Boolean): Class<*> {
+                if (name.endsWith(".BluetoothControllerImpl")) throw ClassNotFoundException(name)
+                return super.loadClass(name, resolve)
+            }
+        }
+        assertNull(DuoAudioAbi.resolve(requireNotNull(DuoAbi.resolve(absent))))
+    }
+
     @Test(expected = OutOfMemoryError::class)
     fun resolverDoesNotConvertFatalLoaderFailureToNativeFallback() {
         val fatal = object : ClassLoader(loader) {

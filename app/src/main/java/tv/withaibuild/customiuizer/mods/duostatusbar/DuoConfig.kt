@@ -3,14 +3,28 @@ package tv.withaibuild.customiuizer.mods.duostatusbar
 import tv.withaibuild.customiuizer.utils.PrefMap
 
 /** Read once at installation; changing these settings requires a SystemUI restart. */
-internal class DuoConfig(val showPercent: Boolean, sizeDp: Int) {
+internal class DuoConfig(val showPercent: Boolean, sizeDp: Int,
+    val autoSize: Boolean = true, val showAudio: Boolean = true,
+) {
     val sizeDp = sizeDp.coerceIn(20, 40)
 
     companion object {
         fun read(prefs: PrefMap) = DuoConfig(
             prefs.getBoolean("system_statusbar_duo_percent", true),
-            prefs.getInt("system_statusbar_duo_size", 28),
+            prefs.getInt("system_statusbar_duo_size", 24),
+            prefs.getBoolean("system_statusbar_duo_autosize", true),
+            prefs.getBoolean("system_statusbar_duo_audio", true),
         )
+    }
+}
+
+internal object DuoSizing {
+    /** A little room for the ring, bounded by the native row during measurement. */
+    fun pixels(config: DuoConfig, nativeHeight: Int, density: Float): Int {
+        val dp = if (!config.autoSize) config.sizeDp.toFloat()
+            else if (nativeHeight > 0) (nativeHeight / density * 1.1f).coerceIn(20f, 24f)
+            else 22f
+        return (dp * density + 0.5f).toInt().coerceAtLeast(1)
     }
 }
 

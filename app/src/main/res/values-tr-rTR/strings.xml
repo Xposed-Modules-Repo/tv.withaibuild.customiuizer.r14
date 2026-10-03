@@ -1068,8 +1068,12 @@ ss - iki basamaklı saniye(09)</string>
     <string name="system_statusbar_lefticons_offset_summ">Negatif değerler yukarı, pozitif değerler aşağı kaydırır. 0 dp, sistem konumunu korur. Sistem arayüzünün yeniden başlatılması gerekir.</string>
     <string name="system_statusbar_duo_title">Duo: üçü bir arada durum simgesi</string>
     <string name="system_statusbar_duo_summ">Pil halkası, Wi-Fi ve mobil sinyal tek simgede; çift SIM için varsayılan veri SIM kartı kullanılır</string>
-    <string name="system_statusbar_duo_restart">Etkinleştirme, devre dışı bırakma veya ayar değişikliğinden sonra sistem arayüzünü yeniden başlatın. Uyumsuz cihazlarda özgün simgeler korunur.</string>
+    <string name="system_statusbar_duo_restart">Ayar değişikliklerinden sonra sistem arayüzünü yeniden başlatın. Duo yüzdesi ve boyutu, sistem simgelerinin gizlenmesi ve stilinden bağımsızdır. Uyumsuz cihazlarda özgün simgeler korunur.</string>
     <string name="system_statusbar_duo_percent_title">Pil yüzdesini göster</string>
-    <string name="system_statusbar_duo_size_title">En büyük simge boyutu</string>
-    <string name="system_statusbar_duo_size_summ">Simge mevcut durum çubuğu yüksekliğine sığar.</string>
+    <string name="system_statusbar_duo_size_title">Elle simge boyutu</string>
+    <string name="system_statusbar_duo_size_summ">Otomatik boyut kapalıyken kullanılır; satır yüksekliğiyle sınırlıdır.</string>
+    <string name="system_statusbar_duo_autosize_title">Otomatik simge boyutu</string>
+    <string name="system_statusbar_duo_autosize_summ">Sistem simgelerinin ve mevcut satırın yüksekliğine göre ayarlar. Elle ayarlamak için kapatın.</string>
+    <string name="system_statusbar_duo_audio_title">Kulaklık bağlantısını göster</string>
+    <string name="system_statusbar_duo_audio_summ">Kablolu kulaklık veya Bluetooth sesi orta simgenin yerini alır. Ağ uyarıları önceliklidir.</string>
 </resources>

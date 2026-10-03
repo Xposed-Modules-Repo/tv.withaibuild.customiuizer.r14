@@ -11317,23 +11317,73 @@
       "evidence": "DuoConfig.read and DuoStatusBarView.drawIcon; target-device acceptance pending"
     },
     {
-      "featureId": "system_statusbar_duo_size",
-      "featureName": "Duo maximum icon size",
-      "preferenceKeys": ["system_statusbar_duo_size", "pref_key_system_statusbar_duo_size"],
+      "featureId": "system_statusbar_duo_audio",
+      "featureName": "Duo headphone connections",
+      "preferenceKeys": [
+        "system_statusbar_duo_audio",
+        "pref_key_system_statusbar_duo_audio"
+      ],
       "xmlSource": "app/src/main/res/xml/prefs_system_statusbar_duo.xml",
-      "defaultValue": "28",
+      "defaultValue": "true",
       "sourceFile": "app/src/main/java/tv/withaibuild/customiuizer/mods/duostatusbar/DuoConfig.kt",
       "installer": "app/src/main/java/tv/withaibuild/customiuizer/mods/duostatusbar/DuoConfig.kt:read",
       "targetPackage": "com.android.systemui",
       "installPhase": "PACKAGE_READY",
       "runtimeReadMode": "INSTALL_TIME_SNAPSHOT",
-      "enableEffect": "Reserves a bounded 20-40 dp width and fits drawing to the native row height",
-      "disableEffect": "Ignored while Duo is disabled",
-      "valueChangeEffect": "Applies the new maximum size after SystemUI restart",
+      "enableEffect": "Shows wired or Bluetooth audio connection in the center glyph with network warning priority",
+      "disableEffect": "Keeps the Wi-Fi or airplane center glyph; native audio icons remain available",
+      "valueChangeEffect": "Installs or omits optional audio hooks after SystemUI restart",
       "restartTarget": "SYSTEMUI",
       "hotReloadable": false,
       "confidence": "CODE_VERIFIED",
-      "evidence": "DuoConfig.sizeDp, DuoStatusBarHooks.attach and DuoStatusBarView.onDraw"
+      "evidence": "DuoAudioAbi, DuoAudioState and DuoStatusBarHooks.installAudio",
+      "notes": "Default on under the disabled-by-default Duo master. Observe existing wired headset and Bluetooth audio callbacks; network warning and airplane glyph take priority. Audio ABI or runtime failure leaves the network and battery feature intact."
+    },
+    {
+      "featureId": "system_statusbar_duo_autosize",
+      "featureName": "Duo automatic size",
+      "preferenceKeys": [
+        "system_statusbar_duo_autosize",
+        "pref_key_system_statusbar_duo_autosize"
+      ],
+      "xmlSource": "app/src/main/res/xml/prefs_system_statusbar_duo.xml",
+      "defaultValue": "true",
+      "sourceFile": "app/src/main/java/tv/withaibuild/customiuizer/mods/duostatusbar/DuoConfig.kt",
+      "installer": "app/src/main/java/tv/withaibuild/customiuizer/mods/duostatusbar/DuoConfig.kt:read",
+      "targetPackage": "com.android.systemui",
+      "installPhase": "PACKAGE_READY",
+      "runtimeReadMode": "INSTALL_TIME_SNAPSHOT",
+      "enableEffect": "Derives size from native status_bar_icon_height, bounded to 20-24 dp",
+      "disableEffect": "Uses the preserved manual size",
+      "valueChangeEffect": "Applies sizing mode after SystemUI restart",
+      "restartTarget": "SYSTEMUI",
+      "hotReloadable": false,
+      "confidence": "CODE_VERIFIED",
+      "evidence": "DuoSizing.pixels and DuoStatusBarView.onConfigurationChanged",
+      "notes": "Default on; native SystemUI icon height times 1.1, bounded to 20..24 dp, fallback 22 dp; follows configuration and native row constraints."
+    },
+    {
+      "featureId": "system_statusbar_duo_size",
+      "featureName": "Duo manual icon size",
+      "preferenceKeys": [
+        "system_statusbar_duo_size",
+        "pref_key_system_statusbar_duo_size"
+      ],
+      "xmlSource": "app/src/main/res/xml/prefs_system_statusbar_duo.xml",
+      "defaultValue": "24",
+      "sourceFile": "app/src/main/java/tv/withaibuild/customiuizer/mods/duostatusbar/DuoConfig.kt",
+      "installer": "app/src/main/java/tv/withaibuild/customiuizer/mods/duostatusbar/DuoConfig.kt:read",
+      "targetPackage": "com.android.systemui",
+      "installPhase": "PACKAGE_READY",
+      "runtimeReadMode": "INSTALL_TIME_SNAPSHOT",
+      "enableEffect": "Uses a bounded 20-40 dp width when automatic sizing is disabled, fitted to the native row height",
+      "disableEffect": "Ignored while Duo is disabled",
+      "valueChangeEffect": "Applies the new manual size after SystemUI restart",
+      "restartTarget": "SYSTEMUI",
+      "hotReloadable": false,
+      "confidence": "CODE_VERIFIED",
+      "evidence": "DuoConfig.sizeDp, DuoStatusBarHooks.attach and DuoStatusBarView.onDraw",
+      "notes": "Manual size is preserved across upgrades and used only with automatic size off; native row constraints still apply."
     },
     {
       "featureId": "system_statusbar_dnd_atleft",

@@ -1096,8 +1096,12 @@
     <string name="system_statusbar_lefticons_offset_summ">Negative values move up; positive values move down. 0 keeps system alignment. Restart System UI after changing.</string>
     <string name="system_statusbar_duo_title">Duo three-in-one status icon</string>
     <string name="system_statusbar_duo_summ">Battery ring, Wi-Fi and cellular signal in one icon; dual SIM uses the default data SIM</string>
-    <string name="system_statusbar_duo_restart">Restart System UI after enabling, disabling or changing settings. Incompatible devices keep their original icons.</string>
+    <string name="system_statusbar_duo_restart">Restart System UI after changing settings. Duo percentage and size are independent of native icon hiding and styling. Incompatible devices keep their original icons.</string>
     <string name="system_statusbar_duo_percent_title">Show battery percentage</string>
-    <string name="system_statusbar_duo_size_title">Maximum icon size</string>
-    <string name="system_statusbar_duo_size_summ">The icon fits within the existing status bar row height.</string>
+    <string name="system_statusbar_duo_size_title">Manual icon size</string>
+    <string name="system_statusbar_duo_size_summ">Used with automatic size off; limited by the current row height.</string>
+    <string name="system_statusbar_duo_autosize_title">Automatic icon size</string>
+    <string name="system_statusbar_duo_autosize_summ">Scale from the native device icon height and fit the current row. Turn off to use manual size.</string>
+    <string name="system_statusbar_duo_audio_title">Show headphone connections</string>
+    <string name="system_statusbar_duo_audio_summ">Wired headphones or Bluetooth audio replace the center glyph. Network warnings take priority.</string>
 </resources>
