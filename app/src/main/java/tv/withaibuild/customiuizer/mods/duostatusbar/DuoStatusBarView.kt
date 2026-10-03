@@ -37,10 +37,6 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
         moveTo(37f, 72f); lineTo(37f, 62f)
         cubicTo(37f, 34f, 82f, 34f, 82f, 62f); lineTo(82f, 72f)
     }
-    private val bluetooth = Path().apply {
-        moveTo(88f, 46f); lineTo(100f, 58f); lineTo(88f, 69f); lineTo(88f, 46f)
-        moveTo(80f, 52f); lineTo(100f, 69f); lineTo(88f, 80f); lineTo(88f, 58f)
-    }
     // Resolve once on attachment. Resource reads recur only on configuration changes.
     private val nativeHeightId = resources.getIdentifier("status_bar_icon_height", "dimen", "com.android.systemui")
     var iconSizePx = 0
@@ -124,7 +120,7 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
         val rightStart = 270f + gap / 2f
         val track = (foreground and 0x00ffffff) or (56 shl 24)
         val tint = DuoGeometry.batteryColor(foreground, level, charging, saver)
-        stroke.strokeWidth = 8f
+        stroke.strokeWidth = if (config.bold) 10f else 8f
         stroke.color = track
         canvas.drawArc(8f, 10f, 111f, 113f, DuoGeometry.RING_START, side, false, stroke)
         canvas.drawArc(8f, 10f, 111f, 113f, rightStart, side, false, stroke)
@@ -149,18 +145,14 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
             canvas.drawPath(plane, fill)
         } else if (glyph == DuoAudioState.WIRED_GLYPH || glyph == DuoAudioState.BLUETOOTH_GLYPH) {
             val tint = if (glyph == DuoAudioState.BLUETOOTH_GLYPH) 0xff0a84ff.toInt() else foreground
-            stroke.strokeWidth = 7f
+            stroke.strokeWidth = if (config.bold) 9f else 7f
             stroke.color = tint
             canvas.drawPath(headphones, stroke)
             fill.color = tint
             canvas.drawRoundRect(31f, 62f, 44f, 83f, 5f, 5f, fill)
             canvas.drawRoundRect(75f, 62f, 88f, 83f, 5f, 5f, fill)
-            if (glyph == DuoAudioState.BLUETOOTH_GLYPH) {
-                stroke.strokeWidth = 3f
-                canvas.drawPath(bluetooth, stroke)
-            }
         } else {
-            stroke.strokeWidth = 7f
+            stroke.strokeWidth = if (config.bold) 9f else 7f
             stroke.color = if (wifiOn && wifi >= 3) foreground else track
             canvas.drawArc(28.5f, 47.5f, 90.5f, 109.5f, 225f, 90f, false, stroke)
             stroke.color = if (wifiOn && wifi >= 1) foreground else track

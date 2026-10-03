@@ -1069,5 +1069,7 @@
     <string name="system_statusbar_duo_autosize_title">自動圖示尺寸</string>
     <string name="system_statusbar_duo_autosize_summ">依裝置原生圖示高度縮放，並配合目前列高。關閉後使用手動尺寸。</string>
     <string name="system_statusbar_duo_audio_title">顯示耳機連線狀態</string>
-    <string name="system_statusbar_duo_audio_summ">有線耳機或藍牙音訊連線時替換中央圖案；網路異常提示優先。</string>
+    <string name="system_statusbar_duo_audio_summ">有線耳機保持顯示；藍牙音訊連線時提示 3 秒，然後恢復網路圖案。網路異常提示優先。</string>
+    <string name="system_statusbar_duo_bold_title">圖示線條加粗</string>
+    <string name="system_statusbar_duo_bold_summ">加粗電量圓環、Wi-Fi 與耳機線條。</string>
 </resources>

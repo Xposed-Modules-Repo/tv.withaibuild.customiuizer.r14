@@ -1103,5 +1103,7 @@
     <string name="system_statusbar_duo_autosize_title">Automatic icon size</string>
     <string name="system_statusbar_duo_autosize_summ">Scale from the native device icon height and fit the current row. Turn off to use manual size.</string>
     <string name="system_statusbar_duo_audio_title">Show headphone connections</string>
-    <string name="system_statusbar_duo_audio_summ">Wired headphones or Bluetooth audio replace the center glyph. Network warnings take priority.</string>
+    <string name="system_statusbar_duo_audio_summ">Wired headphones stay visible; Bluetooth audio appears for 3 seconds on connection, then restores the network glyph. Network warnings take priority.</string>
+    <string name="system_statusbar_duo_bold_title">Bolder icon strokes</string>
+    <string name="system_statusbar_duo_bold_summ">Thicker battery ring, Wi-Fi and headphone lines.</string>
 </resources>

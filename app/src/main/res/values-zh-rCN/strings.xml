@@ -1080,5 +1080,7 @@
     <string name="system_statusbar_duo_autosize_title">自动图标尺寸</string>
     <string name="system_statusbar_duo_autosize_summ">默认按设备原生图标高度缩放，并适配当前行高。关闭后使用手动尺寸。</string>
     <string name="system_statusbar_duo_audio_title">显示耳机连接状态</string>
-    <string name="system_statusbar_duo_audio_summ">有线耳机或蓝牙音频连接时替换中间图案；网络异常提示优先。</string>
+    <string name="system_statusbar_duo_audio_summ">有线耳机保持显示；蓝牙音频连接时提示 3 秒，然后恢复网络图案。网络异常提示优先。</string>
+    <string name="system_statusbar_duo_bold_title">图标线条加粗</string>
+    <string name="system_statusbar_duo_bold_summ">加粗电量圆环、Wi-Fi 和耳机线条。</string>
 </resources>

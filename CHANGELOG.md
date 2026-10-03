@@ -2,6 +2,18 @@
 
 English | [简体中文](CHANGELOG_CN.md)
 
+## r14.21.13 — 2026-10-03
+
+versionCode 222, for HyperOS 1 / Android 14.
+
+Changes since r14.21.12:
+
+- Show Bluetooth audio as a 3-second connection hint, then restore the network glyph. Initial synchronization, duplicate callbacks and host reattachment do not replay the hint.
+- Remove the small Bluetooth badge next to the headphone silhouette; add optional bolder icon strokes without enlarging the icon.
+- Keep at most one expiry per connection and cancel it on final detach or failure, with no periodic task or continuous animation.
+
+---
+
 ## r14.21.12 — 2026-10-03
 
 versionCode 221, for HyperOS 1 / Android 14.

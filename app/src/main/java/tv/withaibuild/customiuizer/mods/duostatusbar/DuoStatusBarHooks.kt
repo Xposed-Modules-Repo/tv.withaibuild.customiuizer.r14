@@ -3,6 +3,7 @@ package tv.withaibuild.customiuizer.mods.duostatusbar
 import android.content.Intent
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.telephony.SubscriptionInfo
 import android.util.SparseArray
 import android.view.View
@@ -35,6 +36,16 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
     @Volatile private var audioFailed = false
     @Volatile private var audioPolicy: WeakReference<Any>? = null
     private var loggedHosts = 0
+    private var scheduledAudioExpiry = 0L
+    private val audioExpiry = Runnable {
+        CallbackGuard.guarded {
+            scheduledAudioExpiry = 0L
+            if (!failed) protectAudio {
+                if (audio.expire(SystemClock.uptimeMillis())) queueRefresh()
+                scheduleAudioExpiry()
+            }
+        }
+    }
     private val refresh = Runnable {
         CallbackGuard.guarded {
             queued.set(false)
@@ -44,6 +55,7 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
                     if (failed) binding.restore()
                     else reconcile(binding)
                 }
+                scheduleAudioExpiry()
             }
         }
     }
@@ -61,12 +73,25 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
         XposedHelpers.log(t)
         if (Looper.myLooper() == handler.looper) {
             for (reference in bindings) CallbackGuard.guarded { reference?.get()?.restore() }
+            scheduleAudioExpiry()
         } else queueRefresh()
     }
 
     private fun queueRefresh() {
         if (bindingCount == 0) return
         if (queued.compareAndSet(false, true) && !handler.post(refresh)) queued.set(false)
+    }
+
+    /** One expiry per connection hint, never a periodic task or animation loop. Main thread only. */
+    private fun scheduleAudioExpiry() {
+        val due = if (failed || audioFailed || bindingCount == 0) 0L else audio.expiresAt
+        if (due == scheduledAudioExpiry) return
+        handler.removeCallbacks(audioExpiry)
+        scheduledAudioExpiry = due
+        if (due > 0L && !handler.postAtTime(audioExpiry, due)) {
+            scheduledAudioExpiry = 0L
+            protectAudio { error("Duo: audio hint expiry unavailable") }
+        }
     }
 
     private fun reconcile(binding: DuoBinding) {
@@ -86,10 +111,11 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
         }
     }
 
-    private fun readBluetooth(controller: Any) = protectAudio {
+    private fun readBluetooth(controller: Any, notify: Boolean) = protectAudio {
         val fields = audioAbi ?: return@protectAudio
         if (audio.bluetooth(fields.enabled.getBoolean(controller), fields.connection.getInt(controller) == 2,
-                fields.audioOnly.getBoolean(controller), fields.active.getBoolean(controller))) queueRefresh()
+                fields.audioOnly.getBoolean(controller), fields.active.getBoolean(controller),
+                SystemClock.uptimeMillis(), notify && bindingCount > 0)) queueRefresh()
     }
 
     private fun readWired(policy: Any) = protectAudio {
@@ -154,7 +180,7 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
         network.airplane(abi.airplane.getBoolean(controller))
         if (audioAbi != null && !audioFailed) protectAudio {
             ModuleHelper.getDepInstance(loader, "com.android.systemui.statusbar.policy.BluetoothController")
-                ?.let(::readBluetooth)
+                ?.let { readBluetooth(it, false) }
             audioPolicy?.get()?.let(::readWired)
         }
     }
@@ -210,6 +236,9 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
         if (bindings.all { it?.get() == null }) {
             handler.removeCallbacks(refresh)
             queued.set(false)
+            handler.removeCallbacks(audioExpiry)
+            scheduledAudioExpiry = 0L
+            audio.finishHint()
         }
     }
 
@@ -245,7 +274,9 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
             for (method in arrayOf(fields.connectionChanged, fields.activeChanged, fields.enabledChanged)) {
                 hooks.add(ModuleHelper.hookMethod(method, object : MethodHook() {
                     override fun after(param: AfterHookCallback) {
-                        if (!failed && param.getThrowable() == null) param.getThisObject()?.let(::readBluetooth)
+                        if (!failed && param.getThrowable() == null) {
+                            param.getThisObject()?.let { readBluetooth(it, true) }
+                        }
                     }
                 }) ?: error("Duo: Bluetooth hook failed"))
             }

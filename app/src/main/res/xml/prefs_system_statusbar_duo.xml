@@ -22,6 +22,13 @@
         android:defaultValue="true" />
 
     <tv.withaibuild.customiuizer.prefs.CheckBoxPreferenceEx
+        android:key="pref_key_system_statusbar_duo_bold"
+        android:title="@string/system_statusbar_duo_bold_title"
+        android:summary="@string/system_statusbar_duo_bold_summ"
+        android:dependency="pref_key_system_statusbar_duo"
+        android:defaultValue="false" />
+
+    <tv.withaibuild.customiuizer.prefs.CheckBoxPreferenceEx
         android:key="pref_key_system_statusbar_duo_autosize"
         android:title="@string/system_statusbar_duo_autosize_title"
         android:summary="@string/system_statusbar_duo_autosize_summ"

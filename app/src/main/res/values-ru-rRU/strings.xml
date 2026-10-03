@@ -1069,5 +1069,7 @@
     <string name="system_statusbar_duo_autosize_title">Автоматический размер значка</string>
     <string name="system_statusbar_duo_autosize_summ">Размер зависит от высоты системных значков и строки. Отключите для ручной настройки.</string>
     <string name="system_statusbar_duo_audio_title">Показывать подключение наушников</string>
-    <string name="system_statusbar_duo_audio_summ">Проводные наушники или аудио Bluetooth заменяют центральный символ. Предупреждения сети имеют приоритет.</string>
+    <string name="system_statusbar_duo_audio_summ">Проводные наушники отображаются постоянно. При подключении аудио Bluetooth наушники видны 3 секунды, затем возвращается символ сети. Предупреждения сети имеют приоритет.</string>
+    <string name="system_statusbar_duo_bold_title">Жирные линии значка</string>
+    <string name="system_statusbar_duo_bold_summ">Более толстые линии кольца батареи, Wi-Fi и наушников.</string>
 </resources>

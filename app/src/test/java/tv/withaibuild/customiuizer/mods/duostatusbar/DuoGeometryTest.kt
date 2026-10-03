@@ -42,16 +42,19 @@ class DuoGeometryTest {
         val defaults = DuoConfig.read(PrefMap())
         assertTrue(defaults.showPercent); assertEquals(24, defaults.sizeDp)
         assertTrue(defaults.autoSize); assertTrue(defaults.showAudio)
+        assertFalse(defaults.bold)
         val imported = PrefMap().apply {
             put("system_statusbar_duo_percent", false)
             put("system_statusbar_duo_size", 999)
             put("system_statusbar_duo_autosize", false)
             put("system_statusbar_duo_audio", false)
+            put("system_statusbar_duo_bold", true)
         }
         assertFalse(DuoConfig.read(imported).showPercent)
         assertEquals(40, DuoConfig.read(imported).sizeDp)
         assertFalse(DuoConfig.read(imported).autoSize)
         assertFalse(DuoConfig.read(imported).showAudio)
+        assertTrue(DuoConfig.read(imported).bold)
         assertEquals(20, DuoConfig(true, -999).sizeDp)
     }
 

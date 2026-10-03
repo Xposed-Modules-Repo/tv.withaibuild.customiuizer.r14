@@ -1075,5 +1075,7 @@ ss - iki basamaklı saniye(09)</string>
     <string name="system_statusbar_duo_autosize_title">Otomatik simge boyutu</string>
     <string name="system_statusbar_duo_autosize_summ">Sistem simgelerinin ve mevcut satırın yüksekliğine göre ayarlar. Elle ayarlamak için kapatın.</string>
     <string name="system_statusbar_duo_audio_title">Kulaklık bağlantısını göster</string>
-    <string name="system_statusbar_duo_audio_summ">Kablolu kulaklık veya Bluetooth sesi orta simgenin yerini alır. Ağ uyarıları önceliklidir.</string>
+    <string name="system_statusbar_duo_audio_summ">Kablolu kulaklık bağlıyken görünür. Bluetooth sesi bağlandığında 3 saniye gösterilir, sonra ağ simgesi geri döner. Ağ uyarıları önceliklidir.</string>
+    <string name="system_statusbar_duo_bold_title">Daha kalın simge çizgileri</string>
+    <string name="system_statusbar_duo_bold_summ">Daha kalın pil halkası, Wi-Fi ve kulaklık çizgileri.</string>
 </resources>

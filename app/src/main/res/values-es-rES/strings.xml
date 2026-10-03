@@ -1068,5 +1068,7 @@
     <string name="system_statusbar_duo_autosize_title">Tamaño automático del icono</string>
     <string name="system_statusbar_duo_autosize_summ">Escala según la altura de los iconos del sistema y de la fila. Desactiva para ajustar el tamaño manualmente.</string>
     <string name="system_statusbar_duo_audio_title">Mostrar conexión de auriculares</string>
-    <string name="system_statusbar_duo_audio_summ">Los auriculares por cable o el audio Bluetooth sustituyen el símbolo central. Los avisos de red tienen prioridad.</string>
+    <string name="system_statusbar_duo_audio_summ">Los auriculares por cable permanecen visibles. Al conectar audio Bluetooth se muestran durante 3 segundos y luego vuelve el símbolo de red. Los avisos de red tienen prioridad.</string>
+    <string name="system_statusbar_duo_bold_title">Líneas más gruesas</string>
+    <string name="system_statusbar_duo_bold_summ">Anillo de batería y líneas de Wi-Fi y auriculares más gruesos.</string>
 </resources>

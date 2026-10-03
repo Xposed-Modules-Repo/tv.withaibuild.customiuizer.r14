@@ -1070,5 +1070,7 @@
     <string name="system_statusbar_duo_autosize_title">アイコンサイズを自動調整</string>
     <string name="system_statusbar_duo_autosize_summ">端末の標準アイコンと現在の行の高さに合わせます。無効にすると手動サイズを使用します。</string>
     <string name="system_statusbar_duo_audio_title">ヘッドフォンの接続を表示</string>
-    <string name="system_statusbar_duo_audio_summ">有線ヘッドフォンまたはBluetooth音声接続で中央の表示を変更します。ネットワーク警告を優先します。</string>
+    <string name="system_statusbar_duo_audio_summ">有線ヘッドフォンは接続中に表示します。Bluetooth音声の接続時は3秒間表示し、その後ネットワーク表示に戻ります。ネットワーク警告を優先します。</string>
+    <string name="system_statusbar_duo_bold_title">アイコンの線を太くする</string>
+    <string name="system_statusbar_duo_bold_summ">バッテリーリング、Wi-Fi、ヘッドフォンの線を太くします。</string>
 </resources>

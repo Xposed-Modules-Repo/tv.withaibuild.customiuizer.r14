@@ -1070,5 +1070,7 @@
     <string name="system_statusbar_duo_autosize_title">Tamanho automático do ícone</string>
     <string name="system_statusbar_duo_autosize_summ">Ajusta pela altura dos ícones do sistema e da linha. Desative para definir o tamanho manualmente.</string>
     <string name="system_statusbar_duo_audio_title">Mostrar conexão de fones</string>
-    <string name="system_statusbar_duo_audio_summ">Fones com fio ou áudio Bluetooth substituem o símbolo central. Alertas de rede têm prioridade.</string>
+    <string name="system_statusbar_duo_audio_summ">Fones com fio permanecem visíveis. Ao conectar áudio Bluetooth, são mostrados por 3 segundos e depois retorna o símbolo de rede. Alertas de rede têm prioridade.</string>
+    <string name="system_statusbar_duo_bold_title">Linhas mais grossas</string>
+    <string name="system_statusbar_duo_bold_summ">Anel de bateria e linhas de Wi-Fi e fones mais grossos.</string>
 </resources>

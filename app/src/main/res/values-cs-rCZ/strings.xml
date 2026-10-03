@@ -1077,5 +1077,7 @@
     <string name="system_statusbar_duo_autosize_title">Automatická velikost ikony</string>
     <string name="system_statusbar_duo_autosize_summ">Velikost podle výšky systémových ikon a aktuálního řádku. Pro ruční velikost vypněte.</string>
     <string name="system_statusbar_duo_audio_title">Zobrazovat připojení sluchátek</string>
-    <string name="system_statusbar_duo_audio_summ">Kabelová sluchátka nebo zvuk Bluetooth nahradí středový symbol. Varování sítě mají přednost.</string>
+    <string name="system_statusbar_duo_audio_summ">Kabelová sluchátka zůstávají viditelná. Po připojení zvuku Bluetooth se zobrazí na 3 sekundy a pak se vrátí symbol sítě. Varování sítě mají přednost.</string>
+    <string name="system_statusbar_duo_bold_title">Silnější čáry ikony</string>
+    <string name="system_statusbar_duo_bold_summ">Silnější kruh baterie a čáry Wi-Fi a sluchátek.</string>
 </resources>

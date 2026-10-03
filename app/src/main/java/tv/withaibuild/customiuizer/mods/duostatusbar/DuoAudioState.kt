@@ -6,25 +6,43 @@ internal class DuoAudioState {
     private var bluetoothAudio = false
     @Volatile var snapshot = 0
         private set
+    @Volatile var expiresAt = 0L
+        private set
 
     @Synchronized fun wired(connected: Boolean): Boolean {
         wired = connected
         return publish()
     }
 
-    @Synchronized fun bluetooth(enabled: Boolean, connected: Boolean, audioOnly: Boolean, active: Boolean): Boolean {
-        bluetoothAudio = enabled && connected && (audioOnly || active)
+    @Synchronized fun bluetooth(enabled: Boolean, connected: Boolean, audioOnly: Boolean, active: Boolean,
+        nowMillis: Long, notify: Boolean,
+    ): Boolean {
+        val next = enabled && connected && (audioOnly || active)
+        if (next && !bluetoothAudio && notify) expiresAt = nowMillis + BLUETOOTH_HINT_MS
+        if (!next || (expiresAt != 0L && expiresAt <= nowMillis)) expiresAt = 0L
+        bluetoothAudio = next
+        return publish()
+    }
+
+    @Synchronized fun expire(nowMillis: Long): Boolean {
+        if (expiresAt == 0L || nowMillis < expiresAt) return false
+        return finishHint()
+    }
+
+    @Synchronized fun finishHint(): Boolean {
+        expiresAt = 0L
         return publish()
     }
 
     @Synchronized fun clear(): Boolean {
         wired = false
         bluetoothAudio = false
+        expiresAt = 0L
         return publish()
     }
 
     private fun publish(): Boolean {
-        val next = (if (wired) WIRED else 0) or (if (bluetoothAudio) BLUETOOTH else 0)
+        val next = (if (wired) WIRED else 0) or (if (expiresAt != 0L) BLUETOOTH else 0)
         if (next == snapshot) return false
         snapshot = next
         return true
@@ -33,6 +51,7 @@ internal class DuoAudioState {
     companion object {
         const val WIRED = 1
         const val BLUETOOTH = 2
+        const val BLUETOOTH_HINT_MS = 3000L
         const val WIFI_GLYPH = 0
         const val PLANE_GLYPH = 1
         const val WIRED_GLYPH = 2

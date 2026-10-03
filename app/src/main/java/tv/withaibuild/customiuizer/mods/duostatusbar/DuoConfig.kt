@@ -4,7 +4,7 @@ import tv.withaibuild.customiuizer.utils.PrefMap
 
 /** Read once at installation; changing these settings requires a SystemUI restart. */
 internal class DuoConfig(val showPercent: Boolean, sizeDp: Int,
-    val autoSize: Boolean = true, val showAudio: Boolean = true,
+    val autoSize: Boolean = true, val showAudio: Boolean = true, val bold: Boolean = false,
 ) {
     val sizeDp = sizeDp.coerceIn(20, 40)
 
@@ -14,6 +14,7 @@ internal class DuoConfig(val showPercent: Boolean, sizeDp: Int,
             prefs.getInt("system_statusbar_duo_size", 24),
             prefs.getBoolean("system_statusbar_duo_autosize", true),
             prefs.getBoolean("system_statusbar_duo_audio", true),
+            prefs.getBoolean("system_statusbar_duo_bold", false),
         )
     }
 }

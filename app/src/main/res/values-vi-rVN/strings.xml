@@ -1070,5 +1070,7 @@
     <string name="system_statusbar_duo_autosize_title">Kích thước biểu tượng tự động</string>
     <string name="system_statusbar_duo_autosize_summ">Điều chỉnh theo chiều cao biểu tượng hệ thống và hàng hiện tại. Tắt để chỉnh thủ công.</string>
     <string name="system_statusbar_duo_audio_title">Hiển thị kết nối tai nghe</string>
-    <string name="system_statusbar_duo_audio_summ">Tai nghe có dây hoặc âm thanh Bluetooth thay biểu tượng giữa. Cảnh báo mạng được ưu tiên.</string>
+    <string name="system_statusbar_duo_audio_summ">Tai nghe có dây luôn hiển thị khi kết nối. Âm thanh Bluetooth hiển thị 3 giây khi kết nối rồi trở lại biểu tượng mạng. Cảnh báo mạng được ưu tiên.</string>
+    <string name="system_statusbar_duo_bold_title">Nét biểu tượng đậm hơn</string>
+    <string name="system_statusbar_duo_bold_summ">Làm đậm vòng pin và nét Wi-Fi, tai nghe.</string>
 </resources>

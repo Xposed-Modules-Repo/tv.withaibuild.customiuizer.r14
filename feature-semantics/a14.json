@@ -11330,14 +11330,14 @@
       "targetPackage": "com.android.systemui",
       "installPhase": "PACKAGE_READY",
       "runtimeReadMode": "INSTALL_TIME_SNAPSHOT",
-      "enableEffect": "Shows wired or Bluetooth audio connection in the center glyph with network warning priority",
+      "enableEffect": "Shows wired connection or a 3-second Bluetooth audio connection hint in the center glyph with network warning priority",
       "disableEffect": "Keeps the Wi-Fi or airplane center glyph; native audio icons remain available",
       "valueChangeEffect": "Installs or omits optional audio hooks after SystemUI restart",
       "restartTarget": "SYSTEMUI",
       "hotReloadable": false,
       "confidence": "CODE_VERIFIED",
-      "evidence": "DuoAudioAbi, DuoAudioState and DuoStatusBarHooks.installAudio",
-      "notes": "Default on under the disabled-by-default Duo master. Observe existing wired headset and Bluetooth audio callbacks; network warning and airplane glyph take priority. Audio ABI or runtime failure leaves the network and battery feature intact."
+      "evidence": "DuoAudioAbi, DuoAudioState and DuoStatusBarHooks.installAudio/scheduleAudioExpiry",
+      "notes": "Default on under the disabled-by-default Duo master. Wired headphones are persistent; Bluetooth audio appears for 3 seconds only on a new connection. Seed, duplicate events and reattachment do not replay or extend the hint. One bounded expiry is canceled on detach or failure. Network warnings take priority. Audio failure leaves network and battery intact."
     },
     {
       "featureId": "system_statusbar_duo_autosize",
@@ -11361,6 +11361,29 @@
       "confidence": "CODE_VERIFIED",
       "evidence": "DuoSizing.pixels and DuoStatusBarView.onConfigurationChanged",
       "notes": "Default on; native SystemUI icon height times 1.1, bounded to 20..24 dp, fallback 22 dp; follows configuration and native row constraints."
+    },
+    {
+      "featureId": "system_statusbar_duo_bold",
+      "featureName": "Duo bolder strokes",
+      "preferenceKeys": [
+        "system_statusbar_duo_bold",
+        "pref_key_system_statusbar_duo_bold"
+      ],
+      "xmlSource": "app/src/main/res/xml/prefs_system_statusbar_duo.xml",
+      "defaultValue": "false",
+      "sourceFile": "app/src/main/java/tv/withaibuild/customiuizer/mods/duostatusbar/DuoConfig.kt",
+      "installer": "app/src/main/java/tv/withaibuild/customiuizer/mods/duostatusbar/DuoConfig.kt:read",
+      "targetPackage": "com.android.systemui",
+      "installPhase": "PACKAGE_READY",
+      "runtimeReadMode": "INSTALL_TIME_SNAPSHOT",
+      "enableEffect": "Uses 10-unit battery ring and 9-unit Wi-Fi/headphone strokes",
+      "disableEffect": "Uses the original 8-unit ring and 7-unit center strokes",
+      "valueChangeEffect": "Applies stroke weight after SystemUI restart",
+      "restartTarget": "SYSTEMUI",
+      "hotReloadable": false,
+      "confidence": "CODE_VERIFIED",
+      "evidence": "DuoConfig.bold and DuoStatusBarView.drawIcon",
+      "notes": "Changes stroke width only; does not enlarge the icon or change native battery typography."
     },
     {
       "featureId": "system_statusbar_duo_size",
