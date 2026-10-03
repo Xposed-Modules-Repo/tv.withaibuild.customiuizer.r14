@@ -1,0 +1,24 @@
+package com.android.systemui.statusbar.policy
+
+import com.android.systemui.statusbar.SignalIcon
+import com.android.systemui.statusbar.connectivity.SignalCallback
+import com.android.systemui.statusbar.connectivity.SignalController
+
+open class BatteryControllerImpl {
+    @JvmField var mLevel = 0
+    @JvmField var mCharging = false
+    @JvmField var mPowerSave = false
+    open fun fireBatteryLevelChanged() {}
+    fun firePowerSaveChanged() {}
+}
+
+class MiuiBatteryControllerImpl : BatteryControllerImpl() {
+    override fun fireBatteryLevelChanged() {}
+}
+
+class MiuiWifiSignalController : SignalController(WifiState()) {
+    class WifiState : SignalIcon.State()
+    // Deliberately erased, as in HyperOS 1, rather than returning WifiState.
+    override fun cleanState(): SignalIcon.State = WifiState()
+    override fun notifyListeners(callback: SignalCallback?) {}
+}

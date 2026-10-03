@@ -244,6 +244,7 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
             }
             hook(abi.wifiVisibleState, visibilityHook)
             hook(abi.mobileVisibleState, visibilityHook)
+            XposedHelpers.log("Duo status bar hooks installed")
             return FeatureInstallResult.INSTALLED
         } catch (t: Throwable) {
             FatalErrors.unwrapAndRethrowIfFatal(t)

@@ -43,14 +43,16 @@ internal class DuoAbi(private val loader: ClassLoader) {
     val batteryChanged = method(batteryController, "fireBatteryLevelChanged", 0)
     val saverChanged = method(batteryController, "firePowerSaveChanged", 0)
 
-    val wifiController = cls("statusbar.connectivity.WifiSignalController")
+    val wifiController = cls("statusbar.policy.MiuiWifiSignalController")
     val mobileController = cls("statusbar.connectivity.MobileSignalController")
     val wifiChanged = method(wifiController, "notifyListeners", 1)
     val mobileChanged = method(mobileController, "notifyListeners", 1)
     val wifiState = field(wifiController, "mCurrentState")
     val mobileState = field(mobileController, "mCurrentState")
-    private val wifiStateType = method(wifiController, "cleanState", 0).returnType
-    private val mobileStateType = method(mobileController, "cleanState", 0).returnType
+    // HyperOS 1 cleanState() erases both concrete states to SignalIcon.State.
+    // Resolve the actual state classes; the base class has no dataSim field.
+    private val wifiStateType = cls("statusbar.policy.MiuiWifiSignalController\$WifiState")
+    private val mobileStateType = cls("statusbar.SignalIcon\$MobileState")
     val wifiLevel = field(wifiStateType, "level", Int::class.javaPrimitiveType)
     val wifiEnabled = field(wifiStateType, "enabled", Boolean::class.javaPrimitiveType)
     val wifiConnected = field(wifiStateType, "connected", Boolean::class.javaPrimitiveType)

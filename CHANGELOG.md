@@ -2,6 +2,18 @@
 
 English | [简体中文](CHANGELOG_CN.md)
 
+## r14.21.11 — 2026-10-03
+
+versionCode 220, for HyperOS 1 / Android 14.
+
+Changes since r14.21.10:
+
+- Fix Duo having no effect after enabling: resolve the actual HyperOS 1 Xiaomi Wi-Fi controller and concrete Wi-Fi/mobile state types instead of treating the erased base return type as the complete state.
+- Add regression coverage for full ABI resolution, inherited fields, erased return types and failure boundaries, plus a one-time installation log for diagnosis.
+- Verify the live ROM interfaces; see the Duo notes for display and interaction acceptance status.
+
+---
+
 ## r14.21.10 — 2026-10-03
 
 versionCode 219, for HyperOS 1 / Android 14.
