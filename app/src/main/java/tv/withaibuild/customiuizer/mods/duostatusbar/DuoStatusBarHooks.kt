@@ -26,7 +26,7 @@ import tv.withaibuild.customiuizer.mods.utils.XposedHelpers
 internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: DuoConfig) {
     private val network = DuoNetworkState()
     private val audio = DuoAudioState()
-    private val audioAbi = if (config.showAudio) DuoAudioAbi.resolve(abi) else null
+    private val audioAbi = if (config.showAudio) DuoAudioAbi.resolve(abi, config.bluetoothBatteryColor) else null
     private val handler = Handler(Looper.getMainLooper())
     private val queued = AtomicBoolean(false)
     private val bindings = arrayOfNulls<WeakReference<DuoBinding>>(4)
@@ -34,6 +34,7 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
     @Volatile private var battery = -1
     @Volatile private var bindingCount = 0
     @Volatile private var audioFailed = false
+    @Volatile private var batteryHintsFailed = false
     @Volatile private var audioPolicy: WeakReference<Any>? = null
     private var loggedHosts = 0
     private var scheduledAudioExpiry = 0L
@@ -116,12 +117,29 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
         if (audio.bluetooth(fields.enabled.getBoolean(controller), fields.connection.getInt(controller) == 2,
                 fields.audioOnly.getBoolean(controller), fields.active.getBoolean(controller),
                 SystemClock.uptimeMillis(), notify && bindingCount > 0)) queueRefresh()
+        if (DuoAudioState.batteryStep(audio.snapshot) != 0) readBluetoothBattery(controller, false)
     }
 
     private fun readWired(policy: Any) = protectAudio {
         val fields = audioAbi ?: return@protectAudio
         if (audioPolicy?.get() !== policy) return@protectAudio // retired native receiver
         if (audio.wired(!(fields.headsetMap.get(policy) as Map<*, *>).isEmpty())) queueRefresh()
+    }
+
+    private fun readBluetoothBattery(controller: Any, fresh: Boolean) {
+        if (failed || audioFailed || batteryHintsFailed) return
+        val fields = audioAbi?.battery ?: return
+        try {
+            val devices = fields.devices.get(controller) as Collection<*>
+            val singleDevice = synchronized(devices) { devices.size == 1 }
+            val step = if (fresh) fields.level.getInt(controller) else DuoAudioState.batteryStep(audio.snapshot)
+            if (audio.bluetoothBattery(step, singleDevice)) queueRefresh()
+        } catch (t: Throwable) {
+            FatalErrors.unwrapAndRethrowIfFatal(t)
+            batteryHintsFailed = true
+            if (audio.bluetoothBattery(-1, false)) queueRefresh()
+            XposedHelpers.log("Duo Bluetooth battery colors disabled: ${t.message}")
+        }
     }
 
     private fun readBattery(controller: Any) {
@@ -298,6 +316,20 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
             FatalErrors.unwrapAndRethrowIfFatal(t)
             for (unhooker in hooks.asReversed()) CallbackGuard.guarded { unhooker.unhook() }
             protectAudio { throw t }
+        }
+        if (audioFailed) return
+        val battery = fields.battery ?: return
+        try {
+            val unhooker = ModuleHelper.hookMethod(battery.changed, object : MethodHook() {
+                override fun after(param: AfterHookCallback) {
+                    if (param.getThrowable() == null) param.getThisObject()?.let { readBluetoothBattery(it, true) }
+                }
+            }) ?: error("Duo: Bluetooth battery hook failed")
+            installed.add(unhooker)
+        } catch (t: Throwable) {
+            FatalErrors.unwrapAndRethrowIfFatal(t)
+            batteryHintsFailed = true
+            XposedHelpers.log("Duo Bluetooth battery colors unavailable: ${t.message}")
         }
     }
 

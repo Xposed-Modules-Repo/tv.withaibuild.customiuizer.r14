@@ -1072,4 +1072,17 @@
     <string name="system_statusbar_duo_audio_summ">Проводные наушники отображаются постоянно. При подключении аудио Bluetooth наушники видны 3 секунды, затем возвращается символ сети. Предупреждения сети имеют приоритет.</string>
     <string name="system_statusbar_duo_bold_title">Жирные линии значка</string>
     <string name="system_statusbar_duo_bold_summ">Более толстые линии кольца батареи, Wi-Fi и наушников.</string>
+    <string name="system_statusbar_duo_transitions_title">Короткие переходы значков</string>
+    <string name="system_statusbar_duo_transitions_summ">Плавная смена и лёгкое масштабирование центра за 180 мс. Без анимации при экономии энергии или отключённых системных анимациях.</string>
+    <string name="system_statusbar_duo_verticaloffset_title">Смещение по вертикали</string>
+    <string name="system_statusbar_duo_verticaloffset_summ">Центрирование в строке, шаг 0,5 dp. Смещение ограничено высотой; у края значок уменьшается без обрезки.</string>
+    <string name="system_statusbar_duo_headphonestyle_title">Стиль наушников</string>
+    <string name="system_statusbar_duo_headphone_auto">По подключению: Bluetooth — вкладыши, проводные — накладные</string>
+    <string name="system_statusbar_duo_headphone_overear">Накладные наушники</string>
+    <string name="system_statusbar_duo_headphone_earbuds">Вкладыши</string>
+    <string name="system_statusbar_duo_headphonescale_title">Размер значка наушников</string>
+    <string name="system_statusbar_duo_networkfallback_title">Замена отключённого Wi-Fi</string>
+    <string name="system_statusbar_duo_networkfallback_summ">При отключённом Wi-Fi — сотовая сеть или отсутствие связи. Bluetooth показывается только 3 секунды.</string>
+    <string name="system_statusbar_duo_btbattery_title">Цвет заряда Bluetooth</string>
+    <string name="system_statusbar_duo_btbattery_summ">Один прибор и новый отчёт системы: красный до 20%, янтарный до 50%. Синий означает Bluetooth, в том числе неизвестный заряд; кольцо — заряд телефона.</string>
 </resources>

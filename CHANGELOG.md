@@ -2,6 +2,18 @@
 
 English | [简体中文](CHANGELOG_CN.md)
 
+## r14.22.1 — 2026-10-03
+
+versionCode 224, for HyperOS 1 / Android 14. Changes since the published r14.21.9:
+
+- Add the optional native Duo battery ring, Wi-Fi and default-data-SIM signal, including percentage, charging, power saver, low battery and airplane states. Cover apps, the lock screen, Control Center and its native closing-transition host.
+- Restore the rounded triangular Wi-Fi marker and arc geometry from Status Trio; include Apache-2.0 attribution. Native sizing fits the current row; reduce the r14.21.14 automatic size by about 1%, retaining manual sizing and optional bold strokes.
+- Add short center crossfades and gentle scale transitions, about 180 ms, disabled in power saver or with system animations off. Rapid events share a bounded deadline; hidden/detached views stop immediately, and idle icons schedule no frames.
+- Keep Bluetooth audio a three-second connection hint and wired headphones persistent. Refine the silhouettes, with selectable earbuds/over-ear styles and size. Fresh, unambiguous native Bluetooth battery reports can color the hint red up to 20% or amber up to 50%; blue includes unknown battery and is not a full-charge claim. The ring remains phone battery.
+- Add bounded vertical adjustment in 0.5dp steps and cellular/no-service fallback when Wi-Fi disconnects. Preserve native foreground alpha and adapt Bluetooth contrast for light/dark backgrounds.
+- Retain default-off installation, API 101 compatibility, bounded weak ownership, optional audio interfaces and original-icon rollback. No new runtime library, receiver, polling service or background thread.
+- Merge the reviewed Android SDK setup action update from PR #31; explicitly enforce Temurin download signature verification in both CI workflows.
+
 ## r14.21.14 — 2026-10-03
 
 versionCode 223, for HyperOS 1 / Android 14.

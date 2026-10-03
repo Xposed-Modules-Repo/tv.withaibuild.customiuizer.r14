@@ -29,6 +29,9 @@ class BluetoothControllerImpl {
     @JvmField var mConnectionState = 0
     @JvmField var mAudioProfileOnly = false
     @JvmField var mIsActive = false
+    @JvmField var mBluetoothBattery = -1
+    @JvmField val mConnectedDevices = ArrayList<Any>()
+    fun setBluetoothBattery(step: Int) { mBluetoothBattery = step }
     fun onConnectionStatusFetched(status: Any?) {}
     fun onActiveDeviceChanged(profile: Int, device: Any?) {}
     fun onBluetoothStateChanged(state: Int) {}

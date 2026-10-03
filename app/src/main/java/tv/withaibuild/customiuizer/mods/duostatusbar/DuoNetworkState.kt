@@ -77,11 +77,13 @@ internal class DuoNetworkState {
         }
         val noSims = subscriptionsKnown && ids[0] < 0 && ids[1] < 0
         val mobileReady = supported && (noSims || selected >= 0)
-        val cell = if (!airplane && selected >= 0 && connected[selected]) levels[selected] else 0
+        val hasService = !airplane && selected >= 0 && connected[selected]
+        val cell = if (hasService) levels[selected] else 0
         val next = (if (wifiKnown) WIFI_READY else 0) or
             (if (mobileReady) MOBILE_READY else 0) or
             (if (wifiConnected) WIFI_CONNECTED else 0) or
             (if (airplane) AIRPLANE else 0) or (if (wifiUnvalidated) WIFI_UNVALIDATED else 0) or
+            (if (hasService) MOBILE_SERVICE else 0) or
             (wifiLevel shl WIFI_SHIFT) or (cell shl CELL_SHIFT)
         if (next == snapshot) return false
         snapshot = next
@@ -94,6 +96,7 @@ internal class DuoNetworkState {
         const val WIFI_CONNECTED = 4
         const val AIRPLANE = 8
         const val WIFI_UNVALIDATED = 1024
+        const val MOBILE_SERVICE = 2048
         private const val WIFI_SHIFT = 4
         private const val CELL_SHIFT = 7
         fun wifiLevel(bits: Int) = (bits shr WIFI_SHIFT) and 7

@@ -25,6 +25,20 @@ class DuoNetworkStateTest {
         assertEquals(0, state.snapshot and DuoNetworkState.WIFI_CONNECTED)
     }
 
+    @Test fun serviceFallbackDistinguishesZeroBarsFromNoServiceAndAirplaneMode() {
+        val state = DuoNetworkState()
+        state.subscriptions(10, -1, true)
+        state.mobile(0, 10, 0, true, true)
+        assertTrue(state.snapshot and DuoNetworkState.MOBILE_SERVICE != 0)
+        assertEquals(DuoAudioState.CELLULAR_GLYPH, DuoAudioState.glyph(state.snapshot, 0))
+        state.mobile(0, 10, 0, false, true)
+        assertEquals(DuoAudioState.OFFLINE_GLYPH, DuoAudioState.glyph(state.snapshot, 0))
+        state.airplane(true)
+        assertEquals(DuoAudioState.PLANE_GLYPH, DuoAudioState.glyph(state.snapshot, 0))
+        state.wifi(true, true, 2)
+        assertEquals(DuoAudioState.WIFI_GLYPH, DuoAudioState.glyph(state.snapshot, 0))
+    }
+
     @Test fun duplicateWifiAndMobileEventsDoNotScheduleRefresh() {
         val state = DuoNetworkState()
         state.subscriptions(10, -1, true)

@@ -60,12 +60,50 @@ class DuoGeometryTest {
 
     @Test fun automaticSizeUsesNativeDensityAndKeepsImportedManualSizeSeparate() {
         val auto = DuoConfig(true, 28)
-        assertEquals(68, DuoSizing.pixels(auto, 59, 2.8875f))
+        assertEquals(67, DuoSizing.pixels(auto, 59, 2.8875f))
         assertEquals(46, DuoSizing.pixels(auto, 0, 2f))
         assertEquals(40, DuoSizing.pixels(auto, 10, 2f))
         assertEquals(48, DuoSizing.pixels(auto, 200, 2f))
         assertEquals(56, DuoSizing.pixels(DuoConfig(true, 28, autoSize = false), 59, 2f))
         assertEquals(1, DuoSizing.pixels(auto, 0, 0.001f))
+    }
+
+    @Test fun verticalAdjustmentFitsEveryRowAndCannotEraseASmallDoubleRow() {
+        for (height in 1..200) for (offset in -40..40) {
+            val actual = DuoSizing.offset(height, offset / 2f)
+            val size = DuoSizing.drawingSize(120, height, actual)
+            val top = (height - size) / 2f + actual
+            assertTrue(size >= minOf(120f, height * 0.75f))
+            assertTrue(top >= -0.001f)
+            assertTrue(top + size <= height + 0.001f)
+        }
+        assertEquals(4f, DuoConfig(true, 24, verticalOffset = 999).offsetDp, 0f)
+        assertEquals(-4f, DuoConfig(true, 24, verticalOffset = -999).offsetDp, 0f)
+        assertEquals(0f, DuoConfig.read(PrefMap()).offsetDp, 0f)
+    }
+
+    @Test fun automaticSizeScalesAcrossDensitiesAndPreservesTheOnePercentReduction() {
+        val config = DuoConfig(true, 24)
+        for (density in floatArrayOf(1f, 1.5f, 2f, 2.8875f, 4f)) {
+            for (nativeDp in floatArrayOf(12f, 18f, 20f, 24f, 40f)) {
+                // Both versions receive the same integer native resource, not the unrounded input.
+                val nativeHeight = (nativeDp * density).toInt()
+                val oldDp = (nativeHeight / density * 1.155f).coerceIn(20f, 24f)
+                val px = DuoSizing.pixels(config, nativeHeight, density)
+                assertEquals(oldDp * 0.99f * density, px.toFloat(), 0.501f)
+            }
+        }
+    }
+
+    @Test fun tintAlphaIsPreservedAndUnknownBluetoothBatteryNeverMeansFull() {
+        val native = 0x99ffffff.toInt()
+        assertEquals(0x99, DuoGeometry.batteryColor(native, 100, true, false) ushr 24)
+        assertEquals(33, DuoGeometry.dim(native) ushr 24)
+        assertEquals(0x99, DuoGeometry.bluetoothColor(native, 2) ushr 24)
+        assertEquals(DuoGeometry.bluetoothColor(native, 0), DuoGeometry.bluetoothColor(native, 10))
+        assertNotEquals(DuoGeometry.bluetoothColor(native, 0), DuoGeometry.bluetoothColor(native, 1))
+        assertNotEquals(DuoGeometry.bluetoothColor(native, 0), DuoGeometry.bluetoothColor(native, 5))
+        assertNotEquals(DuoGeometry.bluetoothColor(-1, 0), DuoGeometry.bluetoothColor(0xff000000.toInt(), 0))
     }
 
     @Test fun repeatedHidingDoesNotLoseTheOriginalVisibility() {

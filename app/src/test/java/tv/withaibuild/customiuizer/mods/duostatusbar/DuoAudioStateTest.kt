@@ -90,4 +90,34 @@ class DuoAudioStateTest {
         assertEquals(0, state.snapshot)
         assertEquals(0L, state.expiresAt)
     }
+
+    @Test fun freshBatteryColorsAreBoundedAndNeverExtendOrReplayTheHint() {
+        val state = DuoAudioState()
+        assertFalse(state.bluetoothBattery(1, true))
+        state.bluetooth(true, true, true, false, 1000L, true)
+        assertTrue(state.bluetoothBattery(2, true))
+        assertEquals(2, DuoAudioState.batteryStep(state.snapshot))
+        repeat(10000) { assertFalse(state.bluetoothBattery(2, true)) }
+        assertEquals(4000L, state.expiresAt)
+        assertTrue(state.bluetoothBattery(10, false))
+        assertEquals(0, DuoAudioState.batteryStep(state.snapshot))
+        assertFalse(state.bluetoothBattery(11, true))
+        state.bluetoothBattery(5, true)
+        state.expire(4000L)
+        assertEquals(0, state.snapshot)
+        assertFalse(state.bluetoothBattery(1, true))
+    }
+
+    @Test fun newConnectionAndWiredGlyphNeverInheritTheOldBluetoothBattery() {
+        val state = DuoAudioState()
+        state.bluetooth(true, true, true, false, 1000L, true)
+        state.bluetoothBattery(2, true)
+        state.wired(true)
+        assertEquals(DuoAudioState.WIRED_GLYPH, DuoAudioState.glyph(0, state.snapshot))
+        state.bluetooth(true, false, false, false, 1500L, true)
+        state.bluetooth(true, true, true, false, 2000L, true)
+        assertEquals(0, DuoAudioState.batteryStep(state.snapshot))
+        state.finishHint()
+        assertEquals(DuoAudioState.WIRED, state.snapshot)
+    }
 }

@@ -102,6 +102,7 @@ internal class DuoBinding(
 
     fun restore() {
         active = false
+        view.stopTransition()
         restoreBattery()
         for (i in signals.indices) signals[i].restore()
         view.visibility = View.GONE

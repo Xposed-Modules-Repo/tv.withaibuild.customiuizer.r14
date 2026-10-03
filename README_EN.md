@@ -4,13 +4,13 @@
 
 CustoMIUIzer A14 is a system UI and interaction customization module maintained for **HyperOS 1 / Android 14 (SDK 34)**. It has an independent package and release line and is not an official upstream release.
 
-- Current version: `r14.21.14` (Release, versionCode 223)
+- Current version: `r14.22.1` (Release, versionCode 224)
 - Development and maintenance: `thetvplus`
 - Application ID: `tv.withaibuild.customiuizer.r14`
 - Source: <https://github.com/thetvplus/customiuizer-a14>
 - User downloads: <https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases>
 
-`r14.21.14` adds Duo to the Control Center closing transition, restores the Status Trio Wi-Fi marker and level geometry, and increases automatic sizing by about 5%. It retains brief Bluetooth audio connection hints and optional bolder strokes. Disabled by default; setting changes require a SystemUI restart. See [CHANGELOG.md](CHANGELOG.md) and the [Duo notes](docs/DUO_STATUS_BAR.md) for changes and acceptance limits.
+`r14.22.1` adds a native Duo three-in-one status icon across apps, the lock screen, Control Center and its closing transition. Short transitions, headphone styles and size, vertical adjustment, disconnected Wi-Fi fallback and Bluetooth battery hint colors are configurable. Automatic sizing follows native dimensions and row bounds; Bluetooth remains a three-second hint and idle icons do not refresh. Disabled by default; setting changes require a SystemUI restart. See [CHANGELOG.md](CHANGELOG.md) and the [Duo notes](docs/DUO_STATUS_BAR.md) for rules and verification limits.
 
 ## Core Features
 

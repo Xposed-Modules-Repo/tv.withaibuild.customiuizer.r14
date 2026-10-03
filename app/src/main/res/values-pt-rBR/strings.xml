@@ -1073,4 +1073,17 @@
     <string name="system_statusbar_duo_audio_summ">Fones com fio permanecem visíveis. Ao conectar áudio Bluetooth, são mostrados por 3 segundos e depois retorna o símbolo de rede. Alertas de rede têm prioridade.</string>
     <string name="system_statusbar_duo_bold_title">Linhas mais grossas</string>
     <string name="system_statusbar_duo_bold_summ">Anel de bateria e linhas de Wi-Fi e fones mais grossos.</string>
+    <string name="system_statusbar_duo_transitions_title">Transições curtas</string>
+    <string name="system_statusbar_duo_transitions_summ">Transição suave com leve escala do centro por 180 ms. Sem animação na economia de energia ou com animações do sistema desligadas.</string>
+    <string name="system_statusbar_duo_verticaloffset_title">Ajuste vertical</string>
+    <string name="system_statusbar_duo_verticaloffset_summ">Centralizado na linha, passos de 0,5 dp. Deslocamento limitado; o ícone diminui na borda para evitar cortes.</string>
+    <string name="system_statusbar_duo_headphonestyle_title">Estilo dos fones</string>
+    <string name="system_statusbar_duo_headphone_auto">Por conexão: Bluetooth intra-auriculares, cabo com arco</string>
+    <string name="system_statusbar_duo_headphone_overear">Fones com arco</string>
+    <string name="system_statusbar_duo_headphone_earbuds">Fones intra-auriculares</string>
+    <string name="system_statusbar_duo_headphonescale_title">Tamanho dos fones</string>
+    <string name="system_statusbar_duo_networkfallback_title">Substituir Wi-Fi desconectado</string>
+    <string name="system_statusbar_duo_networkfallback_summ">Mostrar rede móvel ou sem serviço quando não há Wi-Fi. Bluetooth continua como aviso de 3 segundos.</string>
+    <string name="system_statusbar_duo_btbattery_title">Cores da bateria Bluetooth</string>
+    <string name="system_statusbar_duo_btbattery_summ">Um dispositivo e um novo relatório: vermelho até 20%, âmbar até 50%. Azul indica Bluetooth, inclusive bateria desconhecida; o anel é a bateria do telefone.</string>
 </resources>

@@ -95,4 +95,15 @@ class DuoAbiTest {
         }
         DuoAbi.resolve(fatal)
     }
+
+    @Test fun optionalBatteryMetadataCanBeDisabledWithoutDisablingHeadphones() {
+        val abi = requireNotNull(DuoAbi.resolve(loader))
+        assertNull(requireNotNull(DuoAudioAbi.resolve(abi, false)).battery)
+        val fields = requireNotNull(requireNotNull(DuoAudioAbi.resolve(abi)).battery)
+        val controller = com.android.systemui.statusbar.policy.BluetoothControllerImpl()
+        fields.changed.invoke(controller, 2)
+        assertEquals(2, fields.level.getInt(controller))
+        assertTrue((fields.devices.get(controller) as Collection<*>).isEmpty())
+        assertNull(DuoBluetoothBatteryAbi.resolve(String::class.java))
+    }
 }

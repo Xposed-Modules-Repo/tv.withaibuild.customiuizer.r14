@@ -1073,4 +1073,17 @@
     <string name="system_statusbar_duo_audio_summ">有線ヘッドフォンは接続中に表示します。Bluetooth音声の接続時は3秒間表示し、その後ネットワーク表示に戻ります。ネットワーク警告を優先します。</string>
     <string name="system_statusbar_duo_bold_title">アイコンの線を太くする</string>
     <string name="system_statusbar_duo_bold_summ">バッテリーリング、Wi-Fi、ヘッドフォンの線を太くします。</string>
+    <string name="system_statusbar_duo_transitions_title">短いアイコン切替</string>
+    <string name="system_statusbar_duo_transitions_summ">中央の図案を約180ミリ秒でフェードと軽い拡縮で切替。省電力時やシステムのアニメーション無効時は即時切替。</string>
+    <string name="system_statusbar_duo_verticaloffset_title">上下位置の微調整</string>
+    <string name="system_statusbar_duo_verticaloffset_summ">現在の行内で中央に配置し、0.5dp刻みで調整。行高に応じて移動を制限し、端では縮小して欠けを防止。</string>
+    <string name="system_statusbar_duo_headphonestyle_title">イヤホンのアイコン</string>
+    <string name="system_statusbar_duo_headphone_auto">接続方式：Bluetoothはイヤホン、有線はヘッドホン</string>
+    <string name="system_statusbar_duo_headphone_overear">ヘッドホン</string>
+    <string name="system_statusbar_duo_headphone_earbuds">イヤホン</string>
+    <string name="system_statusbar_duo_headphonescale_title">イヤホンアイコンの大きさ</string>
+    <string name="system_statusbar_duo_networkfallback_title">Wi-Fi切断時の代替表示</string>
+    <string name="system_statusbar_duo_networkfallback_summ">Wi-Fi未接続時は携帯回線または圏外を表示。Bluetoothの通知は引き続き3秒のみ。</string>
+    <string name="system_statusbar_duo_btbattery_title">Bluetoothの電池色</string>
+    <string name="system_statusbar_duo_btbattery_summ">単一機器の新しい電池情報のみ：20%以下は赤、50%以下は琥珀色。青は電池不明を含むBluetooth表示。外周はスマートフォンの電池。</string>
 </resources>
