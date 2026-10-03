@@ -10,7 +10,7 @@ CustoMIUIzer A14 是面向 **HyperOS 1 / Android 14（SDK 34）** 的系统界�
 - 源码仓库：<https://github.com/thetvplus/customiuizer-a14>
 - 用户下载：<https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases>
 
-`r14.22.1` 加入原生绘制的 Duo 三合一状态栏，覆盖锁屏、应用、控制中心及收起过渡；支持短过渡、耳机样式与大小、垂直微调、Wi-Fi 断连替代图案及有系统电量报告时的蓝牙提示颜色。自动尺寸适应原生图标与可用空间，双排时跨两排显示，蓝牙只提示 3 秒，静止时不刷新。默认关闭，设置变更后需重启系统界面。详细规则与验证边界见 [CHANGELOG_CN.md](CHANGELOG_CN.md) 和 [Duo 说明](docs/DUO_STATUS_BAR.md)。
+`r14.22.1` 加入原生绘制的 Duo 三合一状态栏，覆盖锁屏、应用、控制中心及收起过渡；支持短过渡、耳机样式与大小、垂直微调、Wi-Fi 断连替代图案及有系统电量报告时的蓝牙提示颜色。自动尺寸适应原生图标与当前行高，蓝牙只提示 3 秒，静止时不刷新。默认关闭，设置变更后需重启系统界面。详细规则与验证边界见 [CHANGELOG_CN.md](CHANGELOG_CN.md) 和 [Duo 说明](docs/DUO_STATUS_BAR.md)。
 
 ## 核心功能
 

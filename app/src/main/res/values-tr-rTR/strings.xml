@@ -1071,9 +1071,9 @@ ss - iki basamaklı saniye(09)</string>
     <string name="system_statusbar_duo_restart">Ayar değişikliklerinden sonra sistem arayüzünü yeniden başlatın. Duo yüzdesi ve boyutu, sistem simgelerinin gizlenmesi ve stilinden bağımsızdır. Uyumsuz cihazlarda özgün simgeler korunur.</string>
     <string name="system_statusbar_duo_percent_title">Pil yüzdesini göster</string>
     <string name="system_statusbar_duo_size_title">Elle simge boyutu</string>
-    <string name="system_statusbar_duo_size_summ">Otomatik boyut kapalıyken kullanılır; kullanılabilir yükseklikle sınırlıdır.</string>
+    <string name="system_statusbar_duo_size_summ">Otomatik boyut kapalıyken kullanılır; satır yüksekliğiyle sınırlıdır.</string>
     <string name="system_statusbar_duo_autosize_title">Otomatik simge boyutu</string>
-    <string name="system_statusbar_duo_autosize_summ">Sistem simgelerine ve kullanılabilir alana göre ayarlar. Çift satırlı çubukta iki satırı da kaplar. Elle ayarlamak için kapatın.</string>
+    <string name="system_statusbar_duo_autosize_summ">Sistem simgelerinin ve mevcut satırın yüksekliğine göre ayarlar. Elle ayarlamak için kapatın.</string>
     <string name="system_statusbar_duo_audio_title">Kulaklık bağlantısını göster</string>
     <string name="system_statusbar_duo_audio_summ">Kablolu kulaklık bağlıyken görünür. Bluetooth sesi bağlandığında 3 saniye gösterilir, sonra ağ simgesi geri döner. Ağ uyarıları önceliklidir.</string>
     <string name="system_statusbar_duo_bold_title">Daha kalın simge çizgileri</string>
@@ -1081,7 +1081,7 @@ ss - iki basamaklı saniye(09)</string>
     <string name="system_statusbar_duo_transitions_title">Kısa simge geçişleri</string>
     <string name="system_statusbar_duo_transitions_summ">Merkezde 180 ms boyunca solma ve hafif ölçekleme. Güç tasarrufunda veya sistem animasyonları kapalıyken doğrudan değişir.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Dikey ayar</string>
-    <string name="system_statusbar_duo_verticaloffset_summ">Kullanılabilir alanda ortala, 0,5 dp adımlarla ayarla. Kaydırma yükseklikle sınırlıdır; kenarda kesilmeden küçülür.</string>
+    <string name="system_statusbar_duo_verticaloffset_summ">Satır içinde ortala, 0,5 dp adımlarla ayarla. Kaydırma yükseklikle sınırlıdır; kenarda kesilmeden küçülür.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Kulaklık simgesi</string>
     <string name="system_statusbar_duo_headphone_auto">Bağlantıya göre: Bluetooth kulak içi, kablolu baş üstü</string>
     <string name="system_statusbar_duo_headphone_overear">Baş üstü kulaklık</string>

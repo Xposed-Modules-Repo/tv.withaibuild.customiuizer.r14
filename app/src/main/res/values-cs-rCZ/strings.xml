@@ -1073,9 +1073,9 @@
     <string name="system_statusbar_duo_restart">Po změně nastavení restartujte systémové rozhraní. Procenta a velikost Duo jsou nezávislé na skrytí a stylu systémových ikon. Nekompatibilní zařízení zachovají původní ikony.</string>
     <string name="system_statusbar_duo_percent_title">Zobrazit procenta baterie</string>
     <string name="system_statusbar_duo_size_title">Ruční velikost ikony</string>
-    <string name="system_statusbar_duo_size_summ">Platí bez automatické velikosti; omezena dostupnou výškou.</string>
+    <string name="system_statusbar_duo_size_summ">Platí bez automatické velikosti; omezena výškou řádku.</string>
     <string name="system_statusbar_duo_autosize_title">Automatická velikost ikony</string>
-    <string name="system_statusbar_duo_autosize_summ">Velikost podle systémových ikon a dostupného místa. Ve dvouřádkové liště zabírá oba řádky. Pro ruční velikost vypněte.</string>
+    <string name="system_statusbar_duo_autosize_summ">Velikost podle výšky systémových ikon a aktuálního řádku. Pro ruční velikost vypněte.</string>
     <string name="system_statusbar_duo_audio_title">Zobrazovat připojení sluchátek</string>
     <string name="system_statusbar_duo_audio_summ">Kabelová sluchátka zůstávají viditelná. Po připojení zvuku Bluetooth se zobrazí na 3 sekundy a pak se vrátí symbol sítě. Varování sítě mají přednost.</string>
     <string name="system_statusbar_duo_bold_title">Silnější čáry ikony</string>
@@ -1083,7 +1083,7 @@
     <string name="system_statusbar_duo_transitions_title">Krátké přechody ikon</string>
     <string name="system_statusbar_duo_transitions_summ">Prolínání a jemná změna velikosti středu po 180 ms. V úsporném režimu nebo bez systémových animací se stav změní ihned.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Svislé posunutí</string>
-    <string name="system_statusbar_duo_verticaloffset_summ">Vycentrování v dostupné oblasti, krok 0,5 dp. Posunutí je omezeno výškou; na okraji se ikona zmenší bez oříznutí.</string>
+    <string name="system_statusbar_duo_verticaloffset_summ">Vycentrování v řádku, krok 0,5 dp. Posunutí je omezeno výškou; na okraji se ikona zmenší bez oříznutí.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Styl ikony sluchátek</string>
     <string name="system_statusbar_duo_headphone_auto">Podle spojení: Bluetooth špunty, kabelová náhlavní</string>
     <string name="system_statusbar_duo_headphone_overear">Náhlavní sluchátka</string>

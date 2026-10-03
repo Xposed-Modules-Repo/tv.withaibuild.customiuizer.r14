@@ -1065,9 +1065,9 @@
     <string name="system_statusbar_duo_restart">После изменения настроек перезапустите интерфейс системы. Процент и размер Duo не зависят от скрытия и оформления системных значков. При несовместимости сохраняются исходные значки.</string>
     <string name="system_statusbar_duo_percent_title">Показывать заряд в процентах</string>
     <string name="system_statusbar_duo_size_title">Размер значка вручную</string>
-    <string name="system_statusbar_duo_size_summ">Действует без автоматического размера; ограничен доступной высотой.</string>
+    <string name="system_statusbar_duo_size_summ">Действует без автоматического размера; ограничен высотой строки.</string>
     <string name="system_statusbar_duo_autosize_title">Автоматический размер значка</string>
-    <string name="system_statusbar_duo_autosize_summ">Размер зависит от системных значков и доступного места. В двухстрочной панели занимает обе строки. Отключите для ручной настройки.</string>
+    <string name="system_statusbar_duo_autosize_summ">Размер зависит от высоты системных значков и строки. Отключите для ручной настройки.</string>
     <string name="system_statusbar_duo_audio_title">Показывать подключение наушников</string>
     <string name="system_statusbar_duo_audio_summ">Проводные наушники отображаются постоянно. При подключении аудио Bluetooth наушники видны 3 секунды, затем возвращается символ сети. Предупреждения сети имеют приоритет.</string>
     <string name="system_statusbar_duo_bold_title">Жирные линии значка</string>
@@ -1075,7 +1075,7 @@
     <string name="system_statusbar_duo_transitions_title">Короткие переходы значков</string>
     <string name="system_statusbar_duo_transitions_summ">Плавная смена и лёгкое масштабирование центра за 180 мс. Без анимации при экономии энергии или отключённых системных анимациях.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Смещение по вертикали</string>
-    <string name="system_statusbar_duo_verticaloffset_summ">Центрирование в доступной области, шаг 0,5 dp. Смещение ограничено высотой; у края значок уменьшается без обрезки.</string>
+    <string name="system_statusbar_duo_verticaloffset_summ">Центрирование в строке, шаг 0,5 dp. Смещение ограничено высотой; у края значок уменьшается без обрезки.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Стиль наушников</string>
     <string name="system_statusbar_duo_headphone_auto">По подключению: Bluetooth — вкладыши, проводные — накладные</string>
     <string name="system_statusbar_duo_headphone_overear">Накладные наушники</string>

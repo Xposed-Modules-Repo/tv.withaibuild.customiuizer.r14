@@ -1066,9 +1066,9 @@
     <string name="system_statusbar_duo_restart">設定変更後はシステムUIを再起動してください。Duoの割合とサイズは標準アイコンの非表示やスタイルから独立しています。非対応端末では標準アイコンを維持します。</string>
     <string name="system_statusbar_duo_percent_title">バッテリー残量の割合を表示</string>
     <string name="system_statusbar_duo_size_title">アイコンサイズを手動設定</string>
-    <string name="system_statusbar_duo_size_summ">自動調整が無効な場合に使用し、利用可能な高さを上限とします。</string>
+    <string name="system_statusbar_duo_size_summ">自動調整が無効な場合に使用し、行の高さを上限とします。</string>
     <string name="system_statusbar_duo_autosize_title">アイコンサイズを自動調整</string>
-    <string name="system_statusbar_duo_autosize_summ">標準アイコンと利用可能な空間に合わせます。二段のステータスバーでは両段にまたがって表示します。無効にすると手動サイズを使用します。</string>
+    <string name="system_statusbar_duo_autosize_summ">端末の標準アイコンと現在の行の高さに合わせます。無効にすると手動サイズを使用します。</string>
     <string name="system_statusbar_duo_audio_title">ヘッドフォンの接続を表示</string>
     <string name="system_statusbar_duo_audio_summ">有線ヘッドフォンは接続中に表示します。Bluetooth音声の接続時は3秒間表示し、その後ネットワーク表示に戻ります。ネットワーク警告を優先します。</string>
     <string name="system_statusbar_duo_bold_title">アイコンの線を太くする</string>
@@ -1076,7 +1076,7 @@
     <string name="system_statusbar_duo_transitions_title">短いアイコン切替</string>
     <string name="system_statusbar_duo_transitions_summ">中央の図案を約180ミリ秒でフェードと軽い拡縮で切替。省電力時やシステムのアニメーション無効時は即時切替。</string>
     <string name="system_statusbar_duo_verticaloffset_title">上下位置の微調整</string>
-    <string name="system_statusbar_duo_verticaloffset_summ">利用可能な領域の中央に配置し、0.5dp刻みで調整。高さに応じて移動を制限し、端では縮小して欠けを防止。</string>
+    <string name="system_statusbar_duo_verticaloffset_summ">現在の行内で中央に配置し、0.5dp刻みで調整。行高に応じて移動を制限し、端では縮小して欠けを防止。</string>
     <string name="system_statusbar_duo_headphonestyle_title">イヤホンのアイコン</string>
     <string name="system_statusbar_duo_headphone_auto">接続方式：Bluetoothはイヤホン、有線はヘッドホン</string>
     <string name="system_statusbar_duo_headphone_overear">ヘッドホン</string>

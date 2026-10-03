@@ -1099,9 +1099,9 @@
     <string name="system_statusbar_duo_restart">Restart System UI after changing settings. Duo percentage and size are independent of native icon hiding and styling. Incompatible devices keep their original icons.</string>
     <string name="system_statusbar_duo_percent_title">Show battery percentage</string>
     <string name="system_statusbar_duo_size_title">Manual icon size</string>
-    <string name="system_statusbar_duo_size_summ">Used with automatic size off; limited by the available height.</string>
+    <string name="system_statusbar_duo_size_summ">Used with automatic size off; limited by the current row height.</string>
     <string name="system_statusbar_duo_autosize_title">Automatic icon size</string>
-    <string name="system_statusbar_duo_autosize_summ">Scale from native icons and fit the available space. Span both rows in a double-row status bar. Turn off to use manual size.</string>
+    <string name="system_statusbar_duo_autosize_summ">Scale from the native device icon height and fit the current row. Turn off to use manual size.</string>
     <string name="system_statusbar_duo_audio_title">Show headphone connections</string>
     <string name="system_statusbar_duo_audio_summ">Wired headphones stay visible; Bluetooth audio appears for 3 seconds on connection, then restores the network glyph. Network warnings take priority.</string>
     <string name="system_statusbar_duo_bold_title">Bolder icon strokes</string>
@@ -1109,7 +1109,7 @@
     <string name="system_statusbar_duo_transitions_title">Short icon transitions</string>
     <string name="system_statusbar_duo_transitions_summ">Fade and gently scale center changes for about 180 ms. Disabled in power saver or when system animations are off.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Vertical adjustment</string>
-    <string name="system_statusbar_duo_verticaloffset_summ">Center in the available area; adjust by 0.5 dp. Offset is limited and drawing shrinks at the edge to prevent clipping.</string>
+    <string name="system_statusbar_duo_verticaloffset_summ">Center in the current row; adjust by 0.5 dp. Offset is limited and drawing shrinks at the edge to prevent clipping.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Headphone icon style</string>
     <string name="system_statusbar_duo_headphone_auto">By connection: Bluetooth earbuds, wired over-ear</string>
     <string name="system_statusbar_duo_headphone_overear">Over-ear headphones</string>

@@ -250,7 +250,6 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
 
     private fun detach(owner: ViewGroup) {
         val binding = child(owner)?.binding ?: return
-        if (binding.relocating) return // moving the same native host between owned row containers
         for (i in bindings.indices) if (bindings[i]?.get() === binding) bindings[i] = null
         bindingCount = bindings.count { it?.get() != null }
         binding.release()

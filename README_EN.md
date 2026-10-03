@@ -10,7 +10,7 @@ CustoMIUIzer A14 is a system UI and interaction customization module maintained 
 - Source: <https://github.com/thetvplus/customiuizer-a14>
 - User downloads: <https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases>
 
-`r14.22.1` adds a native Duo three-in-one status icon across apps, the lock screen, Control Center and its closing transition. Short transitions, headphone styles and size, vertical adjustment, disconnected Wi-Fi fallback and Bluetooth battery hint colors are configurable. Automatic sizing follows native dimensions and available space, spanning both rows when enabled; Bluetooth remains a three-second hint and idle icons do not refresh. Disabled by default; setting changes require a SystemUI restart. See [CHANGELOG.md](CHANGELOG.md) and the [Duo notes](docs/DUO_STATUS_BAR.md) for rules and verification limits.
+`r14.22.1` adds a native Duo three-in-one status icon across apps, the lock screen, Control Center and its closing transition. Short transitions, headphone styles and size, vertical adjustment, disconnected Wi-Fi fallback and Bluetooth battery hint colors are configurable. Automatic sizing follows native dimensions and row bounds; Bluetooth remains a three-second hint and idle icons do not refresh. Disabled by default; setting changes require a SystemUI restart. See [CHANGELOG.md](CHANGELOG.md) and the [Duo notes](docs/DUO_STATUS_BAR.md) for rules and verification limits.
 
 ## Core Features
 
