@@ -1,4 +1,6 @@
 import base64
+import contextlib
+import io
 import json
 import tempfile
 import unittest
@@ -6,6 +8,7 @@ import zipfile
 from pathlib import Path
 
 from tools import apk_semantic_diff
+from tools import brutal_test_runner
 from tools import catalog_contract_probe
 from tools import ci_contract_scan
 from tools import source_hazard_scan
@@ -263,6 +266,41 @@ class CatalogParserTest(unittest.TestCase):
         blocks = catalog_contract_probe.balanced_blocks(text, "FeatureSpec")
         self.assertEqual(2, len(blocks))
         self.assertEqual("a", catalog_contract_probe.field(blocks[0], "id"))
+
+    def test_duplicate_mutation_reaches_specs_after_feature_classes(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            catalog = root / "SystemUiFeatures.kt"
+            classes = (
+                "class First { override val id = FirstFeatureId }\n"
+                "class Second { override val id = SecondFeatureId }\n"
+            )
+            catalog.write_text(classes + "\n".join(
+                f'LazyFeatureSpec(id = {symbol}, name = "{name}", '
+                f'preferenceKey = "{name}", target = FeatureTarget.SYSTEM_UI, '
+                'phase = InstallPhase.PACKAGE_READY)'
+                for symbol, name in [("FirstFeatureId", "first"), ("SecondFeatureId", "second")]
+            ), encoding="utf-8")
+            ids = root / "FeatureIds.kt"
+            ids.write_text("\n".join(
+                f'data object {symbol} : FeatureId {{ override val id = {number} '
+                f'override val name = "{name}" }}'
+                for number, symbol, name in [(1, "FirstFeatureId", "first"), (2, "SecondFeatureId", "second")]
+            ), encoding="utf-8")
+            matrix = root / "matrix.csv"
+            matrix.write_text(
+                "featureIdName,name,preferenceKey,target,phase\n"
+                "first,first,first,SYSTEM_UI,PACKAGE_READY\n"
+                "second,second,second,SYSTEM_UI,PACKAGE_READY\n", encoding="utf-8",
+            )
+            args = ["--catalog", str(catalog), "--feature-id", str(ids), "--matrix", str(matrix)]
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                self.assertEqual(0, catalog_contract_probe.main(args))
+                brutal_test_runner.mutate_duplicate_feature_id(root, {"catalog_file": catalog.name})
+                self.assertEqual(1, catalog_contract_probe.main(args))
+            self.assertTrue(catalog.read_text(encoding="utf-8").startswith(classes))
+            self.assertIn("FeatureSpec id duplicate: FirstFeatureId", output.getvalue())
 
 
 if __name__ == "__main__":

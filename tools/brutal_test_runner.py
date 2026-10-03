@@ -345,7 +345,8 @@ def mutate_windows_path(root: Path, cfg: dict) -> None:
 def mutate_duplicate_feature_id(root: Path, cfg: dict) -> None:
     path = root / cfg["catalog_file"]
     text = path.read_text(encoding="utf-8")
-    ids = list(re.finditer(r'\bid\s*=\s*([A-Za-z0-9_]+)', text))
+    # Mutate catalog declarations, not earlier feature classes' own id properties.
+    ids = list(re.finditer(r'\bLazyFeatureSpec\s*\(\s*id\s*=\s*([A-Za-z0-9_]+)', text))
     unique = []
     for m in ids:
         if m.group(1) not in [u.group(1) for u in unique]:

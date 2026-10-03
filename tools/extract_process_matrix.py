@@ -348,8 +348,8 @@ def main() -> int:
         "This file captures process-routing gaps, package/process mismatches, and targeted verification notes.\n\n",
         "## Scope vs code\n\n",
         "- Input method packages are routed by `MainModule.java` to `InputMethodInstaller`, but are **not** listed in `scope.list`. "
-        "This means they will not receive the module unless the user adds them manually in LSPosed.\n",
-        "  - Verification: `WAITING_FOR_SAMPLE` (need LSPosed scope behavior with `staticScope=false`).\n",
+        "With `staticScope=true`, users must add them manually in LSPosed if they need those hooks.\n",
+        "  - Verification: optional per-keyboard smoke on target ROM; not a default release gate.\n",
         "- `miui.systemui.plugin` is not in `scope.list`; the module stays in `com.android.systemui` and extracts the plugin "
         "`ClassLoader` from `PluginInstance$PluginFactory.createPlugin` at runtime.\n",
         "  - Evidence: `SystemUIControlCenterHooks.kt` line 60-70 and `ControlCenterPluginHook`.\n\n",
