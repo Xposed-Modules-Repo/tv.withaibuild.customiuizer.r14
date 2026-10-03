@@ -29,13 +29,6 @@
         android:defaultValue="false" />
 
     <tv.withaibuild.customiuizer.prefs.CheckBoxPreferenceEx
-        android:key="pref_key_system_statusbar_duo_transitions"
-        android:title="@string/system_statusbar_duo_transitions_title"
-        android:summary="@string/system_statusbar_duo_transitions_summ"
-        android:dependency="pref_key_system_statusbar_duo"
-        android:defaultValue="true" />
-
-    <tv.withaibuild.customiuizer.prefs.CheckBoxPreferenceEx
         android:key="pref_key_system_statusbar_duo_networkfallback"
         android:title="@string/system_statusbar_duo_networkfallback_title"
         android:summary="@string/system_statusbar_duo_networkfallback_summ"

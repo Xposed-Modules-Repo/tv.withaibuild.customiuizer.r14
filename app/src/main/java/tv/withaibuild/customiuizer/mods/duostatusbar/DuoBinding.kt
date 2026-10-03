@@ -36,6 +36,11 @@ internal class DuoBinding(
             if (child !== view) batteryChildren.add(Original(child))
         }
         collectSignals(root)
+        syncTypeface()
+    }
+
+    fun syncTypeface() {
+        if (view.usesCellularText) view.syncTypeface((abi.percentView.get(owner) as? TextView)?.typeface)
     }
 
     private fun collectSignals(parent: ViewGroup) {

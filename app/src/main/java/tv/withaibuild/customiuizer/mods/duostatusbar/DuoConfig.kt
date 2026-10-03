@@ -5,7 +5,7 @@ import tv.withaibuild.customiuizer.utils.PrefMap
 /** Read once at installation; changing these settings requires a SystemUI restart. */
 internal class DuoConfig(val showPercent: Boolean, sizeDp: Int,
     val autoSize: Boolean = true, val showAudio: Boolean = true, val bold: Boolean = false,
-    val transitions: Boolean = true, verticalOffset: Int = 8, headphoneStyle: Int = 1,
+    verticalOffset: Int = 8, headphoneStyle: Int = 1,
     headphoneScale: Int = 100, val networkFallback: Boolean = true,
     val bluetoothBatteryColor: Boolean = true, cellularStyle: Int = 1,
 ) {
@@ -22,7 +22,6 @@ internal class DuoConfig(val showPercent: Boolean, sizeDp: Int,
             prefs.getBoolean("system_statusbar_duo_autosize", true),
             prefs.getBoolean("system_statusbar_duo_audio", true),
             prefs.getBoolean("system_statusbar_duo_bold", false),
-            prefs.getBoolean("system_statusbar_duo_transitions", true),
             prefs.getInt("system_statusbar_duo_verticaloffset", 8),
             prefs.getStringAsInt("system_statusbar_duo_headphonestyle", 1),
             prefs.getInt("system_statusbar_duo_headphonescale", 100),

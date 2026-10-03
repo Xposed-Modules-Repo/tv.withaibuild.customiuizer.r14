@@ -7,6 +7,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
+import android.graphics.Typeface
 import android.os.SystemClock
 import android.view.View
 import tv.withaibuild.customiuizer.mods.utils.FatalErrors
@@ -32,11 +33,8 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
         textSize = 35f
         isFakeBoldText = true
     } else null
-    private val cellularBaseline = cellularText?.let { paint ->
-        val bounds = Rect()
-        paint.getTextBounds("5G", 0, 2, bounds)
-        61f - (bounds.top + bounds.bottom) / 2f
-    } ?: 0f
+    private var cellularFont: Typeface? = null
+    private var cellularBaseline = 0f
     private val bolt = Path().apply {
         moveTo(64f, 0f); lineTo(47f, 20f); lineTo(58f, 20f)
         lineTo(54f, 34f); lineTo(72f, 13f); lineTo(61f, 13f); close()
@@ -96,6 +94,22 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
         isClickable = false
         isFocusable = false
         updateSize()
+        syncTypeface(null)
+    }
+
+    val usesCellularText: Boolean get() = cellularText != null
+
+    /** Reuse the native local font. Binding/configuration only; no font files or per-frame metrics. */
+    fun syncTypeface(typeface: Typeface?) {
+        val paint = cellularText ?: return
+        val localFont = typeface ?: Typeface.DEFAULT
+        if (cellularFont === localFont) return
+        cellularFont = localFont
+        paint.typeface = localFont
+        val bounds = Rect()
+        paint.getTextBounds("5G", 0, 2, bounds)
+        cellularBaseline = 61f - (bounds.top + bounds.bottom) / 2f
+        invalidate()
     }
 
     private fun updateSize() {
@@ -110,6 +124,7 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
         if (failed) return
         try {
             updateSize()
+            binding?.syncTypeface()
             layoutParams?.let { it.width = iconSizePx }
             onGeometryChanged()
             requestLayout()
@@ -125,7 +140,7 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
         if (this.level == level && this.charging == charging && this.saver == saver &&
             this.foreground == foreground && this.network == network && transition.current == key) return
         val duration = if (this.level >= 0 && DuoCenter.glyph(transition.current) != DuoCenter.glyph(key) &&
-            config.transitions && !saver &&
+            !saver &&
             isShown && windowVisibility == VISIBLE && ValueAnimator.areAnimatorsEnabled())
             (180f * ValueAnimator.getDurationScale().coerceIn(0f, 2f)).toLong() else 0L
         transition.change(key, SystemClock.uptimeMillis(), duration)

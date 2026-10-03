@@ -1071,8 +1071,6 @@
     <string name="system_statusbar_duo_audio_summ">Los auriculares por cable o Bluetooth aparecen durante 3 segundos con una nueva conexión y luego vuelve Wi-Fi o el símbolo de red. Los eventos duplicados no prolongan ni repiten el aviso. Los avisos de red tienen prioridad.</string>
     <string name="system_statusbar_duo_bold_title">Líneas más gruesas</string>
     <string name="system_statusbar_duo_bold_summ">Anillo de batería y líneas de Wi-Fi y auriculares más gruesos.</string>
-    <string name="system_statusbar_duo_transitions_title">Transiciones breves</string>
-    <string name="system_statusbar_duo_transitions_summ">El centro se desvanece y reaparece en unos 180 ms, sin cambiar de tamaño. Cambio directo con ahorro de energía o animaciones desactivadas.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Ajuste vertical</string>
     <string name="system_statusbar_duo_verticaloffset_summ">Centrado en la fila, pasos de 0,5 dp. Desplazamiento limitado; el icono se reduce en el borde para evitar recortes.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Estilo de auriculares</string>

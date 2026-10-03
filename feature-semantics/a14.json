@@ -11409,29 +11409,6 @@
       "notes": "Manual size is preserved across upgrades and used only with automatic size off; native row constraints still apply."
     },
     {
-      "featureId": "system_statusbar_duo_transitions",
-      "featureName": "Duo short transitions",
-      "preferenceKeys": [
-        "system_statusbar_duo_transitions",
-        "pref_key_system_statusbar_duo_transitions"
-      ],
-      "xmlSource": "app/src/main/res/xml/prefs_system_statusbar_duo.xml",
-      "defaultValue": "true",
-      "sourceFile": "app/src/main/java/tv/withaibuild/customiuizer/mods/duostatusbar/DuoConfig.kt",
-      "installer": "app/src/main/java/tv/withaibuild/customiuizer/mods/duostatusbar/DuoConfig.kt:read",
-      "targetPackage": "com.android.systemui",
-      "installPhase": "PACKAGE_READY",
-      "runtimeReadMode": "INSTALL_TIME_SNAPSHOT",
-      "enableEffect": "Animates center changes for a bounded 180 ms; stops for saver, disabled system animation or hidden/detached views",
-      "disableEffect": "Ignored while Duo is disabled",
-      "valueChangeEffect": "Applies this setting after SystemUI restart",
-      "restartTarget": "SYSTEMUI",
-      "hotReloadable": false,
-      "confidence": "CODE_VERIFIED",
-      "evidence": "DuoConfig.read and DuoStatusBarView / DuoStatusBarHooks",
-      "notes": "Subordinate to the Duo master; headphone style, scale and battery colors also depend on audio indicators. No independent business hook while disabled."
-    },
-    {
       "featureId": "system_statusbar_duo_verticaloffset",
       "featureName": "Duo vertical adjustment",
       "preferenceKeys": [

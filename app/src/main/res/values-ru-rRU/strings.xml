@@ -1072,8 +1072,6 @@
     <string name="system_statusbar_duo_audio_summ">При новом подключении проводные или Bluetooth-наушники видны 3 секунды, затем возвращается Wi-Fi или символ сети. Повторные события не продлевают и не повторяют подсказку. Предупреждения сети имеют приоритет.</string>
     <string name="system_statusbar_duo_bold_title">Жирные линии значка</string>
     <string name="system_statusbar_duo_bold_summ">Более толстые линии кольца батареи, Wi-Fi и наушников.</string>
-    <string name="system_statusbar_duo_transitions_title">Короткие переходы значков</string>
-    <string name="system_statusbar_duo_transitions_summ">Сначала плавное исчезновение, затем появление за 180 мс без изменения размера. Без анимации при энергосбережении или отключённых системных анимациях.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Смещение по вертикали</string>
     <string name="system_statusbar_duo_verticaloffset_summ">Центрирование в строке, шаг 0,5 dp. Смещение ограничено высотой; у края значок уменьшается без обрезки.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Стиль наушников</string>

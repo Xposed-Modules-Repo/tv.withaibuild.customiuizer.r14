@@ -1073,8 +1073,6 @@
     <string name="system_statusbar_duo_audio_summ">Fones com fio ou Bluetooth aparecem por 3 segundos em uma nova conexão, depois retornam Wi-Fi ou o símbolo de rede. Eventos repetidos não prolongam nem repetem o aviso. Alertas de rede têm prioridade.</string>
     <string name="system_statusbar_duo_bold_title">Linhas mais grossas</string>
     <string name="system_statusbar_duo_bold_summ">Anel de bateria e linhas de Wi-Fi e fones mais grossos.</string>
-    <string name="system_statusbar_duo_transitions_title">Transições curtas</string>
-    <string name="system_statusbar_duo_transitions_summ">O centro desaparece e reaparece em cerca de 180 ms, sem mudar de tamanho. Troca direta na economia de energia ou com animações desativadas.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Ajuste vertical</string>
     <string name="system_statusbar_duo_verticaloffset_summ">Centralizado na linha, passos de 0,5 dp. Deslocamento limitado; o ícone diminui na borda para evitar cortes.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Estilo dos fones</string>
