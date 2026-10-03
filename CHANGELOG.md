@@ -4,17 +4,13 @@ English | [简体中文](CHANGELOG_CN.md)
 
 ## r14.22.2 — 2026-10-03
 
-For HyperOS 1 / Android 14, versionCode 225. Consolidated changes from r14.21.9 to r14.22.2. Local officially signed build; device acceptance and publication are pending.
+For HyperOS 1 / Android 14, versionCode 225. Consolidated changes from r14.21.9 to r14.22.2.
 
-- Add optional Duo, combining phone battery, Wi-Fi and default data SIM signal across apps, the lock screen, Control Center and its closing transition.
-- Adapt automatic size to the device and current row, including double rows, with manual size, bold strokes and vertical adjustment. Refine the smallest Wi-Fi artwork and colors on light/dark backgrounds.
-- Draw one continuous battery arc when percentage is hidden, removing overlapping caps at the top. The ring always represents phone battery, with charging, power saver and low battery colors.
-- Optionally replace disconnected Wi-Fi with cellular/no-service artwork. Center the antenna dot within symmetric arcs and separate its stem. Choose default artwork or 2G/3G/4G/5G text from the default data SIM native network name. Enlarge and raise the text using its visible glyph bounds; unknown types use artwork and connected Wi-Fi keeps its glyph.
-- Preserve HyperOS native cellular levels 0–5, using partial illumination of four dots to distinguish every level instead of clipping 4 and 5 to full strength. Follow native data SIM changes, service loss and airplane mode.
-- Offer over-ear/earbud artwork and size choices with clearer small silhouettes. Ordinary or unknown battery levels use native foreground colors; explicit low battery retains red and amber hints. Wired and Bluetooth headphones appear for three seconds on a new connection, then restore the network glyph. Seed, duplicate events and reopening Control Center never extend or replay hints.
-- Reuse the native status bar local font for network type text. Read and measure only at binding or configuration changes, then reuse the font and paint while drawing.
-- Share drawing sizes across status bar, Control Center and transition hosts to reduce late handoff jumps. Fade the center out and in at a fixed size by default with one silhouette per frame and no separate toggle. Switch directly in power saver or with system animations off; idle icons do not refresh.
-- Disabled by default; restart System UI after setting changes. Refine option dependencies and native fallback. Reuse existing state callbacks without new queries, listeners, polling, background threads or animation libraries; audio hints share one bounded expiry task.
+- Add optional Duo battery, Wi-Fi and cellular signal icons, supporting the lock screen, Control Center, double rows and size adjustments.
+- Refine the battery ring, cellular and headphone artwork and light/dark colors; fix cellular signal strength display.
+- Choose cellular artwork or 2G/3G/4G/5G text using the local font, with improved size and centering.
+- Restore the Wi-Fi/network icon three seconds after a headphone connection hint.
+- Improve Control Center handoff and default short transitions, reducing size jumps and unnecessary refreshes.
 
 ## r14.21.9 — 2026-09-30
 
