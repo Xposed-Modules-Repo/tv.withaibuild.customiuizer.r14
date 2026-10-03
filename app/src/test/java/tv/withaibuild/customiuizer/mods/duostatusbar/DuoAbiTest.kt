@@ -70,6 +70,21 @@ class DuoAbiTest {
         assertNull(DuoAudioAbi.resolve(requireNotNull(DuoAbi.resolve(absent))))
     }
 
+    @Test fun transitionHostIsResolvedWithoutMakingEitherControlCenterHostRequired() {
+        val name = "com.android.systemui.controlcenter.phone.widget.ControlCenterFakeStatusIcons"
+        assertEquals(name, requireNotNull(DuoAbi.resolve(loader)).transition?.name)
+        val absent = object : ClassLoader(loader) {
+            override fun loadClass(type: String, resolve: Boolean): Class<*> {
+                if (type == name || type.endsWith(".ControlCenterStatusBarIcon")) throw ClassNotFoundException(type)
+                return super.loadClass(type, resolve)
+            }
+        }
+        val abi = requireNotNull(DuoAbi.resolve(absent))
+        assertNull(abi.transition)
+        assertNull(abi.controlCenter)
+        assertSame(MiuiWifiSignalController::class.java, abi.wifiController)
+    }
+
     @Test(expected = OutOfMemoryError::class)
     fun resolverDoesNotConvertFatalLoaderFailureToNativeFallback() {
         val fatal = object : ClassLoader(loader) {

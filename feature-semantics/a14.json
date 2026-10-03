@@ -11360,7 +11360,7 @@
       "hotReloadable": false,
       "confidence": "CODE_VERIFIED",
       "evidence": "DuoSizing.pixels and DuoStatusBarView.onConfigurationChanged",
-      "notes": "Default on; native SystemUI icon height times 1.1, bounded to 20..24 dp, fallback 22 dp; follows configuration and native row constraints."
+      "notes": "Default on; native SystemUI icon height times 1.155, bounded to 20..24 dp, fallback 23.1 dp; follows configuration and native row constraints."
     },
     {
       "featureId": "system_statusbar_duo_bold",

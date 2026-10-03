@@ -37,6 +37,18 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
         moveTo(37f, 72f); lineTo(37f, 62f)
         cubicTo(37f, 34f, 82f, 34f, 82f, 62f); lineTo(82f, 72f)
     }
+    // Wi-Fi marker geometry adapted from Status Trio (Apache-2.0).
+    // Attribution and license: assets/licenses/status-trio.txt.
+    private val wifiDot = Path().apply {
+        moveTo(59.5f, 69.9f)
+        cubicTo(61f, 69.9f, 65.2f, 70.8f, 66.5f, 73f)
+        cubicTo(66.7f, 73.8f, 66.7f, 74.3f, 66.5f, 75f)
+        cubicTo(63.8f, 78.8f, 61.15f, 80.95f, 59.5f, 80.95f)
+        cubicTo(57.85f, 80.95f, 55.2f, 78.8f, 52.5f, 75f)
+        cubicTo(52.3f, 74.3f, 52.3f, 73.8f, 52.5f, 73f)
+        cubicTo(53.8f, 70.8f, 58f, 69.9f, 59.5f, 69.9f)
+        close()
+    }
     // Resolve once on attachment. Resource reads recur only on configuration changes.
     private val nativeHeightId = resources.getIdentifier("status_bar_icon_height", "dimen", "com.android.systemui")
     var iconSizePx = 0
@@ -154,11 +166,11 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
         } else {
             stroke.strokeWidth = if (config.bold) 9f else 7f
             stroke.color = if (wifiOn && wifi >= 3) foreground else track
-            canvas.drawArc(28.5f, 47.5f, 90.5f, 109.5f, 225f, 90f, false, stroke)
-            stroke.color = if (wifiOn && wifi >= 1) foreground else track
-            canvas.drawArc(41f, 60f, 78f, 97f, 225f, 90f, false, stroke)
-            fill.color = if (wifiOn) foreground else track
-            canvas.drawCircle(59.5f, 78.5f, 5f, fill)
+            canvas.drawArc(28.5f, 47.3f, 90.5f, 109.3f, 227.35f, 85.3f, false, stroke)
+            stroke.color = if (wifiOn && wifi >= 2) foreground else track
+            canvas.drawArc(41f, 60.39f, 78f, 97.39f, 227.5f, 85f, false, stroke)
+            fill.color = if (wifiOn && wifi >= 1) foreground else track
+            canvas.drawPath(wifiDot, fill)
             if (network and DuoNetworkState.WIFI_UNVALIDATED != 0) {
                 text.color = foreground
                 text.textSize = 24f

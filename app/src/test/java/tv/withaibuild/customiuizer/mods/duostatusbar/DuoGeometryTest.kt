@@ -60,8 +60,8 @@ class DuoGeometryTest {
 
     @Test fun automaticSizeUsesNativeDensityAndKeepsImportedManualSizeSeparate() {
         val auto = DuoConfig(true, 28)
-        assertEquals(65, DuoSizing.pixels(auto, 59, 2.8875f))
-        assertEquals(44, DuoSizing.pixels(auto, 0, 2f))
+        assertEquals(68, DuoSizing.pixels(auto, 59, 2.8875f))
+        assertEquals(46, DuoSizing.pixels(auto, 0, 2f))
         assertEquals(40, DuoSizing.pixels(auto, 10, 2f))
         assertEquals(48, DuoSizing.pixels(auto, 200, 2f))
         assertEquals(56, DuoSizing.pixels(DuoConfig(true, 28, autoSize = false), 59, 2f))

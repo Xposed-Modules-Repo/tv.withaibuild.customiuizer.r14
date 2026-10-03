@@ -189,7 +189,8 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
         var current = view.parent
         while (current is ViewGroup) {
             if (abi.statusBar.isInstance(current) || abi.keyguard.isInstance(current) ||
-                abi.controlCenter?.isInstance(current) == true) return current
+                abi.controlCenter?.isInstance(current) == true ||
+                abi.transition?.isInstance(current) == true) return current
             current = current.parent
         }
         return null
@@ -220,7 +221,8 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
         val host = when {
             abi.statusBar.isInstance(root) -> 1
             abi.keyguard.isInstance(root) -> 2
-            else -> 4
+            abi.controlCenter?.isInstance(root) == true -> 4
+            else -> 8
         }
         if (loggedHosts and host == 0) {
             loggedHosts = loggedHosts or host

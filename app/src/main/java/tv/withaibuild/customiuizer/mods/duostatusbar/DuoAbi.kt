@@ -33,6 +33,10 @@ internal class DuoAbi(private val loader: ClassLoader) {
     val controlCenter: Class<*>? = try {
         cls("controlcenter.phone.widget.ControlCenterStatusBarIcon")
     } catch (_: ClassNotFoundException) { null }
+    // HyperOS swaps to this separate native host while closing Control Center.
+    val transition: Class<*>? = try {
+        cls("controlcenter.phone.widget.ControlCenterFakeStatusIcons")
+    } catch (_: ClassNotFoundException) { null }
     val wifiView = cls("statusbar.StatusBarWifiView")
     val mobileView = cls("statusbar.StatusBarMobileView")
     val attach = method(batteryView, "onAttachedToWindow", 0)

@@ -23,8 +23,8 @@ internal object DuoSizing {
     /** A little room for the ring, bounded by the native row during measurement. */
     fun pixels(config: DuoConfig, nativeHeight: Int, density: Float): Int {
         val dp = if (!config.autoSize) config.sizeDp.toFloat()
-            else if (nativeHeight > 0) (nativeHeight / density * 1.1f).coerceIn(20f, 24f)
-            else 22f
+            else if (nativeHeight > 0) (nativeHeight / density * 1.155f).coerceIn(20f, 24f)
+            else 23.1f
         return (dp * density + 0.5f).toInt().coerceAtLeast(1)
     }
 }

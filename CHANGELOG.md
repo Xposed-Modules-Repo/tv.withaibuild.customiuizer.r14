@@ -2,6 +2,15 @@
 
 English | [简体中文](CHANGELOG_CN.md)
 
+## r14.21.14 — 2026-10-03
+
+versionCode 223, for HyperOS 1 / Android 14.
+
+- Include the native HyperOS 1 Control Center closing-transition status host in Duo, retaining native animation so the combined icon is present during the handoff.
+- Restore the Status Trio Wi-Fi rounded triangular marker and arc geometry; level one lights only the marker, level two adds the inner arc. Include upstream attribution and Apache-2.0 license.
+- Increase automatic sizing from 1.1 to 1.155 while keeping the 20–24dp and native row bounds; the target device allocation changes from 65px to 68px.
+- Retain the three-second Bluetooth connection hint and optional bold strokes. The transition host shares the existing snapshots and four weak-reference limit, with no new animation, polling or recurring task.
+
 ## r14.21.13 — 2026-10-03
 
 versionCode 222, for HyperOS 1 / Android 14.
