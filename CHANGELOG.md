@@ -2,15 +2,14 @@
 
 English | [简体中文](CHANGELOG_CN.md)
 
-## r14.22.2 — 2026-10-03
+## r14.22.3 — 2026-10-05
 
-For HyperOS 1 / Android 14, versionCode 225. Consolidated changes from r14.21.9 to r14.22.2.
+For HyperOS 1 / Android 14, versionCode 226. Consolidated changes from r14.21.9 to r14.22.3.
 
-- Add optional Duo battery, Wi-Fi and cellular signal icons, supporting the lock screen, Control Center, double rows and size adjustments.
-- Refine the battery ring, cellular and headphone artwork and light/dark colors; fix cellular signal strength display.
-- Choose cellular artwork or 2G/3G/4G/5G text using the local font, with improved size and centering.
-- Restore the Wi-Fi/network icon three seconds after a headphone connection hint.
-- Preserve automatic icon size and improve Control Center handoff and default short transitions, reducing jumps and unnecessary refreshes.
+- Add optional Duo battery, Wi-Fi and cellular icons with lock screen, Control Center, double rows and size adjustments.
+- Refine artwork, colors and network text; restore network icons three seconds after headphone connection hints.
+- Improve automatic sizing, Control Center handoffs and short transitions.
+- Fix cellular signal and state recovery; simplify setting labels and reduce drawing overhead.
 
 ## r14.21.9 — 2026-09-30
 

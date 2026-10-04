@@ -8,13 +8,13 @@ CustoMIUIzer A14 是面向 HyperOS 1 / Android 14 的系统界面与交互定制
 
 | 项目 | 值 |
 | --- | --- |
-| 版本 | `r14.22.2` |
-| versionCode | `225` |
+| 版本 | `r14.22.3` |
+| versionCode | `226` |
 | 维护与开发 | `thetvplus` |
 | 应用 ID | `tv.withaibuild.customiuizer.r14` |
-| APK | `CustoMIUIzer-A14-r14.22.2.apk` |
-| 大小 | `3980143` bytes |
-| APK SHA-256 | `86B7B40DAB72C973A42DD32DD5FD1771ECF88A21E3E55B6B9C4E18D6B4AFFD1D` |
+| APK | `CustoMIUIzer-A14-r14.22.3.apk` |
+| 大小 | `3978379` bytes |
+| APK SHA-256 | `C189FB8D906B73FE4CF51711B8A78E96728BB81F08CF86A70F5F62B85B96312C` |
 
 ## 兼容范围与要求
 
@@ -34,11 +34,11 @@ CustoMIUIzer A14 是面向 HyperOS 1 / Android 14 的系统界面与交互定制
 - 导航栏、按键、自定义动作、电源菜单和系统动画；
 - 应用、权限、安装、分享、隐私应用和应用锁行为。
 
-`r14.22.2` 相比 `r14.21.9` 新增可选 Duo 三合一状态栏，支持自动大小、双排布局与控制中心连续交接；修复蜂窝信号显示，中心可选简化图形或本地字体的 2G／3G／4G／5G 文字。有线与蓝牙耳机仅提示 3 秒，随后恢复 Wi-Fi／网络图案。默认关闭，设置变更后重启系统界面。合并更新见 [CHANGELOG_CN.md](CHANGELOG_CN.md)。
+`r14.22.3` 新增可选 Duo 三合一状态栏，支持网络类型文字、耳机短提示、自动尺寸和控制中心交接，并修复信号恢复、减少绘图开销。Duo 默认关闭，设置变更后重启系统界面。合并更新见 [CHANGELOG_CN.md](CHANGELOG_CN.md)。
 
 ## 安装与升级
 
-1. 从本仓库 Release 下载 `CustoMIUIzer-A14-r14.22.2.apk`；
+1. 从本仓库 Release 下载 `CustoMIUIzer-A14-r14.22.3.apk`；
 2. 启用模块；
 3. 确认作用域包含 `system`、桌面等必要应用；
 4. 完整重启设备。
