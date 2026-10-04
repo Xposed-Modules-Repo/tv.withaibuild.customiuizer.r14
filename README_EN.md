@@ -4,14 +4,14 @@
 
 CustoMIUIzer A14 is a system UI and interaction customization module maintained for **HyperOS 1 / Android 14 (SDK 34)**. It has an independent package and release line and is not an official upstream release.
 
-- Current release: `r14.22.2` (officially signed, versionCode 225; device acceptance reported by the user)
-- Update notes: `r14.21.9 → r14.22.2`; this series uses one consolidated current entry
+- Current release: `r14.22.3` (officially signed, versionCode 226)
+- Update notes: `r14.21.9 → r14.22.3`; this series uses one consolidated entry
 - Development and maintenance: `thetvplus`
 - Application ID: `tv.withaibuild.customiuizer.r14`
 - Source: <https://github.com/thetvplus/customiuizer-a14>
 - User downloads: <https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases>
 
-Compared with `r14.21.9`, `r14.22.2` adds optional Duo: a continuous phone battery ring, Wi-Fi and default data SIM signal in one icon. Choose simplified cellular artwork or larger, visually centered network generation text, with shared drawing sizes during Control Center handoffs. Headphones normally follow native colors, with hints for explicitly reported low battery; wired and Bluetooth headphones appear for three seconds on connection, then restore the network glyph. Duo remains disabled by default; setting changes require a SystemUI restart and idle icons do not refresh. See the consolidated [CHANGELOG.md](CHANGELOG.md) and [Duo notes](docs/DUO_STATUS_BAR.md) for rules and verification limits.
+`r14.22.3` adds optional Duo with network text, brief headphone hints, automatic sizing and Control Center handoffs, while fixing signal recovery and reducing drawing overhead. Duo is disabled by default; restart System UI after setting changes. See the consolidated [CHANGELOG.md](CHANGELOG.md) and [Duo notes](docs/DUO_STATUS_BAR.md).
 
 ## Core Features
 

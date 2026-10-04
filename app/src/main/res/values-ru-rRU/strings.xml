@@ -1069,21 +1069,21 @@
     <string name="system_statusbar_duo_autosize_title">Автоматический размер значка</string>
     <string name="system_statusbar_duo_autosize_summ">Размер зависит от высоты системных значков и строки. Отключите для ручной настройки.</string>
     <string name="system_statusbar_duo_audio_title">Показывать подключение наушников</string>
-    <string name="system_statusbar_duo_audio_summ">При новом подключении проводные или Bluetooth-наушники видны 3 секунды, затем возвращается Wi-Fi или символ сети. Повторные события не продлевают и не повторяют подсказку. Предупреждения сети имеют приоритет.</string>
+    <string name="system_statusbar_duo_audio_summ">При новом подключении проводные или Bluetooth-наушники видны 3 секунды, затем возвращается Wi-Fi или символ сети. Предупреждения сети имеют приоритет.</string>
     <string name="system_statusbar_duo_bold_title">Жирные линии значка</string>
     <string name="system_statusbar_duo_bold_summ">Более толстые линии кольца батареи, Wi-Fi и наушников.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Смещение по вертикали</string>
     <string name="system_statusbar_duo_verticaloffset_summ">Центрирование в строке, шаг 0,5 dp. Смещение ограничено высотой; у края значок уменьшается без обрезки.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Стиль наушников</string>
-    <string name="system_statusbar_duo_headphone_auto">По подключению: Bluetooth — вкладыши, проводные — накладные</string>
+    <string name="system_statusbar_duo_headphone_auto">Авто</string>
     <string name="system_statusbar_duo_headphone_overear">Накладные наушники</string>
     <string name="system_statusbar_duo_headphone_earbuds">Вкладыши</string>
     <string name="system_statusbar_duo_headphonescale_title">Размер значка наушников</string>
     <string name="system_statusbar_duo_networkfallback_title">Замена отключённого Wi-Fi</string>
-    <string name="system_statusbar_duo_networkfallback_summ">Без Wi-Fi — значок сотовой сети или текущий тип сети. Неизвестный тип заменяется значком. Наушники видны только 3 секунды при подключении.</string>
+    <string name="system_statusbar_duo_networkfallback_summ">Без Wi-Fi — значок сотовой сети или текущий тип сети. Неизвестный тип заменяется значком.</string>
     <string name="system_statusbar_duo_btbattery_title">Цвет заряда Bluetooth</string>
     <string name="system_statusbar_duo_btbattery_summ">Одно устройство и свежий отчёт: красный до 20%, янтарный до 50%. Остальные и неизвестные уровни используют системный цвет; кольцо показывает заряд телефона.</string>
     <string name="system_statusbar_duo_cellularstyle_title">Стиль сотовой сети в центре</string>
     <string name="system_statusbar_duo_cellular_graphic">Значок</string>
-    <string name="system_statusbar_duo_cellular_text">Текст (2G/3G/4G/5G)</string>
+    <string name="system_statusbar_duo_cellular_text">Текст</string>
 </resources>

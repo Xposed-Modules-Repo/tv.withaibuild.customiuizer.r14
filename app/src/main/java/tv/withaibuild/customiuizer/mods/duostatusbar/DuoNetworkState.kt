@@ -44,7 +44,8 @@ internal class DuoNetworkState {
     fun mobile(slot: Int, id: Int, level: Int, hasService: Boolean, isDataSim: Boolean,
         maxLevel: Int = 4, cellularType: Int = 0,
     ): Boolean {
-        if (slot !in 0..1 || !supported || id < 0) return false
+        // Keep current-card state during native fallback; publish suppresses its display until supported.
+        if (slot !in 0..1 || id < 0) return false
         if (maxLevel !in 4..5) return false
         if (subscriptionsKnown && ids[slot] != id) return false // retired controller callback
         replaceSlot(slot, id)
@@ -83,7 +84,7 @@ internal class DuoNetworkState {
         }
         val noSims = subscriptionsKnown && ids[0] < 0 && ids[1] < 0
         val mobileReady = supported && (noSims || selected >= 0)
-        val hasService = !airplane && selected >= 0 && connected[selected]
+        val hasService = supported && !airplane && selected >= 0 && connected[selected]
         val cell = if (hasService) cells[selected] else 0
         val next = (if (wifiKnown) WIFI_READY else 0) or
             (if (mobileReady) MOBILE_READY else 0) or

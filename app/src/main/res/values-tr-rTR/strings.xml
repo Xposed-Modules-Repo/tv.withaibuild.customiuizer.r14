@@ -1075,21 +1075,21 @@ ss - iki basamaklı saniye(09)</string>
     <string name="system_statusbar_duo_autosize_title">Otomatik simge boyutu</string>
     <string name="system_statusbar_duo_autosize_summ">Sistem simgelerinin ve mevcut satırın yüksekliğine göre ayarlar. Elle ayarlamak için kapatın.</string>
     <string name="system_statusbar_duo_audio_title">Kulaklık bağlantısını göster</string>
-    <string name="system_statusbar_duo_audio_summ">Kablolu veya Bluetooth kulaklık yeni bağlantıda 3 saniye görünür, ardından Wi-Fi veya ağ simgesi geri döner. Yinelenen olaylar bildirimi uzatmaz veya tekrarlamaz. Ağ uyarıları önceliklidir.</string>
+    <string name="system_statusbar_duo_audio_summ">Kablolu veya Bluetooth kulaklık yeni bağlantıda 3 saniye görünür, ardından Wi-Fi veya ağ simgesi geri döner. Ağ uyarıları önceliklidir.</string>
     <string name="system_statusbar_duo_bold_title">Daha kalın simge çizgileri</string>
     <string name="system_statusbar_duo_bold_summ">Daha kalın pil halkası, Wi-Fi ve kulaklık çizgileri.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Dikey ayar</string>
     <string name="system_statusbar_duo_verticaloffset_summ">Satır içinde ortala, 0,5 dp adımlarla ayarla. Kaydırma yükseklikle sınırlıdır; kenarda kesilmeden küçülür.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Kulaklık simgesi</string>
-    <string name="system_statusbar_duo_headphone_auto">Bağlantıya göre: Bluetooth kulak içi, kablolu baş üstü</string>
+    <string name="system_statusbar_duo_headphone_auto">Otomatik</string>
     <string name="system_statusbar_duo_headphone_overear">Baş üstü kulaklık</string>
     <string name="system_statusbar_duo_headphone_earbuds">Kulak içi kulaklık</string>
     <string name="system_statusbar_duo_headphonescale_title">Kulaklık simgesi boyutu</string>
     <string name="system_statusbar_duo_networkfallback_title">Bağlantısız Wi-Fi yerine</string>
-    <string name="system_statusbar_duo_networkfallback_summ">Wi-Fi yokken simge veya geçerli ağ türü görünür; bilinmeyen türler simge kullanır. Kulaklık yalnızca bağlantıda 3 saniye görünür.</string>
+    <string name="system_statusbar_duo_networkfallback_summ">Wi-Fi yokken simge veya geçerli ağ türü görünür; bilinmeyen türler simge kullanır.</string>
     <string name="system_statusbar_duo_btbattery_title">Bluetooth pil renkleri</string>
     <string name="system_statusbar_duo_btbattery_summ">Tek cihaz ve yeni bildirim: %20’ye kadar kırmızı, %50’ye kadar kehribar. Diğer veya bilinmeyen seviyeler sistem rengini kullanır; halka telefon pilini gösterir.</string>
     <string name="system_statusbar_duo_cellularstyle_title">Ortadaki hücresel ağ stili</string>
     <string name="system_statusbar_duo_cellular_graphic">Simge</string>
-    <string name="system_statusbar_duo_cellular_text">Metin (2G/3G/4G/5G)</string>
+    <string name="system_statusbar_duo_cellular_text">Metin</string>
 </resources>

@@ -200,6 +200,84 @@ class DuoNetworkStateTest {
         assertEquals(3, DuoNetworkState.cellLevel(state.snapshot))
     }
 
+    @Test fun sameSubscriptionsRecoverWithServiceLossObservedDuringNativeFallback() {
+        val state = DuoNetworkState()
+        state.wifi(true, true, 3)
+        state.subscriptions(10, 20, true)
+        state.mobile(0, 10, 5, true, true, 5, 5)
+        state.mobile(1, 20, 4, true, false, 4, 4)
+
+        assertTrue(state.subscriptions(10, 20, false))
+        val fallback = state.snapshot
+        assertFalse(state.mobile(0, 10, 0, false, true, 5, 0))
+        assertFalse(state.mobile(1, 20, 1, true, false, 4, 4))
+        assertEquals(fallback, state.snapshot)
+        assertEquals(0, state.snapshot and DuoNetworkState.MOBILE_READY)
+
+        assertTrue(state.subscriptions(10, 20, true))
+        assertEquals(3, state.snapshot and 3)
+        assertEquals(0, state.snapshot and DuoNetworkState.MOBILE_SERVICE)
+        assertEquals(0, DuoNetworkState.cellularType(state.snapshot))
+        for (dot in 0..3) assertEquals(0, DuoNetworkState.dotCoverage(state.snapshot, dot))
+        assertEquals(3, DuoNetworkState.wifiLevel(state.snapshot))
+        assertFalse(state.mobile(0, 10, 0, false, true, 5, 0))
+    }
+
+    @Test fun defaultSimStrengthScaleAndTypeStayCurrentWhileNativeFallbackDoesNotRefresh() {
+        val state = DuoNetworkState()
+        state.subscriptions(10, 20, true)
+        state.mobile(0, 10, 4, true, true, 5, 5)
+        state.mobile(1, 20, 1, true, false, 5, 4)
+        state.subscriptions(10, 20, false)
+        val fallback = state.snapshot
+        assertFalse(state.mobile(1, 20, 4, true, true, 4, 3))
+        assertFalse(state.mobile(0, 10, 5, true, false, 5, 5))
+        assertEquals(fallback, state.snapshot)
+
+        state.subscriptions(10, 20, true)
+        assertEquals(DuoNetworkState.MOBILE_READY, state.snapshot and DuoNetworkState.MOBILE_READY)
+        assertEquals(4, DuoNetworkState.cellLevel(state.snapshot))
+        assertEquals(3, DuoNetworkState.cellularType(state.snapshot))
+        for (dot in 0..3) assertEquals(255, DuoNetworkState.dotCoverage(state.snapshot, dot))
+        assertFalse(state.mobile(1, 20, 4, true, true, 4, 3))
+    }
+
+    @Test fun unchangedCurrentSimCanRecoverWithoutWaitingForAnotherMobileCallback() {
+        for (slot in 0..1) {
+            val state = DuoNetworkState()
+            val first = if (slot == 0) 10 else -1
+            val second = if (slot == 1) 10 else -1
+            state.subscriptions(first, second, true)
+            state.mobile(slot, 10, 2, true, true, 5, 4)
+            val original = state.snapshot
+            state.subscriptions(first, second, false)
+            state.subscriptions(first, second, true)
+            assertEquals(original, state.snapshot)
+            assertFalse(state.mobile(slot, 10, 2, true, true, 5, 4))
+        }
+    }
+
+    @Test fun nativeFallbackStillRejectsRetiredCardsInvalidSlotsAndUnknownSignalScales() {
+        val state = DuoNetworkState()
+        state.subscriptions(10, 20, true)
+        state.mobile(0, 10, 2, true, true, 5, 4)
+        val original = state.snapshot
+        state.subscriptions(10, 20, false)
+        val fallback = state.snapshot
+        assertFalse(state.mobile(0, 30, 4, true, true, 4, 5))
+        assertFalse(state.mobile(2, 10, 4, true, true, 4, 5))
+        assertFalse(state.mobile(0, 10, 4, true, true, 6, 5))
+        assertEquals(fallback, state.snapshot)
+        state.subscriptions(10, 20, true)
+        assertEquals(original, state.snapshot)
+        state.subscriptions(30, 20, true)
+        assertEquals(0, state.snapshot and DuoNetworkState.MOBILE_READY)
+        assertFalse(state.mobile(0, 10, 5, true, true, 5, 5))
+        assertTrue(state.mobile(0, 30, 1, true, true, 4, 3))
+        assertEquals(1, DuoNetworkState.cellLevel(state.snapshot))
+        assertEquals(3, DuoNetworkState.cellularType(state.snapshot))
+    }
+
     @Test fun invalidLevelsAreBoundedAndInvalidSlotsAreIgnored() {
         val state = DuoNetworkState()
         assertFalse(state.mobile(2, 10, 5, true, true))

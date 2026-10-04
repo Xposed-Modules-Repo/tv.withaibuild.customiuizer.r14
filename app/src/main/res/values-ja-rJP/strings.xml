@@ -1070,21 +1070,21 @@
     <string name="system_statusbar_duo_autosize_title">アイコンサイズを自動調整</string>
     <string name="system_statusbar_duo_autosize_summ">端末の標準アイコンと現在の行の高さに合わせます。無効にすると手動サイズを使用します。</string>
     <string name="system_statusbar_duo_audio_title">ヘッドフォンの接続を表示</string>
-    <string name="system_statusbar_duo_audio_summ">有線またはBluetoothヘッドフォンの新規接続時に3秒間表示し、その後Wi-Fiまたはネットワーク表示に戻ります。重複イベントでは延長や再表示をしません。ネットワーク警告を優先します。</string>
+    <string name="system_statusbar_duo_audio_summ">有線またはBluetoothヘッドフォンの新規接続時に3秒間表示し、その後Wi-Fiまたはネットワーク表示に戻ります。ネットワーク警告を優先します。</string>
     <string name="system_statusbar_duo_bold_title">アイコンの線を太くする</string>
     <string name="system_statusbar_duo_bold_summ">バッテリーリング、Wi-Fi、ヘッドフォンの線を太くします。</string>
     <string name="system_statusbar_duo_verticaloffset_title">上下位置の微調整</string>
     <string name="system_statusbar_duo_verticaloffset_summ">現在の行内で中央に配置し、0.5dp刻みで調整。行高に応じて移動を制限し、端では縮小して欠けを防止。</string>
     <string name="system_statusbar_duo_headphonestyle_title">イヤホンのアイコン</string>
-    <string name="system_statusbar_duo_headphone_auto">接続方式：Bluetoothはイヤホン、有線はヘッドホン</string>
+    <string name="system_statusbar_duo_headphone_auto">自動</string>
     <string name="system_statusbar_duo_headphone_overear">ヘッドホン</string>
     <string name="system_statusbar_duo_headphone_earbuds">イヤホン</string>
     <string name="system_statusbar_duo_headphonescale_title">イヤホンアイコンの大きさ</string>
     <string name="system_statusbar_duo_networkfallback_title">Wi-Fi切断時の代替表示</string>
-    <string name="system_statusbar_duo_networkfallback_summ">Wi-Fi未接続時は図形または現在のネットワーク種別を表示。不明な種別は図形を使用。ヘッドフォンは接続時に3秒間のみ表示します。</string>
+    <string name="system_statusbar_duo_networkfallback_summ">Wi-Fi未接続時は図形または現在のネットワーク種別を表示。不明な種別は図形を使用。</string>
     <string name="system_statusbar_duo_btbattery_title">Bluetoothの電池色</string>
     <string name="system_statusbar_duo_btbattery_summ">単一機器の新しい電池情報のみ：20%以下は赤、50%以下は琥珀色。その他や不明な残量はシステムの色を使用。外周はスマートフォンの電池。</string>
     <string name="system_statusbar_duo_cellularstyle_title">中央のモバイルネットワーク表示</string>
     <string name="system_statusbar_duo_cellular_graphic">図形</string>
-    <string name="system_statusbar_duo_cellular_text">文字（2G/3G/4G/5G）</string>
+    <string name="system_statusbar_duo_cellular_text">文字</string>
 </resources>

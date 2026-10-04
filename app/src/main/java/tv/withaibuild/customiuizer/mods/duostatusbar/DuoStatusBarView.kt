@@ -45,11 +45,12 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
         lineTo(60f, 88f); lineTo(49f, 91f); lineTo(49f, 87f); lineTo(56f, 81f)
         lineTo(56f, 70f); lineTo(37f, 75f); lineTo(37f, 69f); lineTo(55f, 59f); close()
     }
-    private val headphones = Path().apply {
+    // Config is fixed for this view; create only the audio silhouettes it can draw.
+    private val headphones = if (config.showAudio && config.headphoneStyle != 3) Path().apply {
         moveTo(38.5f, 72f); lineTo(38.5f, 61f)
         cubicTo(38.5f, 36f, 80.5f, 36f, 80.5f, 61f); lineTo(80.5f, 72f)
-    }
-    private val earbuds = Path().apply {
+    } else null
+    private val earbuds = if (config.showAudio && config.headphoneStyle != 2) Path().apply {
         // Each bud and stem is one silhouette with an open gap between the two earpieces.
         moveTo(44f, 46f)
         cubicTo(35f, 46f, 33f, 59f, 40f, 64f)
@@ -59,7 +60,7 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
         cubicTo(84f, 46f, 86f, 59f, 79f, 64f)
         lineTo(79f, 81f); cubicTo(79f, 86f, 71f, 86f, 71f, 81f)
         lineTo(71f, 63f); cubicTo(62f, 60f, 63f, 46f, 75f, 46f); close()
-    }
+    } else null
     // Wi-Fi marker geometry adapted from Status Trio (Apache-2.0).
     // Attribution and license: assets/licenses/status-trio.txt.
     private val wifiDot = Path().apply {
@@ -282,6 +283,9 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
             fill.color = foreground
             canvas.drawPath(plane, fill)
         } else if (glyph == DuoAudioState.WIRED_GLYPH || glyph == DuoAudioState.BLUETOOTH_GLYPH) {
+            val useEarbuds = config.headphoneStyle == 3 ||
+                (config.headphoneStyle == 1 && glyph == DuoAudioState.BLUETOOTH_GLYPH)
+            val path = (if (useEarbuds) earbuds else headphones) ?: return
             val tint = if (glyph == DuoAudioState.BLUETOOTH_GLYPH) DuoGeometry.bluetoothColor(foreground, value) else foreground
             val saved = canvas.save()
             try {
@@ -289,10 +293,10 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
                 stroke.strokeWidth = if (config.bold) 9f else 7f
                 stroke.color = tint
                 fill.color = tint
-                if (config.headphoneStyle == 3 || (config.headphoneStyle == 1 && glyph == DuoAudioState.BLUETOOTH_GLYPH)) {
-                    canvas.drawPath(earbuds, fill)
+                if (useEarbuds) {
+                    canvas.drawPath(path, fill)
                 } else {
-                    canvas.drawPath(headphones, stroke)
+                    canvas.drawPath(path, stroke)
                     canvas.drawRoundRect(32.5f, 61f, 46.5f, 84f, 6f, 6f, fill)
                     canvas.drawRoundRect(72.5f, 61f, 86.5f, 84f, 6f, 6f, fill)
                 }
