@@ -20,13 +20,16 @@ class DuoGeometryTest {
     }
 
     @Test fun realFakeAndHeaderRowsUseTheSameDrawingBoundsIncludingDoubleRows() {
-        for (referenceHeight in intArrayOf(30, 45, 59)) {
+        for (referenceHeight in intArrayOf(30, 45, 54, 59, 67, 79, 109)) {
             for (offset in -40..40) {
-                val sourceRow = DuoSizing.sharedHeight(referenceHeight, 59)
-                val headerRow = DuoSizing.sharedHeight(DuoSizing.sharedHeight(59, 59), sourceRow)
-                val fakeRow = DuoSizing.sharedHeight(DuoSizing.sharedHeight(109, 59), sourceRow)
+                val sourceRow = referenceHeight
+                val requiredHeight = DuoSizing.requiredHeight(67, sourceRow, offset / 2f)
+                val headerRow = DuoSizing.sharedHeight(maxOf(59, requiredHeight), sourceRow)
+                val fakeRow = DuoSizing.sharedHeight(maxOf(109, requiredHeight), sourceRow)
                 val sourceOffset = DuoSizing.offset(sourceRow, offset / 2f)
                 val sourceSize = DuoSizing.drawingSize(67, sourceRow, sourceOffset)
+                assertEquals(sourceOffset, DuoSizing.offset(headerRow, offset / 2f), 0f)
+                assertEquals(sourceOffset, DuoSizing.offset(fakeRow, offset / 2f), 0f)
                 assertEquals(sourceSize, DuoSizing.drawingSize(67, headerRow,
                     DuoSizing.offset(headerRow, offset / 2f)), 0f)
                 assertEquals(sourceSize, DuoSizing.drawingSize(67, fakeRow,
@@ -36,6 +39,30 @@ class DuoGeometryTest {
         assertEquals(59, DuoSizing.sharedHeight(109, 59))
         assertEquals(30, DuoSizing.sharedHeight(30, 59))
         assertEquals(30, DuoSizing.sharedHeight(30, 0))
+    }
+
+    @Test fun automaticDrawingRetainsThePreviousSizeWithoutTheStockIconHeightCap() {
+        val config = DuoConfig(true, 24)
+        val width = DuoSizing.pixels(config, 59, 2.8875f)
+        assertEquals(67, width)
+        // The previous version used the full content row. A 59px resource must not cap it.
+        assertEquals(67f, DuoSizing.drawingSize(width, 109, 0f), 0f)
+        assertEquals(67, DuoSizing.requiredHeight(width, 109, 0f))
+        assertEquals(54f, DuoSizing.drawingSize(width, 54, 0f), 0f)
+        assertEquals(54, DuoSizing.requiredHeight(width, 54, 0f))
+        assertEquals(0, DuoSizing.requiredHeight(width, 0, 10f))
+    }
+
+    @Test fun headerSpacePreservesTheSourceOffsetAndBoundsAcrossManualAndAutomaticWidths() {
+        for (width in intArrayOf(20, 40, 58, 67, 116)) for (source in 1..200) for (shift in -24..24) {
+            val offset = DuoSizing.offset(source, shift / 2f)
+            val required = DuoSizing.requiredHeight(width, source, shift / 2f)
+            assertTrue(required in 1..source)
+            val row = DuoSizing.sharedHeight(maxOf(59, required), source)
+            assertEquals(offset, DuoSizing.offset(row, shift / 2f), 0f)
+            assertEquals(DuoSizing.drawingSize(width, source, offset),
+                DuoSizing.drawingSize(width, row, offset), 0f)
+        }
     }
 
     @Test fun signalTintPreservesNativeAlphaAndChangesAtEveryXiaomiStep() {

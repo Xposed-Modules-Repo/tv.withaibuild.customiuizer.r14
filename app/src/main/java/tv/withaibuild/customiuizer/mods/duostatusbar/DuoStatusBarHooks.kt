@@ -107,14 +107,32 @@ internal class DuoStatusBarHooks(private val abi: DuoAbi, private val config: Du
         if (failed) return@protect
         for (reference in bindings) {
             val binding = reference?.get() ?: continue
+            if (binding.primaryHost) {
+                binding.shareHeight(0)
+                continue
+            }
             var height = 0
+            var shownSource = false
+            var retainedHeight = 0
             for (sourceReference in bindings) {
                 val source = sourceReference?.get() ?: continue
-                if (!source.primaryHost || source.displayId != binding.displayId) continue
+                if (source.displayId != binding.displayId) continue
+                if (!source.primaryHost) {
+                    val row = source.view.sharedRowHeightPx
+                    if (row > 0) retainedHeight = if (retainedHeight == 0) row else minOf(retainedHeight, row)
+                    continue
+                }
                 val row = source.view.rowHeightPx
-                if (row > 0) height = if (height == 0) row else minOf(height, row)
+                if (row <= 0) continue
+                val shown = source.root.isShown
+                if (shown && !shownSource) {
+                    height = row
+                    shownSource = true
+                } else if (shown == shownSource) height = if (height == 0) row else minOf(height, row)
             }
-            binding.view.shareHeight(height)
+            // Native handoff can hide both primary hosts before revealing its header copies.
+            if (!shownSource && retainedHeight > 0) height = retainedHeight
+            binding.shareHeight(height)
         }
     }
 

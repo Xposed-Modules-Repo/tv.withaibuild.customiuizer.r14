@@ -13,6 +13,15 @@ internal class DuoBinding(
 ) {
     val displayId = root.display?.displayId ?: -1
     val primaryHost = abi.statusBar.isInstance(root) || abi.keyguard.isInstance(root)
+    // The supported header roots have a fixed-height direct child containing the battery.
+    private val headerRow = if (primaryHost) null else run {
+        var row: View = owner
+        while (row.parent !== root) row = row.parent as? View ?: return@run null
+        row
+    }
+    private var originalHeaderHeight = 0
+    private var appliedHeaderHeight = 0
+    private var appliedHeaderParams: ViewGroup.LayoutParams? = null
     private class Original(val view: View) {
         val visibility = DuoVisibility(view.visibility)
         fun hide() {
@@ -43,6 +52,44 @@ internal class DuoBinding(
         if (view.usesCellularText) view.syncTypeface((abi.percentView.get(owner) as? TextView)?.typeface)
     }
 
+    /** Layout/visibility events only. Grow the header locally instead of shrinking the status icon. */
+    fun shareHeight(height: Int) {
+        view.shareHeight(if (primaryHost) 0 else height)
+        val row = headerRow ?: return
+        val params = row.layoutParams ?: return
+        if (appliedHeaderHeight != 0 && (params !== appliedHeaderParams || params.height != appliedHeaderHeight)) {
+            originalHeaderHeight = 0
+            appliedHeaderHeight = 0 // A native configuration change owns the new height.
+            appliedHeaderParams = null
+        }
+        if (!active || height <= 0) {
+            restoreHeaderHeight()
+            return
+        }
+        if (params.height <= 0) return // Preserve custom wrap-content/match-parent layouts.
+        val original = if (appliedHeaderHeight != 0) originalHeaderHeight else params.height
+        val desired = maxOf(original, view.requiredHeight(height))
+        if (desired == params.height) return
+        originalHeaderHeight = if (desired == original) 0 else original
+        appliedHeaderHeight = if (desired == original) 0 else desired
+        appliedHeaderParams = if (desired == original) null else params
+        params.height = desired
+        row.layoutParams = params
+    }
+
+    private fun restoreHeaderHeight() {
+        if (appliedHeaderHeight == 0) return
+        val row = headerRow
+        val params = row?.layoutParams
+        if (params != null && params === appliedHeaderParams && params.height == appliedHeaderHeight) {
+            params.height = originalHeaderHeight
+            row.layoutParams = params
+        }
+        originalHeaderHeight = 0
+        appliedHeaderHeight = 0
+        appliedHeaderParams = null
+    }
+
     private fun collectSignals(parent: ViewGroup) {
         for (i in 0 until parent.childCount) {
             val child = parent.getChildAt(i)
@@ -66,9 +113,11 @@ internal class DuoBinding(
         val text = abi.percentView.get(owner) as TextView
         view.render(level, charging, saver, text.currentTextColor, bits, audio)
         view.visibility = View.VISIBLE
+        val becameActive = !active
         active = true
         for (i in batteryChildren.indices) batteryChildren[i].hide()
         for (i in signals.indices) signals[i].hide()
+        if (becameActive) view.refreshGeometry()
     }
 
     fun stockChanged(stock: View, restoreBeforeNative: Boolean) {
@@ -109,6 +158,7 @@ internal class DuoBinding(
 
     fun restore() {
         active = false
+        restoreHeaderHeight()
         view.stopTransition()
         restoreBattery()
         for (i in signals.indices) signals[i].restore()

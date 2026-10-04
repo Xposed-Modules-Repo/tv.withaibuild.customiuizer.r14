@@ -50,9 +50,17 @@ internal object DuoSizing {
     fun drawingSize(width: Int, height: Int, offset: Float): Float =
         minOf(width.toFloat(), (height - 2f * kotlin.math.abs(offset)).coerceAtLeast(0f))
 
-    /** The native header row is the shared upper bound during the fake/real host handoff. */
-    fun sharedHeight(height: Int, nativeHeight: Int): Int =
-        if (nativeHeight > 0) minOf(height, nativeHeight) else height
+    /** Use the actual source row, not the smaller stock icon resource. */
+    fun sharedHeight(height: Int, sourceHeight: Int): Int =
+        if (sourceHeight > 0) minOf(height, sourceHeight) else height
+
+    /** Header rows need enough space for the source drawing and its bounded vertical shift. */
+    fun requiredHeight(width: Int, sourceHeight: Int, requestedOffset: Float): Int {
+        val offset = offset(sourceHeight, requestedOffset)
+        val shift = kotlin.math.abs(offset)
+        return kotlin.math.ceil(maxOf(drawingSize(width, sourceHeight, offset) +
+            2f * shift, 8f * shift)).toInt()
+    }
 }
 
 internal object DuoGeometry {

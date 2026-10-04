@@ -84,7 +84,6 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
     private var network = 0
     private val transition = DuoTransition()
     private var offsetPx = 0f
-    private var nativeHeightPx = 0
     private var sharedHeightPx = 0
     private var label = ""
     private var failed = false
@@ -114,7 +113,6 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
 
     private fun updateSize() {
         val nativeHeight = if (nativeHeightId == 0) 0 else resources.getDimensionPixelSize(nativeHeightId)
-        nativeHeightPx = nativeHeight
         iconSizePx = DuoSizing.pixels(config, nativeHeight, resources.displayMetrics.density)
         offsetPx = config.offsetDp * resources.displayMetrics.density
     }
@@ -157,7 +155,13 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
     fun stopTransition() { transition.finish() }
 
     val rowHeightPx: Int
-        get() = DuoSizing.sharedHeight((height - paddingTop - paddingBottom).coerceAtLeast(0), nativeHeightPx)
+        get() = (height - paddingTop - paddingBottom).coerceAtLeast(0)
+
+    val sharedRowHeightPx: Int get() = sharedHeightPx
+
+    fun requiredHeight(sourceHeight: Int): Int = DuoSizing.requiredHeight(iconSizePx, sourceHeight, offsetPx)
+
+    fun refreshGeometry() = onGeometryChanged()
 
     fun shareHeight(height: Int) {
         if (sharedHeightPx == height) return
@@ -173,6 +177,7 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
     override fun onVisibilityAggregated(isVisible: Boolean) {
         super.onVisibilityAggregated(isVisible)
         if (!isVisible) stopTransition()
+        else if (!failed) onGeometryChanged()
     }
 
     override fun onWindowVisibilityChanged(visibility: Int) {
@@ -197,8 +202,7 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
         try {
             val contentWidth = width - paddingLeft - paddingRight
             val contentHeight = height - paddingTop - paddingBottom
-            val rowHeight = DuoSizing.sharedHeight(
-                DuoSizing.sharedHeight(contentHeight, nativeHeightPx), sharedHeightPx)
+            val rowHeight = DuoSizing.sharedHeight(contentHeight, sharedHeightPx)
             val offset = DuoSizing.offset(rowHeight, offsetPx)
             val size = DuoSizing.drawingSize(contentWidth, rowHeight, offset)
             if (size <= 0f) return
