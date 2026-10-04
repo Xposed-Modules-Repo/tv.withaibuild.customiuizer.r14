@@ -3,6 +3,41 @@ package tv.withaibuild.customiuizer.mods.duostatusbar
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import java.lang.ref.WeakReference
+
+/** Keep source identity across native handoff; read its current row after configuration changes. */
+internal fun duoGeometrySource(bindings: Array<WeakReference<DuoBinding>?>, displayId: Int,
+    remembered: WeakReference<DuoBinding>?,
+): WeakReference<DuoBinding>? {
+    var visible: WeakReference<DuoBinding>? = null
+    var fallback: WeakReference<DuoBinding>? = null
+    var retained: WeakReference<DuoBinding>? = null
+    var visibleHeight = Int.MAX_VALUE
+    var fallbackHeight = Int.MAX_VALUE
+    for (reference in bindings) {
+        val source = reference?.get() ?: continue
+        if (source.displayId != displayId) continue
+        if (!source.primaryHost) {
+            if (retained == null) retained = source.geometrySource
+            continue
+        }
+        val row = source.view.rowHeightPx
+        if (row <= 0) continue
+        if (row < fallbackHeight) { fallback = reference; fallbackHeight = row }
+        if (source.root.isShown && row < visibleHeight) { visible = reference; visibleHeight = row }
+    }
+    if (visible != null) return visible
+    // Reuse an existing weak reference only while its binding remains registered on this display.
+    var previous: WeakReference<DuoBinding>? = null
+    for (reference in bindings) {
+        if (reference !== remembered && reference !== retained) continue
+        val source = reference?.get() ?: continue
+        if (!source.primaryHost || source.displayId != displayId || source.view.rowHeightPx <= 0) continue
+        if (reference === remembered) return reference
+        previous = reference
+    }
+    return previous ?: fallback
+}
 
 /** Owned by the inserted child. The runtime holds only a weak reference to this binding. */
 internal class DuoBinding(
@@ -13,6 +48,7 @@ internal class DuoBinding(
 ) {
     val displayId = root.display?.displayId ?: -1
     val primaryHost = abi.statusBar.isInstance(root) || abi.keyguard.isInstance(root)
+    var geometrySource: WeakReference<DuoBinding>? = null
     // The supported header roots have a fixed-height direct child containing the battery.
     private val headerRow = if (primaryHost) null else run {
         var row: View = owner
@@ -167,6 +203,7 @@ internal class DuoBinding(
 
     fun release() {
         restore()
+        geometrySource = null
         signals.clear()
         batteryChildren.clear()
         view.binding = null
