@@ -6,6 +6,16 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+kotlin {
+    compilerOptions {
+        // Upgrade the host compiler for its security fix without changing
+        // the project's Kotlin language/API level or Android JVM target.
+        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
+}
+
 val officialRelease = (project.findProperty("officialRelease")?.toString()?.toBoolean() ?: false)
 
 val keystorePropertiesPath =
@@ -109,6 +119,8 @@ val generatePreferenceArtifacts = tasks.register<Exec>("generatePreferenceArtifa
 android {
     namespace = "tv.withaibuild.customiuizer"
     compileSdk = 37
+    // Keep CI's SDK package pin aligned with the tool actually used by AGP.
+    buildToolsVersion = "36.0.0"
 
     signingConfigs {
         if (officialRelease) {
@@ -324,6 +336,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.dexkit)
     implementation(platform(libs.kotlin.bom))
+    implementation(libs.kotlin.stdlib)
     implementation(libs.kotlinx.coroutines.android)
     testImplementation(libs.kotlinx.coroutines.test)
 
