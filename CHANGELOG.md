@@ -4,6 +4,8 @@ English | [简体中文](CHANGELOG_CN.md)
 
 ## r14.22.5 — 2026-10-08
 
+**Withdrawn: distribution stopped after an invalid-package report; repair pending.**
+
 For HyperOS 1 / Android 14, versionCode 228.
 
 - Preserve fatal errors in resource hook installation, theme merging and error logging, while retaining ordinary exception isolation and installation retries.
