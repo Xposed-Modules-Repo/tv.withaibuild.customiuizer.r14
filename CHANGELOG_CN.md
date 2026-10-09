@@ -2,6 +2,17 @@
 
 [English](CHANGELOG.md) | 简体中文
 
+## r14.22.6 — 2026-10-09
+
+适用于 HyperOS 1 / Android 14，versionCode 229。
+
+- 壁纸颜色回调仅在需要改写参数时复制数组，保持颜色映射、原方法调用次数与异常传播。
+- 温度显示仅计算所选项目，减少未显示数值的解析与格式化。
+- 备份 CRC 直接校验原始数据片段，减少大块复制；迁移后直接筛选已有副本，保持备份格式及设置所有权。
+- 搜索和语言列表减少中间对象，保持空查询、空白字符、匹配与语言顺序。
+- 使用 Android 14 支持的紧凑资源表条目，保留全部资源名称、ID、值与动态信号资源；移除仅用于 JVM 协程调试代理的未使用字节码载荷，保留 R8 与必要的 Hook / JNI 规则。
+- libxposed API / Service 102 固定从官方 Maven Central 获取并校验 SHA-256；Fragment KTX 对齐已有 Fragment 1.5.4。保留已验证的构建工具链与 DexKit 2.2.0，Android 14、API 101 最低运行基线与 JVM 17 目标保持。
+
 ## r14.22.5 — 2026-10-08
 
 适用于 HyperOS 1 / Android 14，versionCode 228。

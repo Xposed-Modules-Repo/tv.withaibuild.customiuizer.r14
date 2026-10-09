@@ -4,8 +4,8 @@
 
 CustoMIUIzer A14 是面向 **HyperOS 1 / Android 14（SDK 34）** 的系统界面与交互定制模块，基于 CustoMIUIzer 项目持续维护。它使用独立包名和版本线，不是上游官方版本。
 
-- 当前版本：`r14.22.5`（versionCode 228，正式签名版本）
-- 更新说明：资源错误处理、控制中心文字颜色、CI 效率加固与 APK 无损减量
+- 当前版本：`r14.22.6`（versionCode 229，正式签名版本）
+- 更新说明：壁纸回调、温度显示、备份与搜索的局部性能优化，libxposed 来源校验及 Fragment 配套版本对齐
 - 维护与开发：`thetvplus`
 - 应用 ID：`tv.withaibuild.customiuizer.r14`
 - 源码仓库：<https://github.com/thetvplus/customiuizer-a14>
