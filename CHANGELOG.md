@@ -2,6 +2,17 @@
 
 English | [简体中文](CHANGELOG_CN.md)
 
+## r14.22.6 — 2026-10-09
+
+For HyperOS 1 / Android 14, versionCode 229.
+
+- Copy wallpaper callback arguments only when a color needs rewriting, preserving color mapping, original method call counts and exception propagation.
+- Compute only the selected temperature values, avoiding unused parsing and formatting.
+- Verify backup CRC directly over the original byte slice and filter the existing migrated copy, preserving the backup format and ownership of settings.
+- Reduce intermediate objects in search and locale lists while preserving empty queries, whitespace, matching and locale order.
+- Use Android 14-compatible compact resource table entries, preserving names, IDs, values and dynamic signal resources; remove unused JVM coroutine-agent bytecode payload while retaining R8 and required Hook/JNI rules.
+- Resolve libxposed API / Service 102 exclusively from official Maven Central with SHA-256 verification; align Fragment KTX with the existing Fragment 1.5.4. Retain the validated build toolchain and DexKit 2.2.0, Android 14, the API 101 minimum runtime baseline and the JVM 17 target.
+
 ## r14.22.5 — 2026-10-08
 
 For HyperOS 1 / Android 14, versionCode 228.
