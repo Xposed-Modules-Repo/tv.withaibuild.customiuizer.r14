@@ -278,7 +278,6 @@
     <string name="system_screenanim_duration_summ">Configurar duración de animación</string>
     <string name="system_screenanim_desc">Valores muy bajo deshabilitaran animación</string>
     <string name="system_blur_title">Desenfoque de fondo</string>
-    <string name="system_recents_blur_summ">Intensidad de desenfoque de fondo en apps recientes</string>
     <string name="system_drawer_blur_summ">Intensidad de desenfoque de fondo en panel de notificaciones</string>
     <string name="system_mods_lockscreen">Bloquear pantalla</string>
     <string name="system_mods_lockscreen_functionality">Funcionalidad adicional</string>
@@ -286,7 +285,6 @@
     <string name="system_blocktoasts_title">Bloquear notificaciones toast</string>
     <string name="system_blocktoasts_summ">Evitar que las aplicaciones seleccionadas muestren toats</string>
     <string name="system_fivegtile_title">Interruptor 5G</string>
-    <string name="system_fivegtile_summ">Añadir interruptor 5G al centro de control</string>
     <string name="system_cc_fpstile_title">Mostrar interruptor de tasa de refresco</string>
     <string name="system_qs_force_systemfonts_title">Forzar al reloj usar fuente del sistema</string>
     <string name="system_cc_dateformat_title">Formato de fecha personalizado</string>
@@ -469,7 +467,6 @@
     <string name="launcher_renameapps_list_title">Nombres modificados</string>
     <string name="launcher_renameapps_modified">Nombre modificado</string>
     <string name="launcher_privacyapps">Aplicaciones ocultas</string>
-    <string name="launcher_privacyapps_fail">Permisos necesarios no concedidos</string>
     <string name="launcher_privacyapps_gest_title">Sin carpeta oculta</string>
     <string name="launcher_privacyapps_gest_summ">Deshabilita el gesto de dos dedos que abre la carpeta de aplicaciones ocultas y el código secreto es 233233</string>
     <string name="launcher_privacyapps_list_title">Lista de apps a ocultar</string>
@@ -617,7 +614,6 @@
     <string name="appsort_install">Hora de instalación</string>
     <string name="gboard">Ajustes del método de entrada</string>
     <string name="calls">Llamadas</string>
-    <string name="settings">Configuración</string>
     <string name="array_default">Predeterminado</string>
     <string name="array_system_default">Sistema</string>
     <string name="array_global_actions_none">Sin acción</string>
@@ -901,7 +897,6 @@
     <string name="system_disable_window_blurs_summ">Funciona sin las Opciones para desarrolladores; cuando está desactivado, Android controla el desenfoque con normalidad. Cuando está activado, HyperOS dibuja el panel de volumen y el menú de encendido sin fondo propio, y los controles de desenfoque del volumen de abajo no tienen efecto</string>
     <string name="system_disable_window_blurs_title">Desactivar desenfoque a nivel de ventana</string>
     <string name="system_recents_card_style_hide_title">Ocultar nombre de la aplicación</string>
-    <string name="system_recents_card_style_summ">Ocultar nombres de aplicaciones en las tarjetas de tareas recientes; reinicia el lanzador después de cambiarlo</string>
     <string name="system_strong_toast_mode_dynamic_island">Isla dinámica</string>
     <string name="system_volume_mode_button_colors_summ">Personaliza los colores del fondo y los iconos de los dos accesos directos de la parte inferior del panel de volumen. Reinicia la interfaz del sistema después de cambiar los colores.</string>
     <string name="system_volume_mode_button_colors_title">Colores de accesos directos de Silencio y No molestar</string>

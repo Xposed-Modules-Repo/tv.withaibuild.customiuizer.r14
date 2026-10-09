@@ -262,7 +262,6 @@ ss - iki basamaklı saniye(09)</string>
     <string name="system_screenanim_duration_summ">Animasyon uzunluğunu yapılandırın</string>
     <string name="system_screenanim_desc">Çok düşük değerler, animasyonu fiilen devre dışı bırakır</string>
     <string name="system_blur_title">Arkaplan bulanıklığı</string>
-    <string name="system_recents_blur_summ">Son uygulamalarda arka plan bulanıklığı yoğunluğu</string>
     <string name="system_drawer_blur_summ">Bildirim çekmecesinde arka plan bulanıklığı yoğunluğu</string>
     <string name="system_mods_lockscreen">Kilit ekranı</string>
     <string name="system_mods_lockscreen_functionality">Ek işlevsellik</string>
@@ -270,7 +269,6 @@ ss - iki basamaklı saniye(09)</string>
     <string name="system_blocktoasts_title">Tostları engelle</string>
     <string name="system_blocktoasts_summ">Seçili uygulamaların tost göstermesini engelle</string>
     <string name="system_fivegtile_title">5G kutusu</string>
-    <string name="system_fivegtile_summ">Kontrol merkezine 5G kutucuğu ekleyin</string>
     <string name="system_cc_fpstile_title">Yenileme hızı döşemesini göster</string>
     <string name="system_qs_force_systemfonts_title">Saati sistem yazı tiplerini kullanmaya zorla</string>
     <string name="system_cc_dateformat_title">Özel tarih biçimi</string>
@@ -448,7 +446,6 @@ ss - iki basamaklı saniye(09)</string>
     <string name="launcher_renameapps_list_title">Değiştirilmiş başlıklar</string>
     <string name="launcher_renameapps_modified">Değiştirilmiş başlık</string>
     <string name="launcher_privacyapps">Gizli uygulamalar</string>
-    <string name="launcher_privacyapps_fail">Gerekli izinler verilmedi</string>
     <string name="launcher_privacyapps_gest_title">Gizli klasör yok</string>
     <string name="launcher_privacyapps_gest_summ">Gizli uygulamalar klasörünü açan 2 parmak hareketini devre dışı bırakın</string>
     <string name="launcher_privacyapps_list_title">Gizlenecek uygulamaların listesi</string>
@@ -597,7 +594,6 @@ ss - iki basamaklı saniye(09)</string>
     <string name="appsort_install">Kurulum süresi</string>
     <string name="gboard">Giriş yöntemi ayarları</string>
     <string name="calls">Aramalar</string>
-    <string name="settings">Ayarlar</string>
     <string name="array_default">Varsayılan</string>
     <string name="array_system_default">Sistem</string>
     <string name="array_global_actions_none">Eylem yok</string>
@@ -872,7 +868,6 @@ ss - iki basamaklı saniye(09)</string>
     <string name="system_disable_window_blurs_summ">Geliştirici seçenekleri olmadan çalışır; kapalıyken bulanıklığı Android normal şekilde kontrol eder. Açıkken HyperOS ses panelini ve güç menüsünü kendi arka planları olmadan çizer, aşağıdaki ses bulanıklığı kaydırıcıları etkisiz kalır</string>
     <string name="system_disable_window_blurs_title">Pencere düzeyinde bulanıklığı devre dışı bırak</string>
     <string name="system_recents_card_style_hide_title">Uygulama adını gizle</string>
-    <string name="system_recents_card_style_summ">Son görev kartlarındaki uygulama adlarını gizle; değişiklikten sonra başlatıcıyı yeniden başlatın</string>
     <string name="system_strong_toast_mode_dynamic_island">Dinamik Ada</string>
     <string name="system_volume_mode_button_colors_summ">Ses panelinin altındaki iki kısayolun arka plan ve simge renklerini özelleştirir. Renkleri değiştirdikten sonra Sistem Arayüzünü yeniden başlatın.</string>
     <string name="system_volume_mode_button_colors_title">Sessiz ve Rahatsız Etmeyin kısayol renkleri</string>

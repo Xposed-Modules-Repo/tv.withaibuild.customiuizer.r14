@@ -1,45 +1,42 @@
 # 测试
 
-## 层
+## 本地入口
 
-| 层 | 入口 | 用途 |
-|---|---|---|
-| 静态契约 | `tools/verify.py`、`tools/check-invariants.py` | SDK、作用域、API 101/102、热路径危险模式 |
-| Python 工具 | `python -m unittest discover -s tools/tests -p "test_*.py"` | 工具、ROM matrix、CI 可移植性 |
-| Android JVM | `testDebugUnitTest` | 行为、契约、生命周期、回归 |
-| Brutal | `tools/brutal_test_runner.py` | 独立 kill：CI、catalog、fatal、observer、matrix |
-| Full CI | GitHub Actions `a14-ci.yml` 的 Full CI job | 双 develop 构建、APK semantic diff、lintVital |
+环境与收口命令见 [DEVELOPMENT.md](DEVELOPMENT.md)。
 
-## CI 的职责与证据
+| 层 | 入口 | 证明范围 |
+| --- | --- | --- |
+| 静态契约 | `tools/verify.py`、`tools/check-invariants.py` | SDK / API、偏好、Feature、生命周期和热路径源码规则 |
+| Python 工具 | `python -m unittest discover -s tools/tests -p "test_*.py"` | 工具行为、源码/资源契约、ROM matrix、CI 配置 |
+| Android JVM | `testDebugUnitTest` | 行为、契约与回归；不运行真实 ROM Hook |
+| 独立缺陷注入 | `tools/brutal_test_runner.py` | 注入缺陷是否被真实独立门禁拒绝 |
+| Full CI | `a14-ci.yml` 的 Full job | 无缓存 develop 双构建、APK 内容、R8 mapping 与 fatal lint |
+| 实机 | 指定 APK / ROM 下的操作与日志 | 实际安装、Hook、UI、生命周期和性能，限于已测场景 |
 
-`Fast CI` 和 `Full CI` 是本仓库维护的 GitHub Actions 工作流，名称不对应上游产品版本。
+静态命中数、用例数或一次绿构建不代表已知问题数量与全设备兼容性。保留行为、备份 V2、偏好、所有权、热路径、Dynamic Island、API 边界与 issue 回归测试；只有无 production subject、完全重复或锁死错误实现细节才可删除测试。
 
-- 同一个 `a14-ci.yml` 编排 Fast / Full 两个 job。Fast 每次 PR / main 更新只执行一遍代码静态门禁、完整 JVM 测试和 debug lint。普通代码修改再构建 develop APK 并运行 fatal lint，省去冗余 debug APK。
-- Python 测试和源码契约每次 Fast 执行一次，因为它们也验证生产源码、资源、版本和 feature matrix。工具、CI、feature catalog 或 matrix 改动，以及手动、每周和 tag，额外执行 matrix determinism 和 11 项独立缺陷注入；self-detection-only 项保留在本地诊断 suite。
-- Full 使用 `needs: fast`，只在同一提交的 Fast 通过后运行，避免再次执行 JVM 测试、debug lint 和 Python 工具测试。构建、依赖（含 app/lib/framework.jar）、混淆、CI / 工具与 catalog 改动，以及手动、每周、发布 tag 或 `[full-ci]` 提交触发 Full。
-- Full 增加两次禁止 build/configuration cache 的 clean develop 构建、APK 内容和 R8 mapping 对比、develop fatal lint 与必需产物检查。普通 PR 不做两遍 clean 构建。
-- PR 新提交自动取消旧提交的执行；main / tag 的检查正常完成。诊断产物保留 7 天，Full develop APK / mapping 保留 30 天。Fast 失败报告和 Full 构建报告分别保存，不再为重复 verifier 搬运报告。
-- Gradle 下载缓存仍可复用；可重复性构建禁用 Kotlin 增量编译，使用独立 Gradle 进程内编译，确保实际重新编译和混淆。
+## CI 分工
 
-Brutal suite 当前要求 11 项独立缺陷注入被真实门禁拦截。配置中的其余覆盖状态需按 `ACTIVE_INDEPENDENT` / `BLOCKED_NO_INDEPENDENT_GATE` / `MUTATOR_STALE` 解读，不能把 self-detection 或未覆盖项算作通过的运行行为验证。
+工作流 [a14-ci.yml](../.github/workflows/a14-ci.yml) 在 main push、PR、`r14.*` tag、每周和手动触发；[ci_scope.py](../tools/ci_scope.py) 根据完整 diff 选择追加检查。
 
-## 依赖升级
+- Fast 每次运行源码契约 / Python 工具测试和 `verify.py full`。工具、CI、catalog、matrix 改动及定期 / tag / 手动执行还检查矩阵确定性与必需独立缺陷注入。
+- Full 依赖同提交 Fast 通过；构建、依赖、混淆、工具、CI、catalog、matrix 改动，定期 / tag / 手动，或 main 提交含 `[full-ci]` 时触发。
+- 未触发 Full 时，Fast 构建一次 develop 并运行 fatal lint；Full 不重复 JVM / debug lint / Python 套件，而增加两次 clean develop、内容与 mapping 比较和 develop fatal lint。
+- 双构建禁用 build / configuration cache 与 Kotlin 增量编译，分别使用独立 Gradle 进程。下载缓存可复用。
+- PR 新提交取消旧执行；main / tag 正常完成。诊断保留 7 天，Full develop / mapping 保留 30 天。
 
-Actions 使用完整 commit SHA，并明确校验 JDK 下载签名；Gradle wrapper 保留发行包 SHA-256。
-每个 runner 的 setup-java 保留 `force-download: true` 和 `verify-signature: true`，确保签名验证覆盖实际下载。它们是下载参数，不再添加单独的下载校验 job。
-工作流契约通过固定版本的 PyYAML 标准解析器读取实际 Action / 输入，支持合法 YAML 引号、别名、内联及多行写法，移除自写格式限制。安全断言继续检查 JDK 输入、Action 完整 SHA、无正式签名配置、SDK 对齐及完整构建的独立性。本地工具测试前安装 `python -m pip install -r tools/requirements.txt`；该依赖只用于主机工具，不进入 APK。
-CI 安装的 SDK build tools 必须与 Gradle 的显式 `buildToolsVersion` 相同；当前固定 36.0.0。整数 `compileSdk = 37` 实际选择 `android-37.0`，CI 必须安装同一平台，不能只匹配大版本号。安装脚本和构建选择漂移会被契约检查拒绝。
-Dependabot 每周提交 Gradle 依赖候选 PR，最多同时 3 个；编译器、libxposed ABI 和 DexKit 原生引擎只自动提出补丁候选。每个升级仍需审查 diff、官方变更和完整构建结果。
-AGP 补丁需检查 debug / develop、R8 mapping、无缓存可重复性和 lint；运行库的升级还需目标 HyperOS 1 / Android 14 验证。编译与 JVM 通过不代替实机兼容性结论。
-本地 `verify.py fast --changed` / `--staged` 遇到版本清单、Gradle 配置、wrapper 或编译用 JAR 变化时也运行 JVM 测试；仅文档或 CI 工具变更仍可跳过 Gradle。
+独立 mutation 的名单与数量以 [brutal_test_config.json](../tools/brutal_test_config.json) 为准。`ACTIVE_INDEPENDENT`、`BLOCKED_NO_INDEPENDENT_GATE` 与 `MUTATOR_STALE` 必须分开报告；self-detection 与未覆盖项不算独立通过。
 
-构建插件的依赖图与 APK 的运行依赖图需分别审查。当前 AGP 补丁仍默认带入旧 KGP，因此根构建脚本显式使用已修复缓存反序列化问题的 KGP 2.4.20，并对 Commons、jose4j、JDOM、Bouncy Castle 构建依赖设置安全版本约束。应用继续显式使用 Kotlin stdlib / BOM 2.3.21、语言/API 2.2 和 JVM 17，禁止编译器升级隐式抬升 APK 运行库。
-根构建脚本的 buildscript classpath 与 settings 中的插件/运行依赖仓库分别配置；三者必须遵循同一个 `-PuseChinaMirrors=true` 选择。默认使用官方仓库，镜像模式使用已有 Aliyun / Huawei 地址与 content 过滤；CI 继续使用官方仓库。
+## 依赖与构建变更
 
-优先保留行为测试、兼容契约、备份 V2、preference、lifecycle ownership、hot-path 回归、正式 Dynamic Island、API 边界和 issue 回归。
+Actions 固定完整 commit SHA；JDK 下载保留 `force-download: true` 与 `verify-signature: true`，wrapper 保留 SHA-256。CI 契约使用固定 PyYAML 解析实际 YAML，允许合法别名、引号、内联与多行语法，继续检查无正式签名材料、平台对齐与构建独立性。
 
-删除测试的唯一理由：无 production subject、完全重复、或锁死错误实现细节。不得靠删测试制造绿构建。
+SDK package 与 Gradle 的 compileSdk / buildToolsVersion 必须一致，具体安装参数以 [ci_install_android_sdk.sh](../tools/ci_install_android_sdk.sh) 为准。主机构建 classpath 与 APK runtime 依赖分开审查；固定版本和安全约束保存在构建配置，避免在文档复制易失效清单。
 
-## 实机
+Dependabot 仅提出候选 PR，范围见 [.github/dependabot.yml](../.github/dependabot.yml)。升级应查看官方变更、实际依赖图与最终 APK：AGP 变动还核查内部资源压缩任务、AAPT2 输出、R8 mapping、fatal lint 和无缓存重复构建；运行库还需目标 ROM 验证。不能把转递冲突选择等同于 APK 重复类，也不能把已被 R8 去除的依赖推算为额外体积收益。
 
-静态通过不等于目标 ROM 可用。实机证据按 `STATIC` / `BUILD` / `LOG` / `DEVICE` 分级。无证据不得改成熟热路径。
+依赖校验见 [Gradle 官方说明](https://docs.gradle.org/9.6.1/userguide/dependency_verification.html)，编译器 / D8 / R8 要求见 [Android 官方说明](https://developer.android.com/build/kotlin-support)。升级时重新核对这些范围，不把上游“最新”当作本项目的升级理由。
+
+## 实机边界
+
+历史样本索引和未确认行为见 [COMPATIBILITY.md](../COMPATIBILITY.md)。记录 APK revision、设备 / ROM、开关、操作、日志与前后对照；重复稳定的设备连接和实际操作才可标为 DEVICE。主机 JVM 或独立 ART probe 应注明隔离环境，不能当作完整应用的帧率、内存或功耗改善。

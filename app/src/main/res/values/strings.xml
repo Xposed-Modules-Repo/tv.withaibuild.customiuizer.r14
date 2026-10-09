@@ -333,7 +333,6 @@
     <string name="system_disable_window_blurs_title">Disable window-level blur</string>
     <string name="system_disable_window_blurs_summ">Works without Developer options; when off, Android controls blur normally. While on, HyperOS draws the volume panel and power menu without their own background, and the volume blur sliders below have no effect</string>
     <string name="system_blur_title">Background blur</string>
-    <string name="system_recents_blur_summ">Background blur intensity in recent apps</string>
     <string name="system_drawer_blur_summ">Background blur intensity in notification drawer</string>
     <string name="system_mods_lockscreen">Lock screen</string>
     <string name="system_mods_lockscreen_functionality">Additional functionality</string>
@@ -341,7 +340,6 @@
     <string name="system_blocktoasts_title">Block toasts</string>
     <string name="system_blocktoasts_summ">Prevent selected apps from showing toasts</string>
     <string name="system_fivegtile_title">5G tile</string>
-    <string name="system_fivegtile_summ">Add 5G tile to control center</string>
     <string name="system_cc_fpstile_title">Show refresh rate tile</string>
     <string name="system_cc_fpstile_summ">Show the current display refresh rate</string>
     <string name="system_floatingtime_tile_title">Show floating time tile</string>
@@ -436,7 +434,6 @@
     <string name="launcher_disable_wallpaperscale_summ">Keep wallpaper from zooming in recents and app open/close, and disable the unlock wallpaper scale animation. Force-stop the launcher after changing.</string>
     <string name="system_recents_disable_wallpaperscale_title">Disable wallpaper scale in recents</string>
     <string name="system_recents_disable_wallpaperscale_summ">Same launcher wallpaper zoom as Launcher → Other, without the unlock wallpaper animation. The two switches do not conflict; either one is enough for recents and app transitions. Force-stop the launcher after changing.</string>
-    <string name="system_recents_card_style_summ">Hide app names on recent-task cards; requires Launcher restart to apply.</string>
     <string name="system_recents_card_style_hide_title">Hide app name</string>
     <string name="system_clearalltasks_title">Clean all</string>
     <string name="system_clearalltasks_summ">Make cleaner button kill all running tasks</string>
@@ -547,7 +544,6 @@
     <string name="launcher_renameapps_list_title">Modified titles</string>
     <string name="launcher_renameapps_modified">Modified title</string>
     <string name="launcher_privacyapps">Hidden apps</string>
-    <string name="launcher_privacyapps_fail">Required permissions are not granted</string>
     <string name="animation_scale_bridge_unavailable">The system service bridge is unavailable. Confirm that the module is enabled, then fully reboot the device.</string>
     <string name="animation_scale_write_failed">The system rejected the animation scale change.</string>
     <string name="launcher_privacyapps_gest_title">No hidden folder</string>
@@ -716,7 +712,6 @@
 
     <string name="gboard">Input method settings</string>
     <string name="calls">Calls</string>
-    <string name="settings">Settings</string>
 
     <string name="array_default">Default</string>
     <string name="array_system_default">System</string>
@@ -874,7 +869,6 @@
     <string name="qs_toggle_fps">Refresh rate</string>
     <string name="qs_toggle_floatingtime">Floating time</string>
 
-    <string name="miuizer">米客 A14 settings</string>
     <string name="miuizer_new_mod">New!</string>
     <string name="miuizer_show_launchericon_title">Launcher icon</string>
     <string name="miuizer_show_launchericon_summ">Show icon in launchers</string>

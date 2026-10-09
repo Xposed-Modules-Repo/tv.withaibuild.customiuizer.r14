@@ -14,7 +14,6 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.preference.Preference
 import miui.os.Build
-import tv.withaibuild.customiuizer.CredentialsLauncher
 import tv.withaibuild.customiuizer.PrefsProvider
 import tv.withaibuild.customiuizer.R
 import tv.withaibuild.customiuizer.SubFragment
@@ -215,12 +214,12 @@ class System : SubFragment() {
                     val act = activity ?: return@setOnPreferenceChangeListener false
                     val pm = act.packageManager
                     val state = if (newValue == true) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DISABLED
-                    pm.setComponentEnabledSetting(ComponentName(act, CredentialsLauncher::class.java), state, PackageManager.DONT_KILL_APP)
+                    pm.setComponentEnabledSetting(ComponentName(act, Helpers.CREDENTIALS_LAUNCHER_ALIAS_NAME), state, PackageManager.DONT_KILL_APP)
                     true
                 }
 
                 activity?.let { act ->
-                    findPreference<CheckBoxPreferenceEx>("pref_key_system_credentials")?.isChecked = act.packageManager.getComponentEnabledSetting(ComponentName(act, CredentialsLauncher::class.java)) == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                    findPreference<CheckBoxPreferenceEx>("pref_key_system_credentials")?.isChecked = act.packageManager.getComponentEnabledSetting(ComponentName(act, Helpers.CREDENTIALS_LAUNCHER_ALIAS_NAME)) == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
                 }
 
                 if (Helpers.isDeviceEncrypted(context)) {

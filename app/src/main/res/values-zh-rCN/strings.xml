@@ -313,7 +313,6 @@
     <string name="system_disable_window_blurs_title">关闭窗口级模糊</string>
     <string name="system_disable_window_blurs_summ">无需开启开发者模式；关闭本项后仍由系统原生设置控制。开启期间 HyperOS 的音量面板与关机菜单将没有独立背景，下方的音量模糊滑块也会失效</string>
     <string name="system_blur_title">背景模糊</string>
-    <string name="system_recents_blur_summ">最近任务的背景模糊度</string>
     <string name="system_drawer_blur_summ">通知中心的背景模糊度</string>
     <string name="system_mods_lockscreen">锁屏</string>
     <string name="system_mods_lockscreen_functionality">附加功能</string>
@@ -321,7 +320,6 @@
     <string name="system_blocktoasts_title">阻止toast</string>
     <string name="system_blocktoasts_summ">阻止所选应用显示toast</string>
     <string name="system_fivegtile_title">5G开关</string>
-    <string name="system_fivegtile_summ">添加5G网络磁贴至控制中心</string>
     <string name="system_floatingtime_tile_title">时间悬浮窗开关</string>
     <string name="system_floatingtime_tile_summ">添加时间悬浮窗磁贴至控制中心</string>
     <string name="system_cc_fpstile_title">刷新频率开关</string>
@@ -413,7 +411,6 @@
     <string name="launcher_disable_wallpaperscale_summ">关闭最近任务、打开/关闭应用时的壁纸缩放，并关闭解锁壁纸缩放动画。修改后请强制停止桌面。</string>
     <string name="system_recents_disable_wallpaperscale_title">最近任务中禁用壁纸缩放</string>
     <string name="system_recents_disable_wallpaperscale_summ">与「启动器 → 其它」为同一套桌面壁纸缩放，但不包含解锁动画。两者不冲突，最近任务和应用过渡开一个即可。修改后请强制停止桌面。</string>
-    <string name="system_recents_card_style_summ">隐藏最近任务卡片中的应用名称；修改后需重启桌面</string>
     <string name="system_recents_card_style_hide_title">隐藏应用名称</string>
     <string name="system_removecleaner_summ">隐藏清理最近应用和内存的按钮</string>
     <string name="system_clearalltasks_title">清空所有任务</string>
@@ -517,7 +514,6 @@
     <string name="launcher_renameapps_list_title">修改标题</string>
     <string name="launcher_renameapps_modified">修改标题</string>
     <string name="launcher_privacyapps">隐藏应用</string>
-    <string name="launcher_privacyapps_fail">未授予所需权限</string>
     <string name="animation_scale_bridge_unavailable">系统服务桥未运行，请确认模块已启用并完整重启设备。</string>
     <string name="animation_scale_write_failed">系统拒绝了动画缩放修改。</string>
     <string name="launcher_privacyapps_gest_title">禁止通过手势进入隐藏应用文件夹</string>
@@ -668,7 +664,6 @@
     <string name="appsort_install">安装时间</string>
     <string name="gboard">输入法设置</string>
     <string name="calls">通话</string>
-    <string name="settings">设置</string>
     <string name="array_default">默认</string>
     <string name="array_system_default">跟随系统</string>
     <string name="array_global_actions_none">无动作</string>
@@ -809,7 +804,6 @@
     <string name="qs_toggle_fps">刷新频率</string>
     <string name="qs_toggle_floatingtime">悬浮时间</string>
 
-    <string name="miuizer">米客 A14 设置</string>
     <string name="miuizer_new_mod">新！</string>
     <string name="miuizer_show_launchericon_title">启动器图标</string>
     <string name="miuizer_show_launchericon_summ">在启动器中显示图标</string>
