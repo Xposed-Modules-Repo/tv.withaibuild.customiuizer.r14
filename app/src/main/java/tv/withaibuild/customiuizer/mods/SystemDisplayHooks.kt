@@ -337,12 +337,13 @@ object SystemDisplayHooks {
     }
 
     internal fun onApplyBlur(chain: XposedInterface.Chain): Any? {
-        val args = XposedHelpers.getArgsArray(chain)
         if (DrawerBlurScope.isActive() && DrawerBlurScope.getTargetRef()?.get() === chain.getThisObject()) {
+            val args = XposedHelpers.getArgsArray(chain)
             val ratio = args[1] as Float
             args[1] = ratio * DrawerBlurScope.getModifier() / 100f
+            return chain.proceed(args)
         }
-        return chain.proceed(args)
+        return chain.proceed()
     }
 
     private fun resolveDrawerBlurTargetRef(callback: Any?): WeakReference<Any>? {
