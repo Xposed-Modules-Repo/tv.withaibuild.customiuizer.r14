@@ -8,13 +8,13 @@ CustoMIUIzer A14 is a system UI and interaction customization module for HyperOS
 
 | Item | Value |
 | --- | --- |
-| Version | `r14.22.6` |
-| versionCode | `229` |
+| Version | `r14.22.7` |
+| versionCode | `230` |
 | Maintainer | `thetvplus` |
 | Application ID | `tv.withaibuild.customiuizer.r14` |
-| APK | `CustoMIUIzer-A14-r14.22.6.apk` |
-| Size | `3733397` bytes |
-| APK SHA-256 | `BFAACA985D2C0F445711463E6381EC4CB5400C0AA9DEA2FE1ACFF72752939192` |
+| APK | `CustoMIUIzer-A14-r14.22.7.apk` |
+| Size | `3733141` bytes |
+| APK SHA-256 | `C2B3B043DD7A1323A0977600B6D8AB560C91EFA2AC2BEC159911EA9A650D4907` |
 
 ## Compatibility and Requirements
 
@@ -34,13 +34,11 @@ CustoMIUIzer A14 is a system UI and interaction customization module for HyperOS
 - Navigation bar, buttons, custom actions, power menu, and system animations;
 - App, permission, installer, sharing, privacy-app, and app-lock behavior.
 
-`r14.22.3` adds optional Duo with network text, brief headphone hints, automatic sizing and Control Center handoffs, while fixing signal recovery and reducing drawing overhead. Duo is disabled by default; restart System UI after setting changes. See the consolidated [CHANGELOG.md](CHANGELOG.md).
-
-`r14.22.6` reduces repeated allocations in wallpaper callbacks, temperature formatting, backup, search and locale lists; verifies official libxposed dependencies and aligns Fragment KTX. Compact resource tables preserve all resource contents. The official APK is 151,787 bytes smaller than r14.22.5. Builds use JDK 25; JVM 21/25 trials did not demonstrate a stable runtime gain, so Android output remains 17.
+This release consolidates the r14.22 series since r14.21.9: Duo, stability fixes, leaner callbacks and backups, resource compaction, and maintenance cleanup. Duo is disabled by default; restart SystemUI after changing its settings. See [CHANGELOG.md](CHANGELOG.md).
 
 ## Installation and Upgrade
 
-- Download `CustoMIUIzer-A14-r14.22.6.apk` from this repository's Release;
+- Download `CustoMIUIzer-A14-r14.22.7.apk` from this repository's Release;
 - Enable the module;
 - Confirm that scope includes `system`, the launcher, and the other required apps;
 - Fully reboot the device.
@@ -49,6 +47,6 @@ CustoMIUIzer A14 is a system UI and interaction customization module for HyperOS
 
 This module changes system processes through Hooks. Availability depends on the ROM and system-app versions, and ROM updates may change classes, methods, or resources. If a problem occurs, disable the related feature first and retain the logs.
 
-The official APK passed installation, reboot, module loading, settings UI and resource-parity checks on Xiaomi 13 / HyperOS 1 / Android 14 / API 102. Existing settings and scope remain. API 101 has static compatibility coverage, with no API 101 framework device acceptance; this does not cover every feature or ROM combination.
+The official APK passed upgrade, reboot, settings UI and launcher-icon hide/restore checks on Xiaomi 13 / HyperOS 1 / Android 14 / API 102. All 407 existing settings and module scope were preserved; resource semantics matched across ten languages and day/night modes. API 101 has static compatibility coverage, with no API 101 framework device acceptance; verification does not cover every feature or ROM combination.
 
 Source and issue reporting: <https://github.com/thetvplus/customiuizer-a14>
