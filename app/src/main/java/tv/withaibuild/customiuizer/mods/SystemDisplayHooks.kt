@@ -269,7 +269,7 @@ object SystemDisplayHooks {
 
         private val scope = ThreadLocal.withInitial { State() }
 
-        private inline val current: State
+        internal val current: State
             get() = scope.get()!!
 
         fun enter(modifierPct: Int, targetRef: WeakReference<Any>?) {
@@ -337,10 +337,11 @@ object SystemDisplayHooks {
     }
 
     internal fun onApplyBlur(chain: XposedInterface.Chain): Any? {
-        if (DrawerBlurScope.isActive() && DrawerBlurScope.getTargetRef()?.get() === chain.getThisObject()) {
+        val state = DrawerBlurScope.current
+        if (state.depth > 0 && state.targetRef?.get() === chain.getThisObject()) {
             val args = XposedHelpers.getArgsArray(chain)
             val ratio = args[1] as Float
-            args[1] = ratio * DrawerBlurScope.getModifier() / 100f
+            args[1] = ratio * state.modifier / 100f
             return chain.proceed(args)
         }
         return chain.proceed()
