@@ -282,14 +282,40 @@ POST_P2_ALLOWED_NEW_PREFERENCES: dict[str, set[str]] = {
         "pref_key_system_statusbar_lefticons_scale",
         "pref_key_system_statusbar_lefticons_verticaloffset",
     },
+    "prefs_system_statusbar_duo.xml": {
+        "pref_key_system_statusbar_duo_chargingbolt",
+    },
 }
 
-# r14.20.0 removes the Dynamic Island Bottom-only configuration. Persisted values are
-# intentionally migrated to TOP by StrongToastPosition; the UI keys must not reappear.
+# Legacy position/offset settings are replaced by the StrongToast mode preference.
+# CurrentPreferenceContract migrates the legacy disable flag to strong_toast_mode
+# and drops obsolete position keys; these UI keys must not reappear.
+# The audited A14 removals are checked independently of the historical base by
+# test_generate_preference_artifacts.test_retired_a14_preferences_have_no_source_or_search_entry
+# and test_catalog_is_generated_from_xml_and_feature_keys in the same module.
 POST_P2_ALLOWED_REMOVED_PREFERENCES: dict[str, set[str]] = {
     "prefs_system.xml": {
         "pref_key_system_strong_toast_position",
         "pref_key_system_strong_toast_bottom_offset",
+        "pref_key_system_betterpopups_nohide",
+        "pref_key_system_betterpopups_delay",
+        "pref_key_system_minimalnotifview",
+        "pref_key_system_shortcut_app",
+        "pref_key_system_hidestatusbar_whenscreenrecord",
+    },
+    "prefs_launcher.xml": {
+        "pref_key_launcher_nozoomanim",
+    },
+    "prefs_system_controlcenter_themestyle.xml": {
+        "pref_key_system_cc_tile_enabled_color_usemonet",
+    },
+    "prefs_system_statusbar_righticons.xml": {
+        "pref_key_system_statusbar_icons_atleft_onkeyguard",
+    },
+    "prefs_various_hiddenfeatures.xml": {
+        "pref_key_various_memorystats",
+        "pref_key_various_appusagestats",
+        "pref_key_various_aospnotiflog",
     },
 }
 
@@ -310,6 +336,13 @@ POST_P2_ALLOWED_ATTR_CHANGES: set[tuple[str, str, str, str, str]] = {
         f"{{{ANDROID_NS}}}title",
         "@string/system_recents_disable_wallpaperscale_title",
         "@string/launcher_disable_wallpaperscale_title",
+    ),
+    (
+        "prefs_system_controlcenter_themestyle.xml",
+        "pref_key_system_cc_tile_enabled_color_custom",
+        f"{{{ANDROID_NS}}}dependency",
+        "pref_key_system_cc_tile_enabled_color_usemonet",
+        "pref_key_system_cc_tile_enabled_color",
     ),
 }
 
@@ -411,6 +444,33 @@ class P2SettingsInformationArchitectureTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.base_strings = {locale: _load_strings(locale) for locale in LOCALES}
+
+    def test_duo_charging_bolt_keeps_independent_exact_attributes(self):
+        root = ET.parse(XML_DIR / "prefs_system_statusbar_duo.xml").getroot()
+        key = "pref_key_system_statusbar_duo_chargingbolt"
+        matches = [el for el in root.iter() if el.get(ATTR_KEY) == key]
+        self.assertEqual(1, len(matches), f"missing or duplicate charging bolt control: {key}")
+        self.assertEqual("tv.withaibuild.customiuizer.prefs.CheckBoxPreferenceEx", matches[0].tag)
+        self.assertEqual({
+            ATTR_KEY: key,
+            ATTR_TITLE: "@string/system_statusbar_duo_chargingbolt_title",
+            f"{{{ANDROID_NS}}}summary": "@string/system_statusbar_duo_chargingbolt_summ",
+            f"{{{ANDROID_NS}}}dependency": "pref_key_system_statusbar_duo",
+            f"{{{ANDROID_NS}}}defaultValue": "true",
+        }, dict(matches[0].attrib))
+
+    def test_tile_background_color_depends_on_enabled_color_exactly(self):
+        root = ET.parse(XML_DIR / "prefs_system_controlcenter_themestyle.xml").getroot()
+        key = "pref_key_system_cc_tile_enabled_color_custom"
+        matches = [el for el in root.iter() if el.get(ATTR_KEY) == key]
+        self.assertEqual(1, len(matches), f"missing or duplicate tile background color: {key}")
+        self.assertEqual("tv.withaibuild.customiuizer.prefs.ColorPreferenceEx", matches[0].tag)
+        self.assertEqual({
+            ATTR_KEY: key,
+            ATTR_TITLE: "@string/common_background_color",
+            f"{{{ANDROID_NS}}}dependency": "pref_key_system_cc_tile_enabled_color",
+            f"{{{MIUIZER_NS}}}indentLevel": "1",
+        }, dict(matches[0].attrib))
 
     def test_released_left_icon_controls_keep_exact_attributes(self):
         root = ET.parse(XML_DIR / "prefs_system_statusbar_righticons.xml").getroot()

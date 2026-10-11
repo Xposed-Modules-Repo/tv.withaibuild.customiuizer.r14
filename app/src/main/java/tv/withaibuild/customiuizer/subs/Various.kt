@@ -11,6 +11,7 @@ import android.os.Looper
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.preference.Preference
+import miui.os.Build
 import tv.withaibuild.customiuizer.R
 import tv.withaibuild.customiuizer.SubFragment
 import tv.withaibuild.customiuizer.mods.GlobalActions
@@ -116,6 +117,9 @@ class Various : SubFragment() {
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         super.onCreatePreferences(savedInstanceState, rootKey)
         selectSub()
+        if (Build.IS_INTERNATIONAL_BUILD) {
+            findPreference<Preference>("pref_key_various_disable_defraud_apps_detect")?.isVisible = false
+        }
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {

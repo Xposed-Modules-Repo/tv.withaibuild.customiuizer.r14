@@ -4,6 +4,12 @@ English | [简体中文](CHANGELOG_CN.md)
 
 Only retained releases are listed. Each section covers changes since the previous retained release; Git preserves the detailed history.
 
+## Unreleased
+
+- Add a separate Duo charging-bolt switch, enabled by default; battery percentage and charging colour remain independent.
+- Retire five ineffective options and six hidden remnants on the A14 line, prune obsolete animation and lock-screen cover branches, and migrate retired preferences with contract revision 2.
+- Disable detailed network-speed formatting controls for the native style. Hide GuardProvider remote-detection blocking from international settings and search, and skip its installer on those ROMs.
+
 ## r14.22.7 — 2026-10-09
 
 HyperOS 1 / Android 14, versionCode 230. Consolidates the r14.22 series since r14.21.9.
