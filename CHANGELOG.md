@@ -4,6 +4,10 @@ English | [简体中文](CHANGELOG_CN.md)
 
 Only retained releases are listed. Each section covers changes since the previous retained release; Git preserves the detailed history.
 
+## Unreleased
+
+- Update build tooling and Fragment dependencies, normalize the Gradle launcher, and use staged validation without redundant checks.
+
 ## r14.23.0 — 2026-10-12
 
 HyperOS 1 / Android 14, versionCode 231. Changes since r14.22.7:

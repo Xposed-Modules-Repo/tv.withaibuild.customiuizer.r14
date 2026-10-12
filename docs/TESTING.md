@@ -15,6 +15,13 @@
 
 静态命中数、用例数或一次绿构建不代表已知问题数量与全设备兼容性。保留行为、备份 V2、偏好、所有权、热路径、Dynamic Island、API 边界与 issue 回归测试；只有无 production subject、完全重复或锁死错误实现细节才可删除测试。
 
+## 分阶段验证与 PR 合并
+
+- 先按 PR 的 exact head 审查 diff、官方变更与已有 CI；只补尚缺的证据。
+- 同批相关 PR 整合后统一运行一次完整本地门禁和必要 APK 构建。运行库变化按影响做一次实机定向验收，不逐 PR 重跑全套。
+- 源码未变且相同范围已通过时复用结果；只有新修改、失败或未解决问题才追加相关检查。纯文档变更只做对应静态检查。
+- 正式 APK 在发布前完成本地签名、元数据与必要实机验收；发布后一次比对双仓 tag、notes、latest 和 asset 大小 / digest。可信 digest 一致时无需再次下载；缺失、异常或用户要求时再补下载核验。
+
 ## CI 分工
 
 工作流 [a14-ci.yml](../.github/workflows/a14-ci.yml) 在 main push、PR、`r14.*` tag、每周和手动触发；[ci_scope.py](../tools/ci_scope.py) 根据完整 diff 选择追加检查。
