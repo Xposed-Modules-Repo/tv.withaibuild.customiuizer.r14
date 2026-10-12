@@ -108,7 +108,7 @@ object GlobalActionRuntimeContract {
 
     val triggerSpecs: List<GlobalActionTriggerSpec> = listOf(
         navBarGated("controls_backlong", "Controls.NavBarActionsHook"),
-        navBarGated("controls_homelong", "Controls.NavBarActionsHook + Controls.NavBarButtonsHook"),
+        navBarGated("controls_homelong", "Controls.NavBarActionsHook"),
         navBarGated("controls_menulong", "Controls.NavBarActionsHook"),
         sysServerAlways("controls_powerdt", "Controls.PowerDoubleTapActionHook"),
         launcherGated("controls_fsg_assist_left", "LAUNCHER|SYSTEMUI", "LauncherGestureHooks.FSGesturesHook"),

@@ -108,14 +108,14 @@
       "targetPackage": "android",
       "installPhase": "SYSTEM_SERVER_START",
       "runtimeReadMode": "OBSERVER_PUSH",
-      "enableEffect": "Install native DefaultSingleKeyRule callbacks only if at least one navigation long-press action is configured at startup",
+      "enableEffect": "Install native MiuiSingleKeyRule parent callbacks only if at least one navigation long-press action is configured at startup",
       "disableEffect": "Already-installed callbacks observe disabled snapshots and delegate to native behavior; a disabled startup installs no navigation business hook",
       "valueChangeEffect": "First enable requires reboot; installed callbacks observe action changes and disable without reinstall",
       "restartTarget": "REBOOT",
       "hotReloadable": false,
       "confidence": "CODE_VERIFIED",
       "evidence": "NavBarActionsFeature.evaluateEnabled; Controls.interceptNavBarSupportLongPress / interceptNavBarLongPress; GlobalActionRuntimeContract.triggerSpecs",
-      "notes": "Native support executes exactly once and refreshes mLongPressFunction before the configured support override. Failed custom actions execute native onMiuiLongPress exactly once. MENU uses key code 82. Native detector owns the long-press timeout and key-up/reset cancellation."
+      "notes": "Native parent support executes exactly once and refreshes subclass native state before the configured support override. Failed custom actions execute the native parent long-press chain exactly once. MENU uses key code 82. The native detector owns timeout and cancellation; only a successful custom press consumes matching delayed key events, with native MENU preload cleanup on its unique key-up."
     },
     {
       "featureId": "controls_cat_fingerprint",
@@ -675,18 +675,18 @@
       "xmlSource": "",
       "defaultValue": "1",
       "sourceFile": "app/src/main/java/tv/withaibuild/customiuizer/mods/Controls.kt",
-      "installer": "Controls.NavBarActionsHook + Controls.NavBarButtonsHook",
-      "targetPackage": "android, com.android.systemui",
+      "installer": "Controls.NavBarActionsHook",
+      "targetPackage": "android",
       "installPhase": "SYSTEM_SERVER_START",
       "runtimeReadMode": "OBSERVER_PUSH",
-      "enableEffect": "Install native DefaultSingleKeyRule callbacks only if at least one navigation long-press action is configured at startup",
+      "enableEffect": "Install native MiuiSingleKeyRule parent callbacks only if at least one navigation long-press action is configured at startup",
       "disableEffect": "Already-installed callbacks observe disabled snapshots and delegate to native behavior; a disabled startup installs no navigation business hook",
       "valueChangeEffect": "First enable requires reboot; installed callbacks observe action changes and disable without reinstall",
       "restartTarget": "REBOOT",
       "hotReloadable": false,
       "confidence": "CODE_VERIFIED",
       "evidence": "NavBarActionsFeature.evaluateEnabled; Controls.interceptNavBarSupportLongPress / interceptNavBarLongPress; GlobalActionRuntimeContract.triggerSpecs",
-      "notes": "Native support executes exactly once and refreshes mLongPressFunction before the configured support override. Failed custom actions execute native onMiuiLongPress exactly once. MENU uses key code 82. HOME also installs its preference-gated SystemUI guard at PACKAGE_READY; no extra-button hooks are installed for HOME-only configuration. Current fuxi native HOME=launch_google_search; separate SystemUI cannot observe custom server success, so native NONE and other ROM fallback chains require device validation."
+      "notes": "Real HOME enters MiuiSingleKeyRule.onLongPress on the target ROM, bypassing the old Default callbacks. Native parent support refreshes subclass state once; failed custom actions execute the native parent chain once. Successful HOME consumes only matching delayed key events. No SystemUI assistant guard or extra-button feature is needed. Native detector timing and cancellation are preserved; first enable requires reboot."
     },
     {
       "featureId": "controls_mediaplayer_apps",
@@ -747,14 +747,14 @@
       "targetPackage": "android",
       "installPhase": "SYSTEM_SERVER_START",
       "runtimeReadMode": "OBSERVER_PUSH",
-      "enableEffect": "Install native DefaultSingleKeyRule callbacks only if at least one navigation long-press action is configured at startup",
+      "enableEffect": "Install native MiuiSingleKeyRule parent callbacks only if at least one navigation long-press action is configured at startup",
       "disableEffect": "Already-installed callbacks observe disabled snapshots and delegate to native behavior; a disabled startup installs no navigation business hook",
       "valueChangeEffect": "First enable requires reboot; installed callbacks observe action changes and disable without reinstall",
       "restartTarget": "REBOOT",
       "hotReloadable": false,
       "confidence": "CODE_VERIFIED",
       "evidence": "NavBarActionsFeature.evaluateEnabled; Controls.interceptNavBarSupportLongPress / interceptNavBarLongPress; GlobalActionRuntimeContract.triggerSpecs",
-      "notes": "Native support executes exactly once and refreshes mLongPressFunction before the configured support override. Failed custom actions execute native onMiuiLongPress exactly once. MENU uses key code 82. Native detector owns the long-press timeout and key-up/reset cancellation."
+      "notes": "Native parent support executes exactly once and refreshes subclass native state before the configured support override. Failed custom actions execute the native parent long-press chain exactly once. MENU uses key code 82. The native detector owns timeout and cancellation; only a successful custom press consumes matching delayed key events, with native MENU preload cleanup on its unique key-up."
     },
     {
       "featureId": "controls_navbarleft",

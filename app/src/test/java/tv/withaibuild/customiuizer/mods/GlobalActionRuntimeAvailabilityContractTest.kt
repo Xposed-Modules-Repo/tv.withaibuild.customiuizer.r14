@@ -108,7 +108,7 @@ class GlobalActionRuntimeAvailabilityContractTest {
             assertEquals(key, "REBOOT", spec.restartRequirement)
             assertTrue(key, spec.triggerHook.contains("Controls.NavBarActionsHook"))
         }
-        assertTrue(GlobalActionRuntimeContract.trigger("controls_homelong")!!.triggerHook.contains("Controls.NavBarButtonsHook"))
+        assertEquals("Controls.NavBarActionsHook", GlobalActionRuntimeContract.trigger("controls_homelong")!!.triggerHook)
     }
 
     @Test

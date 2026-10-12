@@ -160,7 +160,7 @@ class SystemUiFeaturesWiringTest {
 
         val on = PrefMap().apply { put("controls_navbarrightlong_action", 5) }
         assertTrue(feature.isEnabled(on))
-        assertTrue(feature.isEnabled(PrefMap().apply { put("controls_homelong_action", 2) }))
+        assertFalse(feature.isEnabled(PrefMap().apply { put("controls_homelong_action", 2) }))
         assertFalse(feature.isEnabled(PrefMap().apply { put("controls_homelong_action", 1) }))
     }
 

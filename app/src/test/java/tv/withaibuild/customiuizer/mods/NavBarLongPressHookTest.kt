@@ -5,7 +5,9 @@ import android.content.ContextWrapper
 import io.github.libxposed.api.XposedInterface
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.lang.reflect.Executable
 import java.lang.reflect.InvocationTargetException
@@ -14,7 +16,7 @@ import java.util.concurrent.ExecutionException
 /** Covers dispatch and original-method boundaries; ROM timing and key-up still need device tests. */
 class NavBarLongPressHookTest {
     private val savedConfig = Controls.controlsConfig
-    private val primaryKeyField = Rule::class.java.getDeclaredField("mPrimaryKey").apply { isAccessible = true }
+    private val primaryKeyField = Rule::class.java.getDeclaredField("mKeyCode").apply { isAccessible = true }
     private val contextField = Rule::class.java.getDeclaredField("mContext").apply { isAccessible = true }
 
     @After
@@ -240,6 +242,64 @@ class NavBarLongPressHookTest {
         assertEquals(0, chain.proceedCount)
     }
 
+    @Test
+    fun handledLongPressConsumesItsRemainingEventsEvenAfterDisable() {
+        Controls.controlsConfig = Controls.ControlsSnapshot(backLongAction = 2)
+        val consumption = NavBarLongPressConsumption()
+        val chain = FakeChain(Rule(4), downTime = 123L)
+        assertEquals(null, Controls.interceptNavBarLongPress(
+            chain, primaryKeyField, contextField, { _, _, _ -> true }, {}, consumption,
+        ))
+        Controls.controlsConfig = Controls.ControlsSnapshot()
+        val release = FakeChain()
+        assertEquals(-1L, consumption.dispatch(release, 4, 123L, 1))
+        assertEquals(0, release.proceedCount)
+        assertEquals(0, chain.proceedCount)
+    }
+
+    @Test
+    fun failedAndOrdinaryErrorActionsDoNotMarkKeyConsumption() {
+        Controls.controlsConfig = Controls.ControlsSnapshot(backLongAction = 8)
+        for (failWithException in listOf(false, true)) {
+            val consumption = NavBarLongPressConsumption()
+            val chain = FakeChain(Rule(4), downTime = 234L)
+            assertEquals("native", Controls.interceptNavBarLongPress(
+                chain, primaryKeyField, contextField,
+                { _, _, _ -> if (failWithException) throw IllegalStateException("failed action"); false },
+                {}, consumption,
+            ))
+            assertFalse(consumption.consume(4, 234L, true))
+            assertEquals(1, chain.proceedCount)
+        }
+    }
+
+    @Test
+    fun vibrationErrorAfterSuccessfulActionKeepsConsumption() {
+        Controls.controlsConfig = Controls.ControlsSnapshot(backLongAction = 2)
+        val consumption = NavBarLongPressConsumption()
+        val chain = FakeChain(Rule(4), downTime = 345L)
+        assertEquals(null, Controls.interceptNavBarLongPress(
+            chain, primaryKeyField, contextField, { _, _, _ -> true },
+            { throw IllegalStateException("failed vibration") }, consumption,
+        ))
+        assertTrue(consumption.consume(4, 345L, true))
+        assertEquals(0, chain.proceedCount)
+    }
+
+    @Test
+    fun invalidDownTimeLeavesTheNativeActionIntact() {
+        Controls.controlsConfig = Controls.ControlsSnapshot(backLongAction = 2)
+        val consumption = NavBarLongPressConsumption()
+        for (time in listOf(-1L, NavBarLongPressConsumption.MAX_DOWN_TIME + 1L)) {
+            val chain = FakeChain(Rule(4), downTime = time)
+            assertEquals("native", Controls.interceptNavBarLongPress(
+                chain, primaryKeyField, contextField, { _, _, _ -> error("invalid time dispatched") }, {}, consumption,
+            ))
+            assertFalse(consumption.consume(4, time, true))
+            assertEquals(1, chain.proceedCount)
+        }
+    }
+
     private fun support(chain: FakeChain): Any? =
         Controls.interceptNavBarSupportLongPress(chain, primaryKeyField)
 
@@ -249,7 +309,7 @@ class NavBarLongPressHookTest {
     ): Any? = Controls.interceptNavBarLongPress(chain, primaryKeyField, contextField, execute, {})
 
     private open class Rule(
-        @JvmField val mPrimaryKey: Int,
+        @JvmField val mKeyCode: Int,
         @JvmField val mContext: Context? = ContextWrapper(null),
     )
 
@@ -273,12 +333,13 @@ class NavBarLongPressHookTest {
         private val ownerFailure: Throwable? = null,
         private val proceedFailure: Throwable? = null,
         private val nativeOriginal: (() -> Any?)? = null,
+        private val downTime: Long? = null,
     ) : XposedInterface.Chain {
         var proceedCount = 0
         override fun getExecutable(): Executable = error("not used")
         override fun getThisObject(): Any? { ownerFailure?.let { throw it }; return owner }
         override fun getArgs(): List<Any?> = emptyList()
-        override fun getArg(index: Int): Any? = error("not used")
+        override fun getArg(index: Int): Any? = if (index == 0) downTime else error("not used")
         override fun proceed(): Any? {
             proceedCount++
             proceedFailure?.let { throw it }

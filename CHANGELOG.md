@@ -4,14 +4,15 @@ English | [简体中文](CHANGELOG_CN.md)
 
 Only retained releases are listed. Each section covers changes since the previous retained release; Git preserves the detailed history.
 
-## Unreleased
+## r14.23.0 — 2026-10-12
 
-- Use the A14 Control Center destroy callback for gesture cleanup and native single-key rules for navigation long presses; install navigation hooks only when an action is configured, requiring a phone restart on first enable.
-- Apply selected silent/DND shortcut colors through native blur blends or isolated smooth background fills, preserving alpha, icon animation and original colors on disable.
-- Preserve wrapped fatal errors in settings mirroring and avoid constructing discarded successful diagnostics in release builds.
-- Add a separate Duo charging-bolt switch, enabled by default; battery percentage and charging colour remain independent.
-- Retire five ineffective options and six hidden remnants on the A14 line, prune obsolete animation and lock-screen cover branches, and migrate retired preferences with contract revision 2.
-- Disable detailed network-speed formatting controls for the native style. Hide GuardProvider remote-detection blocking from international settings and search, and skip its installer on those ROMs.
+HyperOS 1 / Android 14, versionCode 231. Changes since r14.22.7:
+
+- Add an independent Duo charging-bolt switch, enabled by default; percentage and charging colour remain independent.
+- Refine silent and DND shortcut colours while preserving the native appearance, alpha and animation; restore original colours when custom styling is disabled.
+- Fix navigation long-press triggering and key consumption, and improve Control Center gesture cleanup. Restart the phone when first enabling navigation long presses.
+- Remove ineffective A14 features and their old settings, and refine native network-speed and international-ROM options.
+- Improve settings-sync error handling and reduce temporary startup-diagnostics objects.
 
 ## r14.22.7 — 2026-10-09
 
