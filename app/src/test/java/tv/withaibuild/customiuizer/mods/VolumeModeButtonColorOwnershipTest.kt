@@ -136,4 +136,3 @@ class VolumeModeButtonColorOwnershipTest {
         } catch (_: ThreadDeath) {}
     }
 }
-
