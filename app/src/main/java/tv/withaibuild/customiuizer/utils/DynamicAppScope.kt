@@ -8,9 +8,10 @@ import tv.withaibuild.customiuizer.R
 /**
  * Settings-side contract for features that must hook the user-selected app process.
  *
- * `staticScope=true` plus a fixed `scope.list` means newly chosen ordinary apps are not
- * injected unless Vector/LSPosed API 102 grants them at runtime. Lists that are only
- * filters for system_server / SystemUI / Launcher must not request scope.
+ * With `staticScope=true` and a fixed `scope.list`, newly chosen ordinary apps also need
+ * framework scope authorization. The project requests it at runtime only on service API 102
+ * or later; API 101 keeps the manual setup path. Lists that are only filters for
+ * system_server / SystemUI / Launcher must not request scope.
  */
 object DynamicAppScope {
 

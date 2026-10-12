@@ -243,7 +243,7 @@ open class ControlCenterPluginRuntimeEngine(
     data class ControlCenterGestureHooks(
         val handleMotionEvent: MethodHook,
         val onAttachedToWindow: MethodHook,
-        val onDetachedFromWindow: MethodHook,
+        val destroy: MethodHook,
     )
 
     internal open fun installControlCenterGestureHooks(
@@ -287,7 +287,7 @@ open class ControlCenterPluginRuntimeEngine(
                 }
             }
         }
-        val onDetachedHook = object : MethodHook() {
+        val destroyHook = object : MethodHook() {
             override fun before(param: BeforeHookCallback) {
                 if (!lease.active) return
                 val thisObject = param.getThisObject() as? View ?: return
@@ -298,8 +298,10 @@ open class ControlCenterPluginRuntimeEngine(
         }
         ModuleHelper.findAndHookMethod("miui.systemui.controlcenter.windowview.ControlCenterWindowViewImpl", classLoader, "handleMotionEvent", MotionEvent::class.java, Boolean::class.javaPrimitiveType!!, controlCenterHook)
         ModuleHelper.findAndHookMethod("miui.systemui.controlcenter.windowview.ControlCenterWindowViewImpl", classLoader, "onAttachedToWindow", onAttachedHook)
-        ModuleHelper.findAndHookMethod("miui.systemui.controlcenter.windowview.ControlCenterWindowViewImpl", classLoader, "onDetachedFromWindow", onDetachedHook)
-        return ControlCenterGestureHooks(controlCenterHook, onAttachedHook, onDetachedHook)
+        // HyperOS 1 destroys this owner before removing its window. The plugin View
+        // inherits onDetachedFromWindow, so the exact-method installer cannot hook it here.
+        ModuleHelper.findAndHookMethod("miui.systemui.controlcenter.windowview.ControlCenterWindowViewImpl", classLoader, "destroy", destroyHook)
+        return ControlCenterGestureHooks(controlCenterHook, onAttachedHook, destroyHook)
     }
 }
 

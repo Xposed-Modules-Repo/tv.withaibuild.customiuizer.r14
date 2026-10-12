@@ -966,11 +966,27 @@ def check_preference_click_feedback(path: Path, text: str) -> list[Finding]:
     required = (
         ("Dispatchers.Default.limitedParallelism(1)", "serialize mirror work on a shared background dispatcher"),
         ("mirrorScope.launch { runMirror(generation, reason) }", "run full mirror passes off the main looper"),
-        ("if (throwable is OutOfMemoryError) throw throwable", "preserve OOM at the mirror worker boundary"),
     )
     for token, detail in required:
         if token not in text:
             findings.append(Finding("preference-click-feedback", path, 1, detail))
+    worker_start = text.find("private val mirrorFailureHandler")
+    worker_checks_fatal_first = False
+    if worker_start >= 0:
+        worker, _ = block_at(text, worker_start)
+        statements = strip_comments(worker).split("->", 1)
+        worker_checks_fatal_first = len(statements) == 2 and statements[1].lstrip().startswith(
+            "FatalErrors.unwrapAndRethrowIfFatal(throwable)"
+        )
+    if not worker_checks_fatal_first:
+        findings.append(
+            Finding(
+                "preference-click-feedback",
+                path,
+                line_of(text, worker_start) if worker_start >= 0 else 1,
+                "rethrow direct and wrapped fatal errors before mirror worker logging or recovery",
+            )
+        )
     return findings
 
 
@@ -1249,7 +1265,7 @@ def check_gesture_shared_arbiter(path: Path, text: str) -> list[Finding]:
 
 
 def check_gesture_detach_cleanup(path: Path, text: str) -> list[Finding]:
-    """View detach must clear the corresponding GestureMachine owner."""
+    """Status-bar detach and Control Center destroy must clear their gesture owners."""
     findings = []
     if rel_posix(path) == "tv/withaibuild/customiuizer/mods/SystemUIControlCenterHooks.kt":
         status_ok = '"onDetachedFromWindow"' in text and "statusBarMachine.clear" in text
@@ -1263,35 +1279,44 @@ def check_gesture_detach_cleanup(path: Path, text: str) -> list[Finding]:
                 )
             )
     if rel_posix(path) == "tv/withaibuild/customiuizer/mods/utils/ControlCenterPluginRuntime.kt":
-        cc_ok = '"onDetachedFromWindow"' in text and "controlCenterMachine.clear" in text
+        # The target HyperOS 1 plugin declares destroy(), but inherits detach.
+        # Follow the registered callback so an unrelated clear elsewhere cannot satisfy this gate.
+        cc_text = strip_comments(text)
+        target_call = (
+            r'\bModuleHelper\.findAndHookMethod\s*\(\s*'
+            r'"miui\.systemui\.controlcenter\.windowview\.ControlCenterWindowViewImpl"\s*,\s*[^,]+,\s*'
+        )
+        install = re.search(target_call + r'"destroy"\s*,\s*(\w+)\s*\)', cc_text)
+        obsolete_detach = re.search(target_call + r'"onDetachedFromWindow"', cc_text)
+        cc_ok = False
+        if install is not None and obsolete_detach is None:
+            declaration = re.search(
+                rf'\bval\s+{re.escape(install.group(1))}\s*=\s*object\s*:\s*MethodHook\s*\(\s*\)',
+                cc_text,
+            )
+            if declaration is not None:
+                callback, _ = block_at(cc_text, declaration.end())
+                before = re.search(r'override\s+fun\s+before\s*\(\s*(\w+)\s*:\s*BeforeHookCallback\s*\)', callback)
+                if before is not None:
+                    body, _ = block_at(callback, before.end())
+                    owner = re.search(
+                        rf'\bval\s+(\w+)\s*=\s*{re.escape(before.group(1))}\.getThisObject\s*\(\s*\)\s+as\?\s+View\s*\?:\s*return\b',
+                        body,
+                    )
+                    if owner is not None:
+                        cc_ok = re.search(
+                            rf'\bcontrolCenterMachine\.clear\s*\(\s*System\.identityHashCode\s*\(\s*{re.escape(owner.group(1))}\s*\)\s*\)',
+                            body,
+                        ) is not None
         if not cc_ok:
             findings.append(
                 Finding(
                     "gesture-detach-cleanup",
                     path,
                     1,
-                    "ControlCenterWindowViewImpl.onDetachedFromWindow must call controlCenterMachine.clear(ownerId)",
+                    "ControlCenterWindowViewImpl.destroy must clear the callback View owner with controlCenterMachine.clear(System.identityHashCode(view)); inherited detach must not be hooked",
                 )
             )
-    return findings
-    if not status_ok:
-        findings.append(
-            Finding(
-                "gesture-detach-cleanup",
-                path,
-                1,
-                "PhoneStatusBarView.onDetachedFromWindow must call statusBarMachine.clear(ownerId)",
-            )
-        )
-    if not cc_ok:
-        findings.append(
-            Finding(
-                "gesture-detach-cleanup",
-                path,
-                1,
-                "ControlCenterWindowViewImpl.onDetachedFromWindow must call controlCenterMachine.clear(ownerId)",
-            )
-        )
     return findings
 
 

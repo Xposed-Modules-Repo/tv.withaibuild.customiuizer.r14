@@ -12,7 +12,7 @@
 
 较新的 compileSdk 或构建工具不会扩展运行支持范围。跨版本移植需要独立任务和 API、ROM、生命周期、资源差异证据，不维护逐文件上游 parity。
 
-`staticScope=true`。框架需启用模块并授予目标包作用域；四类普通应用选择（状态栏颜色、去除滚动边缘效果、媒体按键、闹钟兼容）在 API 102 请求动态作用域。API 101 需手动配置。PermissionController 同时识别 AOSP 与 Google 包名，模块不能安全识别应用自绘授权说明页。
+`staticScope=true`。框架需启用模块并授予目标包作用域；四类普通应用选择（状态栏颜色、去除滚动边缘效果、媒体按键、闹钟兼容）按项目兼容策略仅在 Service API 102 及以上请求动态作用域，API 101 保持手动配置。`requestScope` 与对应监听接口在 Service API 101 已存在；该版本限制属于当前验证范围，不表示接口首次引入于 API 102。PermissionController 同时识别 AOSP 与 Google 包名，模块不能安全识别应用自绘授权说明页。
 
 ## 证据与限制
 

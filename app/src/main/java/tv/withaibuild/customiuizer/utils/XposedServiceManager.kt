@@ -15,6 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import tv.withaibuild.customiuizer.mods.utils.FatalErrors
 import tv.withaibuild.customiuizer.mods.utils.SystemServerPreferenceInvalidation
 
 /**
@@ -157,7 +158,7 @@ object XposedServiceManager {
      */
     private val handler = Handler(Looper.getMainLooper())
     private val mirrorFailureHandler = CoroutineExceptionHandler { _, throwable ->
-        if (throwable is OutOfMemoryError) throw throwable
+        FatalErrors.unwrapAndRethrowIfFatal(throwable)
         AppHelper.log(LOG_TAG, "mirror worker failed: $throwable")
     }
     private val mirrorScope = CoroutineScope(
@@ -272,6 +273,7 @@ object XposedServiceManager {
             } catch (oom: OutOfMemoryError) {
                 throw oom
             } catch (t: Throwable) {
+                FatalErrors.unwrapAndRethrowIfFatal(t)
                 AppHelper.log(LOG_TAG, "remote write for '$key' failed: $t")
                 false
             }
@@ -337,7 +339,7 @@ object XposedServiceManager {
                 .toBundle()
             context.sendBroadcast(intent, null, options)
         } catch (t: Throwable) {
-            if (t is OutOfMemoryError) throw t
+            FatalErrors.unwrapAndRethrowIfFatal(t)
             AppHelper.log(LOG_TAG, "system_server invalidation broadcast failed: $t")
         }
     }
@@ -355,7 +357,7 @@ object XposedServiceManager {
             val activityThread = Class.forName("android.app.ActivityThread")
             activityThread.getMethod("currentApplication").invoke(null) as? Context
         } catch (t: Throwable) {
-            if (t is OutOfMemoryError) throw t
+            FatalErrors.unwrapAndRethrowIfFatal(t)
             null
         }
         return app?.also { appContext = it }
@@ -422,6 +424,7 @@ object XposedServiceManager {
         } catch (oom: OutOfMemoryError) {
             throw oom
         } catch (t: Throwable) {
+            FatalErrors.unwrapAndRethrowIfFatal(t)
             AppHelper.log(LOG_TAG, "mirror pass failed ($reason): $t")
             markUndelivered("mirror pass failed")
             scheduleMirrorRetry(generation)
@@ -481,11 +484,13 @@ object XposedServiceManager {
                     AppHelper.log(LOG_TAG, "service died")
                     try {
                         appPrefs?.unregisterOnSharedPreferenceChangeListener(prefsChanged)
-                    } catch (_: Throwable) {
+                    } catch (t: Throwable) {
+                        FatalErrors.unwrapAndRethrowIfFatal(t)
                     }
                 }
             })
         } catch (t: Throwable) {
+            FatalErrors.unwrapAndRethrowIfFatal(t)
             handler.removeCallbacks(timeoutRunnable)
             state = State.DISCONNECTED
             AppHelper.moduleActive = false

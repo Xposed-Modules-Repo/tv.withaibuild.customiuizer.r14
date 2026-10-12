@@ -27,7 +27,7 @@ class PermissionControllerHooksContractTest {
     }
 
     @Test
-    fun api102ExclusiveScopeTypesStayInIsolatedFile() {
+    fun policyGatedScopeRequestsStayInIsolatedFile() {
         assertTrue(api102.contains("XposedService.OnScopeEventListener"))
         assertTrue(api102.contains("service.requestScope("))
         assertFalse(serviceManager.contains("XposedService.OnScopeEventListener"))

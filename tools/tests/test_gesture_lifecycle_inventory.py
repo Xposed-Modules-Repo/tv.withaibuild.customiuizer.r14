@@ -121,7 +121,7 @@ class GestureLifecycleInventoryTest(unittest.TestCase):
         self.assertIn("activeLoader = null", ci_body)
 
     def test_control_center_machine_prepare_has_corresponding_clear(self) -> None:
-        """controlCenterMachine.prepare(ownerId, view) is paired with clear(ownerId) on detach."""
+        """Control Center preparation is paired with owner cleanup on its declared destroy method."""
         text = source("app/src/main/java/tv/withaibuild/customiuizer/mods/utils/ControlCenterPluginRuntime.kt")
 
         owner_expr = r"System\.identityHashCode\s*\(\s*thisObject\s*\)"
@@ -131,8 +131,8 @@ class GestureLifecycleInventoryTest(unittest.TestCase):
             "ControlCenterWindowViewImpl onAttachedToWindow hook missing",
         )
         self.assertTrue(
-            find_hook_call(text, "miui.systemui.controlcenter.windowview.ControlCenterWindowViewImpl", "onDetachedFromWindow"),
-            "ControlCenterWindowViewImpl onDetachedFromWindow hook missing",
+            find_hook_call(text, "miui.systemui.controlcenter.windowview.ControlCenterWindowViewImpl", "destroy"),
+            "ControlCenterWindowViewImpl destroy hook missing",
         )
 
         prepare = re.search(
@@ -147,7 +147,7 @@ class GestureLifecycleInventoryTest(unittest.TestCase):
         self.assertIsNotNone(prepare, "controlCenterMachine.prepare(...) missing")
         self.assertIsNotNone(clear, "controlCenterMachine.clear(...) missing")
 
-        # Detach is guarded by the per-bind lease so stale callbacks are no-ops.
+        # Destruction is guarded by the per-bind lease so stale callbacks are no-ops.
         self.assertIn("if (!lease.active) return", text)
 
     def test_gesture_machine_owner_state_has_clear(self) -> None:

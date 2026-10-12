@@ -523,7 +523,10 @@ private val prefsChanged = Listener { sharedPreferences, key ->
     requestPreferenceWrite(sharedPreferences, key, generation)
 }
 val scope = Dispatchers.Default.limitedParallelism(1)
-if (throwable is OutOfMemoryError) throw throwable
+private val mirrorFailureHandler = CoroutineExceptionHandler { _, throwable ->
+    FatalErrors.unwrapAndRethrowIfFatal(throwable)
+    AppHelper.log("worker failed")
+}
 private fun requestMirrorPass(generation: Long, reason: String) {
     mirrorScope.launch { runMirror(generation, reason) }
 }
@@ -539,6 +542,29 @@ private val prefsChanged = Listener { sharedPreferences, key ->
 """
         findings = self.mod.check_preference_click_feedback(path, unsafe)
         self.assertEqual(7, len(findings))
+
+    def test_mirror_worker_requires_fatal_check_before_logging(self):
+        path = self._source_path("tv/withaibuild/customiuizer/utils/XposedServiceManager.kt")
+        prefix = """
+private val prefsChanged = Listener { sharedPreferences, key ->
+    requestPreferenceWrite(sharedPreferences, key, generation)
+}
+val scope = Dispatchers.Default.limitedParallelism(1)
+private fun requestMirrorPass(generation: Long, reason: String) {
+    mirrorScope.launch { runMirror(generation, reason) }
+}
+"""
+        unsafe_bodies = (
+            'AppHelper.log("worker failed")',
+            'if (throwable is OutOfMemoryError) throw throwable\nAppHelper.log("worker failed")',
+            'AppHelper.log("worker failed")\nFatalErrors.unwrapAndRethrowIfFatal(throwable)',
+        )
+        for body in unsafe_bodies:
+            with self.subTest(body=body):
+                text = prefix + "private val mirrorFailureHandler = Handler { _, throwable ->\n" + body + "\n}"
+                findings = self.mod.check_preference_click_feedback(path, text)
+                self.assertEqual(1, len(findings))
+                self.assertIn("fatal", findings[0].detail)
 
     def test_switch_inherits_row_pressed_state(self):
         path = self._source_path("tv/withaibuild/customiuizer/prefs/CheckBoxPreferenceEx.kt")

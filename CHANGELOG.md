@@ -6,6 +6,9 @@ Only retained releases are listed. Each section covers changes since the previou
 
 ## Unreleased
 
+- Use the A14 Control Center destroy callback for gesture cleanup and native single-key rules for navigation long presses; install navigation hooks only when an action is configured, requiring a phone restart on first enable.
+- Apply selected silent/DND shortcut colors through native blur blends or isolated smooth background fills, preserving alpha, icon animation and original colors on disable.
+- Preserve wrapped fatal errors in settings mirroring and avoid constructing discarded successful diagnostics in release builds.
 - Add a separate Duo charging-bolt switch, enabled by default; battery percentage and charging colour remain independent.
 - Retire five ineffective options and six hidden remnants on the A14 line, prune obsolete animation and lock-screen cover branches, and migrate retired preferences with contract revision 2.
 - Disable detailed network-speed formatting controls for the native style. Hide GuardProvider remote-detection blocking from international settings and search, and skip its installer on those ROMs.

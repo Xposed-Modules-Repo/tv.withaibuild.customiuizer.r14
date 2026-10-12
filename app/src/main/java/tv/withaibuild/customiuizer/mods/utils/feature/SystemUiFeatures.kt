@@ -230,7 +230,8 @@ internal class NavBarButtonsFeature(
         fun evaluateEnabled(prefs: PrefMap): Boolean = prefs.getInt("controls_navbarleft_action", 1) > 1 ||
         prefs.getInt("controls_navbarleftlong_action", 1) > 1 ||
         prefs.getInt("controls_navbarright_action", 1) > 1 ||
-        prefs.getInt("controls_navbarrightlong_action", 1) > 1
+        prefs.getInt("controls_navbarrightlong_action", 1) > 1 ||
+        prefs.getInt("controls_homelong_action", 1) > 1
     }
 
     override fun isEnabledCondition(prefs: PrefMap) = Companion.evaluateEnabled(prefs)
