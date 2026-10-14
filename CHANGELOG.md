@@ -2,9 +2,11 @@
 
 English | [简体中文](CHANGELOG_CN.md)
 
-Only retained releases are listed. Each section covers changes since the previous retained release; Git preserves the detailed history.
+Retained releases and withdrawal notices are listed. Each section covers changes since the previous retained release; Git preserves the detailed history.
 
 ## r14.23.1 — 2026-10-14
+
+Withdrawn: settings pages were empty and returning from About showed a blank screen. Static checks did not cover these UI interactions. The APK remains unavailable pending a fix and UI regression validation.
 
 HyperOS 1 / Android 14, versionCode 232. Changes since r14.22.7:
 
