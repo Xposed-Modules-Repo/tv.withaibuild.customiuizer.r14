@@ -26,11 +26,11 @@ abstract class WriteBuildProvenance : WriteProperties() {
 
 kotlin {
     compilerOptions {
-        // Upgrade the host compiler for its security fix without changing
-        // the project's Kotlin language/API level or Android JVM target.
+        // Keep the validated compiler and Kotlin language/API level while
+        // testing JVM 21 output in the user-authorized local branch.
         languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
         apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
     }
 }
 
@@ -62,7 +62,7 @@ if (officialRelease) {
     }
 }
 
-val lastVersion = 233
+val lastVersion = 234
 val lastVersionName = "r14.23.1"
 
 fun resolveBuildRevision(): String {
@@ -211,8 +211,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     java {
         toolchain {

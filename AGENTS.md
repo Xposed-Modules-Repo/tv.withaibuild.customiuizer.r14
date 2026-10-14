@@ -58,7 +58,7 @@ correctness
 ## 5. JVM
 
 - 构建运行时为 JDK 25。`JAVA_HOME` 指向 JDK 根目录，不得指向 `bin`。
-- Android 产物 `sourceCompatibility` / `targetCompatibility` 保持 17。
+- `main` 的 Android Java / Kotlin 输出目标保持 17；本次用户授权的本地 JVM 21 试验分支将 `sourceCompatibility` / `targetCompatibility` / `jvmTarget` 同步设为 21。该例外不代表已完成实机验收或授权推广到 `main`。
 - 不得为了绕过环境错误降级到 JDK 17。
 - 默认保留 Java：`MainModule.java`、`XposedHelpers.java`、`MemberUtilsX.java`。
 - Java→Kotlin 必须小批量、行为等价，并与功能变化分开。
