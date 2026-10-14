@@ -305,6 +305,8 @@ androidComponents {
         variant.sources.assets!!.addGeneratedSourceDirectory(
             writeProvenance, WriteBuildProvenance::outputDirectory
         )
+        // Standalone lint does not inherit generated-assets task dependencies.
+        variant.lifecycleTasks.registerPreBuild(writeProvenance)
         variant.androidResources.localeFilters.addAll(supportedLocales)
         variant.outputs.forEach { output ->
             val suffix = when (variant.name) {
