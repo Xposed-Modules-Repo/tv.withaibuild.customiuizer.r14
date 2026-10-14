@@ -8,6 +8,8 @@ Retained releases and withdrawal notices are listed. Each section covers changes
 
 Withdrawn: settings pages were empty and returning from About showed a blank screen. Static checks did not cover these UI interactions. The APK remains unavailable pending a fix and UI regression validation.
 
+The subsequent source fix removes page position and alpha changes during animator creation, preserves the pre-upgrade back behavior, and adds Android 14 model regression tests for all four categories and their settings pages, About return and recreation. Model tests pass; HyperOS device acceptance remains pending.
+
 HyperOS 1 / Android 14, versionCode 232. Changes since r14.22.7:
 
 - Add an independent Duo charging-bolt switch, enabled by default; percentage and charging colour remain independent.

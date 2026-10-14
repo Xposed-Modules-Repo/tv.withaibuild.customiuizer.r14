@@ -9,11 +9,18 @@
 | 静态契约 | `tools/verify.py`、`tools/check-invariants.py` | SDK / API、偏好、Feature、生命周期和热路径源码规则 |
 | Python 工具 | `python -m unittest discover -s tools/tests -p "test_*.py"` | 工具行为、源码/资源契约、ROM matrix、CI 配置 |
 | Android JVM | `testDebugUnitTest` | 行为、契约与回归；不运行真实 ROM Hook |
+| 设置界面模型 | `PreferenceNavigationUiTest`，由上述 JVM 任务执行 | 在 Android 14 模型中运行实际 FragmentManager、偏好 XML、动画与返回流程 |
 | 独立缺陷注入 | `tools/brutal_test_runner.py` | 注入缺陷是否被真实独立门禁拒绝 |
 | Full CI | `a14-ci.yml` 的 Full job | 无缓存 develop 双构建、APK 内容、R8 mapping 与 fatal lint |
 | 实机 | 指定 APK / ROM 下的操作与日志 | 实际安装、Hook、UI、生命周期和性能，限于已测场景 |
 
 静态命中数、用例数或一次绿构建不代表已知问题数量与全设备兼容性。保留行为、备份 V2、偏好、所有权、热路径、Dynamic Island、API 边界与 issue 回归测试；只有无 production subject、完全重复或锁死错误实现细节才可删除测试。
+
+设置界面回归使用仅供测试的 Robolectric，覆盖首页四个分类及其设置页、关于页返回、关闭动画、取消返回手势和 Activity 重建。断言页面留在屏幕内、XML 加载成功且列表有可见选项；不仅检查 Fragment 存在。测试中的 `miui.os.Build` 仅提供控制选项可见性的 ROM 标志，不模拟 HyperOS 框架或 Hook。
+
+`r14.23.1` 的白屏可在此模型中复现：旧动画创建时修改透明度和水平位置，使 Fragment 1.9 跳过入场动画，页面停在屏幕外。动画创建阶段必须保留框架正在准备的可见性状态。模型回归通过不能标为 HyperOS 实机验收；Fragment、动画或导航改动仍需目标设备检查。
+
+设置 Activity 保留升级前的完成手势后返回行为，通过 Fragment 的公开控制入口关闭升级默认引入的预测预览。在 1.9.1 模型中，取消预览会保留部分水平位移；直接使用平台 AnimatorSet 反向播放能回到原位，失败发生在 Fragment 的取消流程。重新启用预测预览前，必须验证这一回归及目标 HyperOS 手势，而不是只测试普通返回。
 
 ## 分阶段验证与 PR 合并
 

@@ -9,7 +9,7 @@
 - 应用 ID：`tv.withaibuild.customiuizer.r14`
 - [下载正式版](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/latest) · [源码与发行版](https://github.com/thetvplus/customiuizer-a14) · [更新记录](CHANGELOG_CN.md)
 
-`r14.23.1` 因设置子页及关于页返回白屏于 2026-10-14 紧急撤回，修复中。当前可下载版本为 `r14.22.7`；静态检查通过不能证明这些界面交互正常。
+`r14.23.1` 因设置子页及关于页返回白屏于 2026-10-14 紧急撤回。源码已修复并通过本地界面模型回归，尚待 HyperOS 实机验收，APK 继续撤回。当前可下载版本为 `r14.22.7`。
 
 ## 功能
 

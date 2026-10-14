@@ -1,8 +1,7 @@
 package tv.withaibuild.customiuizer
 
 import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.animation.ValueAnimator
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.BroadcastReceiver
@@ -588,28 +587,14 @@ open class PreferenceFragmentBase : PreferenceFragmentCompat() {
             else -> return null
         }
 
-        view.translationX = startTrans
-        view.alpha = 1.0f
-
         val duration = (animDur * Helpers.getAnimationScale(2) + 0.5f).toLong()
-        val animator = ValueAnimator.ofFloat(startTrans, endTrans)
-        animator.duration = duration
-        animator.interpolator = DecelerateInterpolator(1.2f)
-        animator.addUpdateListener { animation ->
-            view.translationX = animation.animatedValue as Float
+        // Fragment collects animators before preparing the view's entry visibility.
+        // Changing alpha here makes it skip the entry animation and leaves the page
+        // offscreen. Let Fragment own visibility and move the view only when started.
+        return ObjectAnimator.ofFloat(view, View.TRANSLATION_X, startTrans, endTrans).apply {
+            this.duration = duration
+            interpolator = DecelerateInterpolator(1.2f)
         }
-        animator.addListener(object : AnimatorListenerAdapter() {
-            override fun onAnimationEnd(animation: Animator) {
-                view.translationX = endTrans
-                view.alpha = 1.0f
-            }
-
-            override fun onAnimationCancel(animation: Animator) {
-                view.translationX = endTrans
-                view.alpha = 1.0f
-            }
-        })
-        return animator
     }
 
     private var currentLocale: Locale? = null
