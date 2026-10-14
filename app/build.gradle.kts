@@ -27,7 +27,7 @@ abstract class WriteBuildProvenance : WriteProperties() {
 kotlin {
     compilerOptions {
         // Keep the validated compiler and Kotlin language/API level while
-        // testing AGP and stdlib updates with JVM 25 output locally.
+        // testing the DexKit dependency update with JVM 25 output locally.
         languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
         apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25)
@@ -62,7 +62,7 @@ if (officialRelease) {
     }
 }
 
-val lastVersion = 236
+val lastVersion = 237
 val lastVersionName = "r14.23.1"
 
 fun resolveBuildRevision(): String {
