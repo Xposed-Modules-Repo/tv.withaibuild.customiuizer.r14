@@ -84,19 +84,19 @@ class VerifyJvmTargetTests(unittest.TestCase):
             ):
                 return _verify.check_static_rules()
 
-    def test_trial_keeps_jdk25_and_aligned_java_kotlin21(self):
+    def test_trial_keeps_jdk25_and_aligned_java_kotlin25(self):
         self.assertEqual(0, self.check_config(_verify.read_build_gradle()))
 
-    def test_each_output_target_must_remain21(self):
+    def test_each_output_target_must_remain25(self):
         build = _verify.read_build_gradle()
         for setting in ("sourceCompatibility", "targetCompatibility", "jvmTarget"):
             with self.subTest(setting=setting):
                 if setting == "jvmTarget":
-                    changed = build.replace("JvmTarget.JVM_21", "JvmTarget.JVM_17")
+                    changed = build.replace("JvmTarget.JVM_25", "JvmTarget.JVM_21")
                 else:
                     changed = build.replace(
+                        f"{setting} = JavaVersion.VERSION_25",
                         f"{setting} = JavaVersion.VERSION_21",
-                        f"{setting} = JavaVersion.VERSION_17",
                     )
                 self.assertNotEqual(build, changed)
                 with self.assertRaises(SystemExit):

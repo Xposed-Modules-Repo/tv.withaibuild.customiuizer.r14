@@ -4,7 +4,7 @@
 
 A system UI and interaction customization module maintained for **HyperOS 1 / Android 14**, derived from CustoMIUIzer. It has an independent package, signing identity and release line.
 
-- Current local trial: `r14.23.1` (versionCode 234, JVM 21); the published release remains build 233.
+- Current local trial: `r14.23.1` (versionCode 235, JVM 25); the published release remains build 233.
 - Development and maintenance: `thetvplus`
 - Application ID: `tv.withaibuild.customiuizer.r14`
 - [Download the official release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/latest) · [Source and releases](https://github.com/thetvplus/customiuizer-a14) · [Changelog](CHANGELOG.md)
@@ -38,7 +38,7 @@ Availability depends on the ROM and system-app versions. On API 101 frameworks, 
 
 ## Development and Maintenance
 
-Builds use JDK 25. This local trial aligns Java and Kotlin output targets at 21; the published stable line remains at 17. See the [JVM 21 local trial](docs/JVM21_LOCAL_TRIAL.md) for scope and validation results. Full local verification:
+Builds use JDK 25. This local trial aligns Java and Kotlin output targets at 25; the published stable line remains at 17. See the [local JVM trial](docs/JVM_LOCAL_TRIAL.md) for scope and validation results. Full local verification:
 
 ```powershell
 python tools/verify.py full

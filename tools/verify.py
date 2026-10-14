@@ -245,9 +245,9 @@ def check_static_rules() -> int:
     require_in_text(build, r'compileSdk\s*=\s*3[4-9]', "compileSdk >= 34")
     require_in_text(build, r'minSdk\s*=\s*34', "minSdk 34")
     require_in_text(build, r'targetSdk\s*=\s*34', "targetSdk 34")
-    require_in_text(build, r'sourceCompatibility\s*=\s*JavaVersion\.VERSION_21', "Java source compatibility 21")
-    require_in_text(build, r'targetCompatibility\s*=\s*JavaVersion\.VERSION_21', "Java target compatibility 21")
-    require_in_text(build, r'jvmTarget\.set\(org\.jetbrains\.kotlin\.gradle\.dsl\.JvmTarget\.JVM_21\)', "Kotlin JVM target 21")
+    require_in_text(build, r'sourceCompatibility\s*=\s*JavaVersion\.VERSION_25', "Java source compatibility 25")
+    require_in_text(build, r'targetCompatibility\s*=\s*JavaVersion\.VERSION_25', "Java target compatibility 25")
+    require_in_text(build, r'jvmTarget\.set\(org\.jetbrains\.kotlin\.gradle\.dsl\.JvmTarget\.JVM_25\)', "Kotlin JVM target 25")
     require_in_text(build, r'languageVersion\s*=\s*JavaLanguageVersion\.of\(25\)', "Java toolchain 25")
 
     daemon_criteria = REPO_ROOT / "gradle" / "gradle-daemon-jvm.properties"

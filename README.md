@@ -4,7 +4,7 @@
 
 面向 **HyperOS 1 / Android 14** 的系统界面与交互定制模块，基于 CustoMIUIzer 持续维护。使用独立包名、签名和版本线。
 
-- 当前本地试验：`r14.23.1`（versionCode 234，JVM 21）；公开发行版仍为 233。
+- 当前本地试验：`r14.23.1`（versionCode 235，JVM 25）；公开发行版仍为 233。
 - 维护与开发：`thetvplus`
 - 应用 ID：`tv.withaibuild.customiuizer.r14`
 - [下载正式版](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/latest) · [源码与发行版](https://github.com/thetvplus/customiuizer-a14) · [更新记录](CHANGELOG_CN.md)
@@ -38,7 +38,7 @@ Duo 默认关闭，入口为「系统 → 状态栏 → Duo 三合一状态栏�
 
 ## 开发与维护
 
-构建使用 JDK 25；此本地试验分支的 Java / Kotlin 输出目标同步设为 21，公开稳定线保持 17。试验范围和验证结果见 [JVM 21 本地试验](docs/JVM21_LOCAL_TRIAL.md)。完整验证入口：
+构建使用 JDK 25；此本地试验分支的 Java / Kotlin 输出目标同步设为 25，公开稳定线保持 17。试验范围和验证结果见 [JVM 本地试验](docs/JVM_LOCAL_TRIAL.md)。完整验证入口：
 
 ```powershell
 python tools/verify.py full

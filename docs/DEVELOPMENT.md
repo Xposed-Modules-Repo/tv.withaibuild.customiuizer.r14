@@ -4,7 +4,7 @@
 
 ## 环境
 
-- JDK 25；`JAVA_HOME` 指向 JDK 根目录，不能指向 `bin`。Gradle daemon 与 Java toolchain 都固定 25；本地 JVM 21 试验分支的 Java / Kotlin 输出目标同步为 21，公开稳定线保持 17。见 [试验范围与验证](JVM21_LOCAL_TRIAL.md)。
+- JDK 25；`JAVA_HOME` 指向 JDK 根目录，不能指向 `bin`。Gradle daemon 与 Java toolchain 都固定 25；本地 JVM 25 试验分支的 Java / Kotlin 输出目标同步为 25，公开稳定线保持 17。见 [试验范围与验证](JVM_LOCAL_TRIAL.md)。
 - Python 3.12 或更新版本；安装主机工具依赖：
   ```powershell
   python -m pip install -r tools/requirements.txt

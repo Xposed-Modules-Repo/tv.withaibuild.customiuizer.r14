@@ -6,9 +6,9 @@ Retained releases and withdrawal notices are listed. Each section covers changes
 
 ## r14.23.1 — 2026-10-14
 
-HyperOS 1 / Android 14, versionCode 234. Local JVM 21 trial only; the published release is build 233, which replaced the withdrawn build 232 of the same version. Changes since r14.22.7:
+HyperOS 1 / Android 14, versionCode 235. Local JVM 25 trial only; the published release is build 233, which replaced the withdrawn build 232 of the same version. Changes since r14.22.7:
 
-- Align Java source/target and Kotlin JVM output at 21 for local device evaluation, retaining the JDK 25 build runtime and existing compiler, R8 and runtime dependencies. No target-device performance or compatibility improvement is claimed.
+- Align Java source/target and Kotlin JVM output at 25 for local device evaluation after user feedback of no apparent issues with the JVM 21 trial (build 234). Retain the JDK 25 build runtime and existing compiler, R8 and runtime dependencies. JVM 25 device acceptance and performance measurements remain pending.
 
 - Fix blank settings pages and the blank screen on returning from About by preserving page position and alpha while collecting animators; retain the pre-upgrade back behavior. Add Android 14 UI-model regression tests for all four categories and their settings pages, return and recreation; no HyperOS device acceptance is recorded.
 - Add an independent Duo charging-bolt switch, enabled by default; percentage and charging colour remain independent.
