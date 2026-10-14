@@ -4,12 +4,12 @@
 
 A system UI and interaction customization module maintained for **HyperOS 1 / Android 14**, derived from CustoMIUIzer. It has an independent package, signing identity and release line.
 
-- Source version: `r14.23.1` (versionCode 232, withdrawn)
+- Current version: `r14.23.1` (versionCode 233)
 - Development and maintenance: `thetvplus`
 - Application ID: `tv.withaibuild.customiuizer.r14`
 - [Download the official release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/latest) · [Source and releases](https://github.com/thetvplus/customiuizer-a14) · [Changelog](CHANGELOG.md)
 
-`r14.23.1` was withdrawn on 2026-10-14 after reports of blank settings pages and a blank screen when returning from About. The source fix passes local UI-model regression tests; HyperOS device acceptance is pending and the APK remains withdrawn. The current downloadable version is `r14.22.7`.
+This build fixes blank settings pages and the blank screen when returning from About, replacing the withdrawn build 232 of the same version. Installation over the previous build retains application data with the same signing identity. Full checks and Android 14 UI-model regressions pass; no target HyperOS device acceptance is recorded.
 
 ## Features
 

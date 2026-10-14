@@ -6,12 +6,9 @@ Retained releases and withdrawal notices are listed. Each section covers changes
 
 ## r14.23.1 — 2026-10-14
 
-Withdrawn: settings pages were empty and returning from About showed a blank screen. Static checks did not cover these UI interactions. The APK remains unavailable pending a fix and UI regression validation.
+HyperOS 1 / Android 14, versionCode 233. Replaces the withdrawn build 232 of the same version, keeping the version name unchanged. Changes since r14.22.7:
 
-The subsequent source fix removes page position and alpha changes during animator creation, preserves the pre-upgrade back behavior, and adds Android 14 model regression tests for all four categories and their settings pages, About return and recreation. Model tests pass; HyperOS device acceptance remains pending.
-
-HyperOS 1 / Android 14, versionCode 232. Changes since r14.22.7:
-
+- Fix blank settings pages and the blank screen on returning from About by preserving page position and alpha while collecting animators; retain the pre-upgrade back behavior. Add Android 14 UI-model regression tests for all four categories and their settings pages, return and recreation; no HyperOS device acceptance is recorded.
 - Add an independent Duo charging-bolt switch, enabled by default; percentage and charging colour remain independent.
 - Refine silent and DND shortcut colours while preserving the native appearance and animation; restore original colours when custom styling is disabled.
 - Fix navigation long presses, key consumption and Control Center gesture cleanup. Restart the phone when first enabling navigation long presses.
