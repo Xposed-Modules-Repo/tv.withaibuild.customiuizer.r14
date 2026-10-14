@@ -6,18 +6,13 @@ Only retained releases are listed. Each section covers changes since the previou
 
 ## r14.23.1 — 2026-10-14
 
-HyperOS 1 / Android 14, versionCode 232. Incorporates r14.23.0; changes below are relative to r14.22.7:
-
-- Update build tooling and Fragment dependencies, normalize the Gradle launcher, and use staged validation without redundant checks.
-- Register generated preference resources, catalog and build provenance through public AGP APIs, replacing task-name dependency matching while preserving variant isolation.
-- Combine APK size reporting and budget comparisons, remove the duplicate entry point, and move two test-only contracts out of production sources while retaining regression coverage.
-- Remove a duplicate R8 option while preserving compact resources, dynamic resources and Hook/JNI rules. The controlled same-version APK comparison is content-identical; no unmeasured device-performance gains are claimed.
+HyperOS 1 / Android 14, versionCode 232. Changes since r14.22.7:
 
 - Add an independent Duo charging-bolt switch, enabled by default; percentage and charging colour remain independent.
-- Refine silent and DND shortcut colours while preserving the native appearance, alpha and animation; restore original colours when custom styling is disabled.
-- Fix navigation long-press triggering and key consumption, and improve Control Center gesture cleanup. Restart the phone when first enabling navigation long presses.
-- Remove ineffective A14 features and their old settings, and refine native network-speed and international-ROM options.
-- Improve settings-sync error handling and reduce temporary startup-diagnostics objects.
+- Refine silent and DND shortcut colours while preserving the native appearance and animation; restore original colours when custom styling is disabled.
+- Fix navigation long presses, key consumption and Control Center gesture cleanup. Restart the phone when first enabling navigation long presses.
+- Remove ineffective A14 features and old settings, refine native network-speed and international-ROM options, and improve settings-sync error handling with fewer startup-diagnostics objects.
+- Update build tooling and Fragment dependencies, use public AGP APIs for generated tasks, consolidate APK tools and remove test-only production sources and duplicate configuration while retaining resource compression and Hook compatibility boundaries.
 
 ## r14.22.7 — 2026-10-09
 
