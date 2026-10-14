@@ -17,6 +17,8 @@ Kotlin 编译器、协程、AppCompat、Fragment、Preference 与 Commons Lang �
 
 执行现有 Fast / Full、Python 工具测试、Release / R8 构建、签名与来源检查。确认 Java 和 Kotlin 中间 class 的 major version 为 69。使用相同源码、版本和 revision，对比旧 AGP/stdlib 组合与新组合，检查资源 ID、AAPT2 compact 结果、native/Xposed 元数据和新增平台 API。双次无缓存新组合构建检查 APK / mapping 可重复性。
 
-原始日志、构建退出码与耗时、APK / DEX 对照和重复构建结果保存在忽略目录 `.di-evidence/toolchain-20261014/`；本地试用包与验收说明保存在 `release-output/r14.23.1-toolchain-local-236/`，不将 APK、mapping 或签名材料提交 Git。旧组合对照通过该忽略目录内的 Gradle init script 覆盖插件和运行库版本，其余输入保持相同；它仅作为测量对照，不是默认构建配置。此前目标 21/25 的证据和试用包保留在原有本地目录。
+原始日志、构建退出码与耗时、APK / DEX 对照和重复构建结果保存在忽略目录 `.di-evidence/toolchain-20261014/`；本地试用包与验收说明保存在 `release-output/r14.23.1-toolchain-local-236/`，不将 APK、mapping 或签名材料提交 Git。旧组合对照由同提交的 `git archive` 创建隔离副本，仅修改版本目录中的 AGP 和 Kotlin BOM / stdlib 版本，保持编译器及其余构建输入相同；它仅作为测量对照，不是默认构建配置。此前目标 21/25 的证据和试用包保留在原有本地目录。
+
+本轮实际结果：R8 9.3.28 → 9.4.24；相同输入的 APK 均为 3,769,157 字节，DEX 2,012,564 → 2,012,372 字节（减少 192 字节），没有可见 APK 瘦身收益。资源 ID / 值、资源文件、Manifest、native、业务 assets 和保留成员集合一致，平台 API 引用没有变化。两次禁用缓存与增量的 clean 新组合构建，APK 和 mapping 分别字节一致。Fast / Full、2591 JVM 测试（跳过 2，包含 7 项设置导航界面模型）及 507 Python 测试（跳过 5）零失败，Release / R8 analyzer / lintRelease、正式证书 V2 签名与 16 KiB 对齐检查通过。实际构建耗时和完整数据见本地验收说明；没有实机性能测量，不宣称运行更快。
 
 目标设备验收由用户进行，至少覆盖安装与模块启用、所有设置分类和子页、关于页返回、偏好保存、System UI / Launcher / system_server 的既有 Hook。静态门禁和 Android 14 界面模型不能代替目标 HyperOS 1 实机，也不能证明内存或 CPU 已改善。
