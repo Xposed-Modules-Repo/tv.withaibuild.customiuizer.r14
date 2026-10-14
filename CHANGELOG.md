@@ -6,9 +6,10 @@ Retained releases and withdrawal notices are listed. Each section covers changes
 
 ## r14.23.1 — 2026-10-14
 
-HyperOS 1 / Android 14, versionCode 235. Local JVM 25 trial only; the published release is build 233, which replaced the withdrawn build 232 of the same version. Changes since r14.22.7:
+HyperOS 1 / Android 14, versionCode 236. Local JVM 25 toolchain trial only; the published release is build 233, which replaced the withdrawn build 232 of the same version. Changes since r14.22.7:
 
-- Align Java source/target and Kotlin JVM output at 25 for local device evaluation after user feedback of no apparent issues with the JVM 21 trial (build 234). Retain the JDK 25 build runtime and existing compiler, R8 and runtime dependencies. JVM 25 device acceptance and performance measurements remain pending.
+- Update AGP from 9.3.3 to 9.4.1 with its bundled R8, and Kotlin BOM/stdlib from 2.3.21 to 2.4.21 for local evaluation. Retain compiler 2.4.21, language/API 2.2, JVM 25 output and DexKit 2.2.0; the new toolchain/runtime-library combination still needs device acceptance.
+- Align Java source/target and Kotlin JVM output at 25. Users reported no apparent issues with the JVM 21 and JVM 25 trials (builds 234/235); no measured ART performance improvement is claimed.
 
 - Fix blank settings pages and the blank screen on returning from About by preserving page position and alpha while collecting animators; retain the pre-upgrade back behavior. Add Android 14 UI-model regression tests for all four categories and their settings pages, return and recreation; no HyperOS device acceptance is recorded.
 - Add an independent Duo charging-bolt switch, enabled by default; percentage and charging colour remain independent.
