@@ -12,6 +12,7 @@
 | 支持范围与待确认 ROM 行为 | [COMPATIBILITY.md](../COMPATIBILITY.md) |
 | Duo 使用规则 | [DUO_STATUS_BAR.md](DUO_STATUS_BAR.md) |
 | 性能、体积与移除证据 | [OPTIMIZATION_GATES.md](OPTIMIZATION_GATES.md) |
+| 工具分类与调用依据 | [TOOLS.md](TOOLS.md) |
 | Java / Kotlin 调用边界 | [JAVA_BOUNDARY_ALLOWLIST.md](JAVA_BOUNDARY_ALLOWLIST.md) |
 | 遗留功能语义契约 | [LEGACY_SEMANTIC_CALIBRATION.md](maintenance/LEGACY_SEMANTIC_CALIBRATION.md) |
 | A14 功能退役与旧偏好清理 | [A14_FEATURE_RETIREMENTS.md](maintenance/A14_FEATURE_RETIREMENTS.md) |

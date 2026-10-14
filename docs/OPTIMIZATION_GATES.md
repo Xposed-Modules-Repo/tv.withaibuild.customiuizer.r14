@@ -29,13 +29,23 @@ python tools/hook_body_prefmap_scan.py --check
 
 比较最终 APK 的 DEX、资源表、资源文件、native、manifest 与 ZIP 条目；使用 [apk_size_report.py](../tools/apk_size_report.py)、[apk_size_delta.py](../tools/apk_size_delta.py) 和 [apk_semantic_diff.py](../tools/apk_semantic_diff.py) 的帮助参数，不用源文件长度代替发行体积。
 
+单 APK 归因与轻量预算比较统一使用 `apk_size_report.py`：
+
+```powershell
+python tools/apk_size_report.py before.apk --out before.json
+python tools/apk_size_report.py after.apk --out after.json
+python tools/apk_size_report.py before.json --compare after.json --apk-budget-kb 100 --dex-budget-kb 50
+```
+
+比较入口替代旧 `compare_apk_size.py`，保留绝对差值预算：增加或减少超过预算都返回失败，预算内返回 0。需要多变体、显式源码 provenance 与 Markdown 报告时使用 `apk_size_delta.py`；ZIP 内容可重复性仍由 `apk_semantic_diff.py` 验证。工具分类与调用依据见 [TOOLS.md](TOOLS.md)。
+
 保留用户旧备份解码、ROM ABI fallback、原生 unwind 信息和必要 consumer rules。转递库的类若已被 R8 清掉，排除该库未必降低 APK；Startup / ProfileInstaller 的 manifest 与 profile 输入也必须核查。保持 DEX / native 直接映射所需 ZIP 布局。
 
 ## 保留的测量方法与维护决定
 
 - 应用列表以固定数据对照已选项稳定分组和每项状态读取次数；搜索以分配计数验证准备字段的效果，避免脆弱耗时阈值。元数据准备与四类适配器接入属于同一回退单位。
 - 备份对照覆盖最大允许 payload、严格格式 / CRC、输入所有权与可变集合；避免只测正常小文件。
-- 资源表压缩比较完整 AAPT2 dump，并在 Android 14 上检查资源名、ID、类型、值、密度、语言、day/night 与缺失项。当前处理依赖固定 AGP 的内部 `OptimizeResourcesTask`，升级 AGP 必须复核；参考 [AAPT2](https://developer.android.com/tools/aapt2) 与 [Android 14 资源格式](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/android14-release/libs/androidfw/include/androidfw/ResourceTypes.h)。
+- 资源表压缩比较完整 AAPT2 dump，并在 Android 14 上检查资源名、ID、类型、值、密度、语言、day/night 与缺失项。隔离 compact 效果时，先对 R8 转回 binary 的资源包执行 `aapt2 optimize --shorten-resource-paths`，再对该输出执行 `aapt2 optimize --enable-compact-entries`；比较两份完整 dump，避免把路径缩短也计为 compact 收益。当前处理依赖固定 AGP 的内部 `OptimizeResourcesTask`，声明输入标记并在签名之前处理该任务自己的输出；公开 artifact API 没有等效的 optimized resource package 入口，继续保留。升级 AGP 必须复核无缓存双构建、mapping、资源 dump、UP-TO-DATE / FROM-CACHE 输出和最终 APK 对齐；参考 [AAPT2](https://developer.android.com/tools/aapt2) 与 [Android 14 资源格式](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/android14-release/libs/androidfw/include/androidfw/ResourceTypes.h)。
 - 2026-10-09 的 fuxi 独立 ART 对照未证明 DexKit 2.3.0 或更高 JVM 输出有稳定收益，当前保留 DexKit 2.2.0 与 JVM 17。原始采样留在仓库外，历史结论不替代后续版本评估。
 - 当前缓存、monitor、FeatureRegistry 和 StrongToast 基础设施保持已有边界；“可以缓存”或静态模式命中不足以构成缺陷。
 

@@ -4,9 +4,14 @@ English | [简体中文](CHANGELOG_CN.md)
 
 Only retained releases are listed. Each section covers changes since the previous retained release; Git preserves the detailed history.
 
-## Unreleased
+## r14.23.1 — 2026-10-14
+
+HyperOS 1 / Android 14, versionCode 232. Changes since r14.23.0:
 
 - Update build tooling and Fragment dependencies, normalize the Gradle launcher, and use staged validation without redundant checks.
+- Register generated preference resources, catalog and build provenance through public AGP APIs, replacing task-name dependency matching while preserving variant isolation.
+- Combine APK size reporting and budget comparisons, remove the duplicate entry point, and move two test-only contracts out of production sources while retaining regression coverage.
+- Remove a duplicate R8 option while preserving compact resources, dynamic resources and Hook/JNI rules. The controlled same-version APK comparison is content-identical; no unmeasured device-performance gains are claimed.
 
 ## r14.23.0 — 2026-10-12
 

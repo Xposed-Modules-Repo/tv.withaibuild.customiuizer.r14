@@ -439,10 +439,13 @@ class GeneratePreferenceArtifactsTest(unittest.TestCase):
         self.assertIn("res.getXml(R.xml.mod_search_index)", helpers)
         self.assertNotIn("parsePrefXml(context", helpers)
         self.assertIn("generatePreferenceArtifacts", build_script)
-        self.assertIn("dependsOn(generatePreferenceArtifacts)", build_script)
+        for output in ("resourcesOutputDirectory", "catalogOutputDirectory"):
+            self.assertIn(f"GeneratePreferenceArtifacts::{output}", build_script)
         self.assertIn("--catalog-output", build_script)
         self.assertIn("generatedPreferenceCatalogDir", build_script)
-        self.assertIn("kotlin.directories.add", build_script)
+        self.assertIn("variant.sources.res!!.addGeneratedSourceDirectory", build_script)
+        self.assertIn("variant.sources.kotlin!!.addGeneratedSourceDirectory", build_script)
+        self.assertNotIn("afterEvaluate", build_script)
 
         expected_files = set(EXPECTED_SPLITS.values()) | {
             "prefs_system_cat.xml",

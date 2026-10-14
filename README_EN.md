@@ -4,7 +4,7 @@
 
 A system UI and interaction customization module maintained for **HyperOS 1 / Android 14**, derived from CustoMIUIzer. It has an independent package, signing identity and release line.
 
-- Current version: `r14.23.0` (versionCode 231)
+- Current version: `r14.23.1` (versionCode 232)
 - Development and maintenance: `thetvplus`
 - Application ID: `tv.withaibuild.customiuizer.r14`
 - [Download the official release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/latest) · [Source and releases](https://github.com/thetvplus/customiuizer-a14) · [Changelog](CHANGELOG.md)

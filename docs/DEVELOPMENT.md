@@ -48,6 +48,6 @@ git diff --check
 | develop | R8 / 资源收缩与 CI 可重复性验证；默认未签名 |
 | release | 正式候选；只有用户明确要求且仓库外签名有效才作为正式发行 |
 
-输出在 `app/build/outputs/`。设置 XML 的分页面、搜索索引与偏好目录由 `generatePreferenceArtifacts` 生成到 `app/build/generated/`，不要直接改生成文件。正式构建使用 [RELEASE.md](RELEASE.md) 中的外部签名与 exact revision 命令；未提供正式签名的 release 带 `-unsigned`，不能冒充正式版。
+输出在 `app/build/outputs/`。设置 XML 的分页面、搜索索引与偏好目录由 `generatePreferenceArtifacts` 生成到 `app/build/generated/`，不要直接改生成文件。生成 res / Kotlin 与各变体独立的 provenance assets 通过 AGP 的 [addGeneratedSourceDirectory](https://developer.android.com/reference/tools/gradle-api/9.3/com/android/build/api/variant/SourceDirectories#addGeneratedSourceDirectory(org.gradle.api.tasks.TaskProvider,kotlin.Function1)) 注册；编译、资源处理、assets 合并和 lint 的任务依赖由声明的输出建立，不匹配内部任务名。正式构建使用 [RELEASE.md](RELEASE.md) 中的外部签名与 exact revision 命令；未提供正式签名的 release 带 `-unsigned`，不能冒充正式版。
 
 ROM 样本、日志、mapping、profiler 数据、APK 和签名材料留在忽略目录或仓库外。整合分支逐项审查冲突，完整通过收口门禁后再按授权清理旧分支；普通开发授权不包含 push / merge main / tag / release。

@@ -1,12 +1,27 @@
 import java.util.Properties
 import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.WriteProperties
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.tasks.OutputDirectory
 import com.android.build.gradle.internal.tasks.OptimizeResourcesTask
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
 plugins {
     alias(libs.plugins.android.application)
+}
+
+abstract class GeneratePreferenceArtifacts : Exec() {
+    @get:OutputDirectory
+    abstract val resourcesOutputDirectory: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val catalogOutputDirectory: DirectoryProperty
+}
+
+abstract class WriteBuildProvenance : WriteProperties() {
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
 }
 
 kotlin {
@@ -47,8 +62,8 @@ if (officialRelease) {
     }
 }
 
-val lastVersion = 231
-val lastVersionName = "r14.23.0"
+val lastVersion = 232
+val lastVersionName = "r14.23.1"
 
 fun resolveBuildRevision(): String {
     val prop = project.findProperty("buildRevision")?.toString()
@@ -97,23 +112,23 @@ val generatedPreferenceResourcesDir = layout.buildDirectory.dir("generated/res/p
 val generatedPreferenceCatalogDir = layout.buildDirectory.dir("generated/source/preference-catalog/main")
 val preferenceJavaDir = layout.projectDirectory.dir("src/main/java")
 
-val generatePreferenceArtifacts = tasks.register<Exec>("generatePreferenceArtifacts") {
+val generatePreferenceArtifacts = tasks.register<GeneratePreferenceArtifacts>("generatePreferenceArtifacts") {
     description = "Generates lazy preference pages, search index, and current preference catalog"
     group = "build"
     inputs.file(preferenceArtifactGenerator)
     inputs.dir(preferenceSourceDir)
     inputs.dir(preferenceJavaDir)
-    outputs.dir(generatedPreferenceResourcesDir)
-    outputs.dir(generatedPreferenceCatalogDir)
+    resourcesOutputDirectory.set(generatedPreferenceResourcesDir)
+    catalogOutputDirectory.set(generatedPreferenceCatalogDir)
     commandLine(
         providers.environmentVariable("PYTHON").orElse("python").get(),
         preferenceArtifactGenerator.asFile.absolutePath,
         "--source-dir",
         preferenceSourceDir.asFile.absolutePath,
         "--output-dir",
-        generatedPreferenceResourcesDir.get().asFile.absolutePath,
+        resourcesOutputDirectory.get().asFile.absolutePath,
         "--catalog-output",
-        generatedPreferenceCatalogDir.get().asFile.absolutePath,
+        catalogOutputDirectory.get().asFile.absolutePath,
         "--java-dir",
         preferenceJavaDir.asFile.absolutePath,
     )
@@ -222,20 +237,15 @@ android {
         // Disables dependency metadata when building Android App Bundles.
         includeInBundle = false
     }
-    sourceSets.getByName("main").res.directories.add(
-        generatedPreferenceResourcesDir.get().asFile.absolutePath
-    )
-    sourceSets.getByName("main").kotlin.directories.add(
-        generatedPreferenceCatalogDir.get().asFile.absolutePath
-    )
 }
 
 val buildProvenanceDir = layout.buildDirectory.dir("generated/assets/build-provenance")
 
-val writeDebugBuildProvenance = tasks.register<WriteProperties>("writeDebugBuildProvenance") {
+val writeDebugBuildProvenance = tasks.register<WriteBuildProvenance>("writeDebugBuildProvenance") {
     description = "Writes build-provenance.properties for the debug variant"
     group = "build"
-    destinationFile.set(buildProvenanceDir.map { it.dir("debug").file("build-provenance.properties") })
+    outputDirectory.set(buildProvenanceDir.map { it.dir("debug") })
+    destinationFile.set(outputDirectory.file("build-provenance.properties"))
     properties(
         mapOf(
             "revision" to buildRevision,
@@ -246,10 +256,11 @@ val writeDebugBuildProvenance = tasks.register<WriteProperties>("writeDebugBuild
     )
 }
 
-val writeDevelopBuildProvenance = tasks.register<WriteProperties>("writeDevelopBuildProvenance") {
+val writeDevelopBuildProvenance = tasks.register<WriteBuildProvenance>("writeDevelopBuildProvenance") {
     description = "Writes build-provenance.properties for the develop variant"
     group = "build"
-    destinationFile.set(buildProvenanceDir.map { it.dir("develop").file("build-provenance.properties") })
+    outputDirectory.set(buildProvenanceDir.map { it.dir("develop") })
+    destinationFile.set(outputDirectory.file("build-provenance.properties"))
     properties(
         mapOf(
             "revision" to buildRevision,
@@ -260,10 +271,11 @@ val writeDevelopBuildProvenance = tasks.register<WriteProperties>("writeDevelopB
     )
 }
 
-val writeReleaseBuildProvenance = tasks.register<WriteProperties>("writeReleaseBuildProvenance") {
+val writeReleaseBuildProvenance = tasks.register<WriteBuildProvenance>("writeReleaseBuildProvenance") {
     description = "Writes build-provenance.properties for the release variant"
     group = "build"
-    destinationFile.set(buildProvenanceDir.map { it.dir("release").file("build-provenance.properties") })
+    outputDirectory.set(buildProvenanceDir.map { it.dir("release") })
+    destinationFile.set(outputDirectory.file("build-provenance.properties"))
     properties(
         mapOf(
             "revision" to buildRevision,
@@ -274,48 +286,25 @@ val writeReleaseBuildProvenance = tasks.register<WriteProperties>("writeReleaseB
     )
 }
 
-android.sourceSets.getByName("debug").assets.directories.add(
-    buildProvenanceDir.get().dir("debug").asFile.absolutePath
-)
-android.sourceSets.getByName("develop").assets.directories.add(
-    buildProvenanceDir.get().dir("develop").asFile.absolutePath
-)
-android.sourceSets.getByName("release").assets.directories.add(
-    buildProvenanceDir.get().dir("release").asFile.absolutePath
-)
-
-afterEvaluate {
-    tasks.named("preBuild").configure {
-        dependsOn(generatePreferenceArtifacts)
-    }
-    tasks.named("mergeDebugAssets").configure {
-        dependsOn(writeDebugBuildProvenance)
-    }
-    tasks.named("mergeDevelopAssets").configure {
-        dependsOn(writeDevelopBuildProvenance)
-    }
-    tasks.named("mergeReleaseAssets").configure {
-        dependsOn(writeReleaseBuildProvenance)
-    }
-
-    // Lint, model and analysis tasks read the generated assets directory, so they
-    // must run after the per-variant provenance file has been written.
-    tasks.configureEach {
-        if (name.startsWith("write") || !name.contains("Lint", ignoreCase = true)) {
-            return@configureEach
-        }
-        val writeTask = when {
-            name.contains("Debug") -> writeDebugBuildProvenance
-            name.contains("Develop") -> writeDevelopBuildProvenance
-            name.contains("Release") -> writeReleaseBuildProvenance
-            else -> null
-        }
-        writeTask?.let { dependsOn(it) }
-    }
-}
-
 androidComponents {
     onVariants(selector().all()) { variant ->
+        // AGP wires every consuming task (including lint and compilation) to the
+        // generators through their declared outputs, without task-name matching.
+        variant.sources.res!!.addGeneratedSourceDirectory(
+            generatePreferenceArtifacts, GeneratePreferenceArtifacts::resourcesOutputDirectory
+        )
+        variant.sources.kotlin!!.addGeneratedSourceDirectory(
+            generatePreferenceArtifacts, GeneratePreferenceArtifacts::catalogOutputDirectory
+        )
+        val writeProvenance = when (variant.name) {
+            "debug" -> writeDebugBuildProvenance
+            "develop" -> writeDevelopBuildProvenance
+            "release" -> writeReleaseBuildProvenance
+            else -> error("Build provenance is not configured for ${variant.name}")
+        }
+        variant.sources.assets!!.addGeneratedSourceDirectory(
+            writeProvenance, WriteBuildProvenance::outputDirectory
+        )
         variant.androidResources.localeFilters.addAll(supportedLocales)
         variant.outputs.forEach { output ->
             val suffix = when (variant.name) {
