@@ -25,4 +25,6 @@
 
 237 的验证复用既有流程：Fast / Full、Python 工具测试与签名 Release / R8 analyzer / lintRelease；确认实际解析 DexKit 2.3.0、arm64 ELF 与 JNI 入口保留、16 KiB ZIP 对齐、SDK / Xposed 元数据、资源 ID / 值及新增平台 API。证据保存到忽略目录 `.di-evidence/dexkit23-local-20261015/`，APK 与验收说明保存到 `release-output/r14.23.1-dexkit23-local-237/`。本轮验证升级可构建与静态兼容，不重做优化收益基准。
 
+237 阶段实际结果：Fast / Full、2591 JVM 测试（跳过 2）和 507 Python 测试（跳过 5）零失败；单次 clean Release / R8 analyzer / lintRelease、原证书 V2 签名与 16 KiB 对齐检查通过。APK 为 3,799,501 字节，DEX 为 2,016,556 字节，native 为 394,984 字节。资源 ID / 值、业务 assets、项目保留成员和服务加载接口 / provider 保持；原有 34 个 JNI 导出保留，新库共 35 个，没有新增 native 系统导入。两个新增 Java 平台方法均自 API 1 可用。本阶段尚未执行 native 查询或重复 Release 验证，实机验收仍待用户试用。
+
 目标设备验收由用户进行，至少覆盖安装与模块启用、所有设置分类和子页、关于页返回、偏好保存、System UI / Launcher / system_server 的既有 Hook。237 还需覆盖截图保存位置功能，以及国内 ROM 的远程防诈检测拦截功能（国际版隐藏该功能）。静态门禁和 Android 14 界面模型不能代替目标 HyperOS 1 实机与 native 查询，也不能证明内存或 CPU 已改善。
