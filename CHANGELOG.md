@@ -6,8 +6,9 @@ Retained releases and withdrawal notices are listed. Each section covers changes
 
 ## r14.23.1 — 2026-10-15
 
-HyperOS 1 / Android 14, versionCode 240. Local upgrade trial only; the published release is build 233, which replaced the withdrawn build 232 of the same version. Changes since r14.22.7:
+HyperOS 1 / Android 14, versionCode 241. Local upgrade trial only; the published release is build 233, which replaced the withdrawn build 232 of the same version. Changes since r14.22.7:
 
+- Build 241 propagates wrapped fatal errors from Hook callbacks and the original method before after-hook recovery, preserving ordinary recovery, argument rewrites and proceed counts. Share the empty argument array and remove unused API 102 placeholder IDs. Check mirror commit results and keep delivery warnings after an unconfirmed commit despite the service SDK's optimistic cache; retain one retry per connection.
 - Raise Kotlin language/API from 2.2 to stable 2.4 in build 240, keeping compiler/stdlib 2.4.21, AGP 9.4.1 and JVM 25. Full checks, repeatable signed builds and a HyperOS 1 device smoke test pass; all three API 102 IDs are confirmed. APK size is unchanged; no performance gain is claimed.
 - Assign stable IDs to the existing SystemUI initializer, plugin creation and Application.attach hooks on API 102, and confirm them through handle readback. Keep API 101 installers, overload selection, callbacks and lifecycle; isolate optional calls from R8 inlining, avoid installation retries and propagate proxy-wrapped fatal errors. Hot reload and explicit hook replacement remain deferred.
 - Add optional DexSQL queries and a native MCP workflow for ROM definitions, call references and final APK isolation checks. Safe staged upgrades no longer require demonstrated performance gains.

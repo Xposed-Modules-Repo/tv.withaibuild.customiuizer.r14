@@ -85,19 +85,7 @@ internal object Api102HookBridge {
     }
 
     /** Short, fixed stable hook IDs for infrastructure hooks.  Never dynamically joined. */
-    @JvmStatic
-    val STABLE_ID_RES_TEXT = "res.text"
-    @JvmStatic
-    val STABLE_ID_RES_STRING = "res.string"
-    @JvmStatic
-    val STABLE_ID_RES_LAYOUT = "res.layout"
-    @JvmStatic
-    val STABLE_ID_RES_DRAWABLE_DENSITY = "res.drawable_density"
-    @JvmStatic
-    val STABLE_ID_RES_THEME_MERGE = "res.theme_merge"
     const val STABLE_ID_SYSTEMUI_INIT = "systemui.init"
     const val STABLE_ID_PLUGIN_CREATE = "systemui.plugin.create"
     const val STABLE_ID_APPLICATION_ATTACH = "application.attach"
-    @JvmStatic
-    val STABLE_ID_LAUNCHER_INIT = "launcher.init"
 }

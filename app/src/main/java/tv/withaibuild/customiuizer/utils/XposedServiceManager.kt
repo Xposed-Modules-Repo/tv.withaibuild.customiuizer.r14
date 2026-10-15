@@ -269,7 +269,7 @@ object XposedServiceManager {
                 val edit = remote.edit()
                 val value = sharedPreferences.all[key]
                 if (value == null) edit.remove(key) else putValue(edit, key, value)
-                edit.commit()
+                commitRemote(edit, generation)
             } catch (oom: OutOfMemoryError) {
                 throw oom
             } catch (t: Throwable) {
@@ -310,6 +310,17 @@ object XposedServiceManager {
         // would otherwise fill the log with identical lines.
         if (mirrorState.markUndelivered()) {
             AppHelper.log(LOG_TAG, "settings change not mirrored to the module ($reason)")
+        }
+    }
+
+    /** A rejected write still changes the SDK cache, so a later empty diff is not delivery. */
+    private fun commitRemote(edit: SharedPreferences.Editor, generation: Long): Boolean {
+        return try {
+            edit.commit().also { if (!it) mirrorState.recordUnconfirmedCommit(generation) }
+        } catch (t: Throwable) {
+            FatalErrors.unwrapAndRethrowIfFatal(t)
+            mirrorState.recordUnconfirmedCommit(generation)
+            throw t
         }
     }
 
@@ -405,7 +416,7 @@ object XposedServiceManager {
         }
     }
 
-    /** One pass. Returns true only if a plan was built and committed without throwing. */
+    /** One pass. A nonempty plan succeeds only after a confirmed commit. */
     private fun mirrorPass(generation: Long, reason: String): Boolean {
         if (!mirrorState.isCurrent(generation)) return false
         val remote = remotePrefs ?: return false
@@ -416,7 +427,11 @@ object XposedServiceManager {
                 val edit = remote.edit()
                 for ((planKey, planValue) in plan.puts) putValue(edit, planKey, planValue)
                 for (planKey in plan.removes) edit.remove(planKey)
-                edit.commit()
+                if (!commitRemote(edit, generation)) {
+                    markUndelivered("mirror commit failed")
+                    scheduleMirrorRetry(generation)
+                    return false
+                }
                 AppHelper.log(LOG_TAG, "mirrored ${plan.size} setting(s) to the module ($reason)")
                 sendSystemServerInvalidation(null)
             }

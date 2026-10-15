@@ -250,17 +250,28 @@ override fun beforeHook(callback: BeforeHookCallback) {
     catch (oom: OutOfMemoryError) { throw oom }
     catch (td: ThreadDeath) { throw td }
     catch (vme: VirtualMachineError) { throw vme }
-    catch (t: Throwable) { log(t) }
+    catch (t: Throwable) { FatalErrors.unwrapAndRethrowIfFatal(t); log(t) }
 }
 override fun afterHook(callback: AfterHookCallback) {
     try { after(callback) }
     catch (oom: OutOfMemoryError) { throw oom }
     catch (td: ThreadDeath) { throw td }
     catch (vme: VirtualMachineError) { throw vme }
-    catch (t: Throwable) { log(t) }
+    catch (t: Throwable) { FatalErrors.unwrapAndRethrowIfFatal(t); log(t) }
 }
 """
         self.assertEqual([], self.mod.check_method_hook_fatal_boundary(path, clean))
+        for replacement in (
+            "",  # Direct catches alone cannot protect wrapped errors.
+            "log(t); FatalErrors.unwrapAndRethrowIfFatal(t); ",
+            "FatalErrors.unwrapAndRethrowIfFatal(other); ",
+        ):
+            broken = clean.replace("FatalErrors.unwrapAndRethrowIfFatal(t); ", replacement)
+            self.assertEqual(2, len(self.mod.check_method_hook_fatal_boundary(path, broken)))
+        centralized = clean
+        for fatal, variable in (("OutOfMemoryError", "oom"), ("ThreadDeath", "td"), ("VirtualMachineError", "vme")):
+            centralized = centralized.replace(f"    catch ({variable}: {fatal}) {{ throw {variable} }}\n", "")
+        self.assertEqual([], self.mod.check_method_hook_fatal_boundary(path, centralized))
 
         unsafe = """
 override fun beforeHook(callback: BeforeHookCallback) {

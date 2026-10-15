@@ -138,6 +138,29 @@ public class XposedServiceManagerFatalBoundaryTest {
     }
 
     private static void withMirrorFailure(Throwable failure, MirrorAssertion assertion) throws Throwable {
+        SharedPreferences local = (SharedPreferences) Proxy.newProxyInstance(
+                SharedPreferences.class.getClassLoader(), new Class<?>[] { SharedPreferences.class },
+                (proxy, method, args) -> {
+                    if (method.getName().equals("getAll")) return Collections.emptyMap();
+                    throw new AssertionError("unexpected local preference operation: " + method.getName());
+                });
+        Constructor<RemotePreferences> constructor = RemotePreferences.class
+                .getDeclaredConstructor(XposedService.class, String.class);
+        constructor.setAccessible(true);
+        RemotePreferences remote = constructor.newInstance(null, "test-fatal-boundary");
+        Field mapField = RemotePreferences.class.getDeclaredField("mMap");
+        mapField.setAccessible(true);
+        mapField.set(remote, new AbstractMap<String, Object>() {
+            @Override public Set<Entry<String, Object>> entrySet() {
+                XposedServiceManagerFatalBoundaryTest.<RuntimeException>throwUnchecked(failure);
+                return Collections.emptySet();
+            }
+        });
+        withMirrorPreferences(local, remote, assertion);
+    }
+
+    static void withMirrorPreferences(SharedPreferences local, RemotePreferences remote,
+                                      MirrorAssertion assertion) throws Throwable {
         XposedServiceManager manager = XposedServiceManager.INSTANCE;
         Field stateField = XposedServiceManager.class.getDeclaredField("mirrorState");
         stateField.setAccessible(true);
@@ -154,25 +177,7 @@ public class XposedServiceManagerFatalBoundaryTest {
         try {
             long generation = state.onBind();
             state.clearUndelivered(generation);
-            AppHelper.appPrefs = (SharedPreferences) Proxy.newProxyInstance(
-                    SharedPreferences.class.getClassLoader(), new Class<?>[] { SharedPreferences.class },
-                    (proxy, method, args) -> {
-                        if (method.getName().equals("getAll")) return Collections.emptyMap();
-                        throw new AssertionError("unexpected local preference operation: " + method.getName());
-                    });
-
-            Constructor<RemotePreferences> constructor = RemotePreferences.class
-                    .getDeclaredConstructor(XposedService.class, String.class);
-            constructor.setAccessible(true);
-            RemotePreferences remote = constructor.newInstance(null, "test-fatal-boundary");
-            Field mapField = RemotePreferences.class.getDeclaredField("mMap");
-            mapField.setAccessible(true);
-            mapField.set(remote, new AbstractMap<String, Object>() {
-                @Override public Set<Entry<String, Object>> entrySet() {
-                    XposedServiceManagerFatalBoundaryTest.<RuntimeException>throwUnchecked(failure);
-                    return Collections.emptySet();
-                }
-            });
+            AppHelper.appPrefs = local;
             XposedServiceManager.remotePrefs = remote;
 
             Method method = XposedServiceManager.class.getDeclaredMethod("mirrorPass", long.class, String.class);
@@ -208,11 +213,11 @@ public class XposedServiceManagerFatalBoundaryTest {
         throw (T) failure;
     }
 
-    private interface ThrowingCall {
+    interface ThrowingCall {
         Object run() throws Throwable;
     }
 
-    private interface MirrorAssertion {
+    interface MirrorAssertion {
         void check(PrefsMirrorState state, long generation, ThrowingCall pass) throws Throwable;
     }
 }

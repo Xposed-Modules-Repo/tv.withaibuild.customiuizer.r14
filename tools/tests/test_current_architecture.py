@@ -417,7 +417,7 @@ class CurrentArchitectureTest(unittest.TestCase):
         self.assertIn("fun setStableHookId(", bridge_text)
         self.assertIn("XposedApiCapabilities.supportsStableHookId()", bridge_text)
         self.assertIn("builder.setId(id)", bridge_text)
-        self.assertIn("STABLE_ID_RES_TEXT", bridge_text)
+        self.assertIn("STABLE_ID_SYSTEMUI_INIT", bridge_text)
 
         findings: list = []
         for path in sorted(SOURCE_ROOT.rglob("*.kt")) + sorted(SOURCE_ROOT.rglob("*.java")):

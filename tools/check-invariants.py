@@ -544,7 +544,6 @@ def check_method_hook_fatal_boundary(path: Path, text: str) -> list[Finding]:
     if rel_posix(path) != HOOKER_CLASS_HELPER:
         return []
     findings = []
-    fatal_types = ("OutOfMemoryError", "VirtualMachineError", "ThreadDeath")
     for callback_name in ("beforeHook", "afterHook"):
         match = re.search(rf"override\s+fun\s+{callback_name}\s*\(", text)
         if match is None:
@@ -558,22 +557,18 @@ def check_method_hook_fatal_boundary(path: Path, text: str) -> list[Finding]:
             )
             continue
         body, _ = block_at(text, match.start())
-        generic = re.search(r"catch\s*\(\s*[A-Za-z]\w*\s*:\s*Throwable\s*\)", body)
-        missing = []
-        for fatal in fatal_types:
-            fatal_match = re.search(
-                rf"catch\s*\(\s*([A-Za-z]\w*)\s*:\s*{fatal}\s*\)\s*\{{\s*throw\s+\1\s*\}}",
-                body,
-            )
-            if fatal_match is None or (generic is not None and fatal_match.start() > generic.start()):
-                missing.append(fatal)
-        if missing:
+        generics = list(re.finditer(r"catch\s*\(\s*([A-Za-z]\w*)\s*:\s*Throwable\s*\)", body))
+        if not generics or any(
+            not _catch_body_starts_with_fatal_guard(block_at(body, generic.start())[0], generic.group(1))
+            for generic in generics
+        ):
             findings.append(
                 Finding(
                     "method-hook-fatal-boundary",
                     path,
                     line_of(text, match.start()),
-                    f"{callback_name} must rethrow {', '.join(missing)} before catch(Throwable)",
+                    f"{callback_name} must propagate direct and wrapped fatal errors before recovery "
+                    "(OutOfMemoryError, VirtualMachineError, ThreadDeath)",
                 )
             )
     return findings

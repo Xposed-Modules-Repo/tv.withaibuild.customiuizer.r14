@@ -62,20 +62,18 @@ class Api102CapabilityTest {
             }
         }
 
-        val returned = Api102HookBridge.setStableHookId(builder, Api102HookBridge.STABLE_ID_RES_TEXT)
+        val returned = Api102HookBridge.setStableHookId(builder, Api102HookBridge.STABLE_ID_SYSTEMUI_INIT)
 
         assertSame("bridge returns the same builder", builder, returned)
-        assertEquals(Api102HookBridge.STABLE_ID_RES_TEXT, builder.appliedId)
+        assertEquals(Api102HookBridge.STABLE_ID_SYSTEMUI_INIT, builder.appliedId)
     }
 
     @Test
     fun stableHookIds_areFixedShortStrings() {
-        assertTrue("res.text id", Api102HookBridge.STABLE_ID_RES_TEXT.isNotEmpty())
-        assertTrue("res.string id", Api102HookBridge.STABLE_ID_RES_STRING.isNotEmpty())
-        assertTrue("res.layout id", Api102HookBridge.STABLE_ID_RES_LAYOUT.isNotEmpty())
-        assertTrue("res.drawable_density id", Api102HookBridge.STABLE_ID_RES_DRAWABLE_DENSITY.isNotEmpty())
-        assertTrue("res.theme_merge id", Api102HookBridge.STABLE_ID_RES_THEME_MERGE.isNotEmpty())
-        assertTrue("systemui.init id", Api102HookBridge.STABLE_ID_SYSTEMUI_INIT.isNotEmpty())
-        assertTrue("launcher.init id", Api102HookBridge.STABLE_ID_LAUNCHER_INIT.isNotEmpty())
+        val ids = listOf(Api102HookBridge.STABLE_ID_SYSTEMUI_INIT,
+            Api102HookBridge.STABLE_ID_PLUGIN_CREATE, Api102HookBridge.STABLE_ID_APPLICATION_ATTACH)
+        assertEquals(listOf("systemui.init", "systemui.plugin.create", "application.attach"), ids)
+        assertEquals(ids.size, ids.toSet().size)
+        assertTrue(ids.all { it.isNotEmpty() && it.length <= 32 })
     }
 }

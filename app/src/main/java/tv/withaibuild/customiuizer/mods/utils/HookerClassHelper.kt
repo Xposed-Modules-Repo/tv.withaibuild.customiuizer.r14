@@ -21,7 +21,9 @@ class HookerClassHelper private constructor() {
     }
 
     class BeforeHookCallback internal constructor(private val chain: XposedInterface.Chain) {
-        private val EMPTY_ARGS = emptyArray<Any?>()
+        private companion object {
+            val EMPTY_ARGS = emptyArray<Any?>()
+        }
 
         private var member: Member? = null
         private var thisObject: Any? = null
@@ -185,6 +187,9 @@ class HookerClassHelper private constructor() {
                 }
             }
 
+            // Fatal failures must escape before an after callback can recover an ordinary error.
+            if (throwable != null) FatalErrors.unwrapAndRethrowIfFatal(throwable)
+
             if (hasAfterCallback()) {
                 val after = AfterHookCallback(before, result, throwable)
                 afterHook(after)
@@ -203,13 +208,8 @@ class HookerClassHelper private constructor() {
         override fun beforeHook(callback: BeforeHookCallback) {
             try {
                 before(callback)
-            } catch (oom: OutOfMemoryError) {
-                throw oom
-            } catch (td: ThreadDeath) {
-                throw td
-            } catch (vme: VirtualMachineError) {
-                throw vme
             } catch (t: Throwable) {
+                FatalErrors.unwrapAndRethrowIfFatal(t)
                 XposedHelpers.log(t)
             }
         }
@@ -217,13 +217,8 @@ class HookerClassHelper private constructor() {
         override fun afterHook(callback: AfterHookCallback) {
             try {
                 after(callback)
-            } catch (oom: OutOfMemoryError) {
-                throw oom
-            } catch (td: ThreadDeath) {
-                throw td
-            } catch (vme: VirtualMachineError) {
-                throw vme
             } catch (t: Throwable) {
+                FatalErrors.unwrapAndRethrowIfFatal(t)
                 XposedHelpers.log(t)
             }
         }

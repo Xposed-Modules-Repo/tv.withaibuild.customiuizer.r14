@@ -4,7 +4,7 @@
 
 A system UI and interaction customization module maintained for **HyperOS 1 / Android 14**, derived from CustoMIUIzer. It has an independent package, signing identity and release line.
 
-- Current local trial: `r14.23.1` (versionCode 240, Kotlin language/API 2.4, JVM 25, API 102 stable IDs and readback, DexSQL analysis, DexKit 2.3.0); the published release remains build 233. See [toolchain trial notes](docs/JVM_LOCAL_TRIAL.md) and [API 102 trial notes](docs/API102_LOCAL_TRIAL.md).
+- Current local trial: `r14.23.1` (versionCode 241, Hook fatal-boundary and preference-sync fixes; retains Kotlin language/API 2.4, JVM 25, API 102, DexSQL and DexKit 2.3.0); the published release remains build 233. See [toolchain trial notes](docs/JVM_LOCAL_TRIAL.md) and [API 102 trial notes](docs/API102_LOCAL_TRIAL.md).
 - Development and maintenance: `thetvplus`
 - Application ID: `tv.withaibuild.customiuizer.r14`
 - [Download the official release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/latest) · [Source and releases](https://github.com/thetvplus/customiuizer-a14) · [Changelog](CHANGELOG.md)
