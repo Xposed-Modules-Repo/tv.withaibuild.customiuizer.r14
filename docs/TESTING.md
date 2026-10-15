@@ -49,7 +49,7 @@ SDK package 与 Gradle 的 compileSdk / buildToolsVersion 必须一致，具体�
 
 Dependabot 仅提出候选 PR，范围见 [.github/dependabot.yml](../.github/dependabot.yml)。升级应查看官方变更、实际依赖图与最终 APK：AGP 变动还核查内部资源压缩任务、AAPT2 输出、R8 mapping、fatal lint 和无缓存重复构建；运行库还需目标 ROM 验证。不能把转递冲突选择等同于 APK 重复类，也不能把已被 R8 去除的依赖推算为额外体积收益。
 
-依赖校验见 [Gradle 官方说明](https://docs.gradle.org/9.6.1/userguide/dependency_verification.html)，编译器 / D8 / R8 要求见 [Android 官方说明](https://developer.android.com/build/kotlin-support)。升级时重新核对这些范围，不把上游“最新”当作本项目的升级理由。
+依赖校验见 [Gradle 官方说明](https://docs.gradle.org/9.6.1/userguide/dependency_verification.html)，编译器 / D8 / R8 要求见 [Android 官方说明](https://developer.android.com/build/kotlin-support)。允许以新版本 / API 的兼容性探索作为升级理由，无需先证明性能收益；仍须核对这些范围并执行相应回归，版本提高本身不是验证通过的证据。
 
 ## 实机边界
 

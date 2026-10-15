@@ -8,6 +8,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowLog
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Proxy
 
@@ -22,6 +23,7 @@ class Api102HookInstallationTest {
     fun prepare() {
         previousModule = XposedHelpers.moduleInst
         XposedApiCapabilities.initialize(101)
+        ShadowLog.clear()
     }
 
     @After
@@ -38,6 +40,7 @@ class Api102HookInstallationTest {
         assertNotNull(unhooker)
         assertEquals(listOf("priority", "mode", "intercept"), builder.calls)
         assertNull(builder.id)
+        assertEquals(0, builder.getIdCalls)
         assertSame(callback, builder.callback)
         unhooker!!.unhook()
         assertEquals(1, builder.unhookCalls)
@@ -52,6 +55,8 @@ class Api102HookInstallationTest {
         assertEquals(73, builder.priority)
         assertSame(XposedInterface.ExceptionMode.PASSTHROUGH, builder.mode)
         assertEquals("systemui.init", builder.id)
+        assertEquals(1, builder.getIdCalls)
+        assertTrue(logMessages().any { it.contains("systemui.init (confirmed)") })
         assertSame(callback, builder.callback)
         unhooker!!.unhook()
         assertEquals(1, builder.unhookCalls)
@@ -65,7 +70,61 @@ class Api102HookInstallationTest {
         assertEquals(1, builder.calls.count { it == "id" })
         assertEquals(1, builder.calls.count { it == "intercept" })
         assertNull(builder.id)
+        assertEquals(0, builder.getIdCalls)
         assertSame(callback, builder.callback)
+    }
+
+    @Test
+    fun idReadbackMismatchDoesNotRetryOrDiscardInstalledHook() {
+        for (reported in listOf(null, "different.id")) {
+            ShadowLog.clear()
+            val builder = bind(102)
+            builder.overrideReportedId = true
+            builder.reportedId = reported
+            val unhooker = install()
+            assertNotNull(unhooker)
+            assertEquals(1, builder.calls.count { it == "intercept" })
+            assertEquals(1, builder.getIdCalls)
+            assertTrue(logMessages().any { it.contains("hook ID not confirmed: systemui.init") })
+            assertFalse(logMessages().any { it.contains("stable hook ID installed:") })
+            unhooker!!.unhook()
+            assertEquals(1, builder.unhookCalls)
+        }
+    }
+
+    @Test
+    fun unavailableIdReadbackPreservesInstalledHookAndReportsUnconfirmed() {
+        for (failure in listOf(AbstractMethodError("missing getId"), IllegalStateException("readback failed"))) {
+            ShadowLog.clear()
+            val builder = bind(102)
+            builder.readbackFailure = failure
+            val unhooker = install()
+            assertNotNull(unhooker)
+            assertSame(callback, builder.callback)
+            assertEquals(1, builder.calls.count { it == "intercept" })
+            assertTrue(logMessages().any { it.contains("hook ID readback unavailable") })
+            assertFalse(logMessages().any { it.contains("stable hook ID installed:") })
+            unhooker!!.unhook()
+            assertEquals(1, builder.unhookCalls)
+        }
+    }
+
+    @Test
+    fun fatalIdReadbackErrorsPropagateWithoutRetryingInstalledHook() {
+        for (fatal in listOf(OutOfMemoryError("readback"), ThreadDeath(), StackOverflowError("readback"))) {
+            for (failure in listOf(fatal, InvocationTargetException(fatal))) {
+                val builder = bind(102)
+                builder.readbackFailure = failure
+                try {
+                    install()
+                    fail("Fatal readback error must propagate")
+                } catch (actual: Throwable) {
+                    assertSame(fatal, actual)
+                }
+                assertEquals(1, builder.calls.count { it == "intercept" })
+                assertEquals(0, builder.unhookCalls)
+            }
+        }
     }
 
     @Test
@@ -119,6 +178,8 @@ class Api102HookInstallationTest {
         Boolean::class.javaPrimitiveType, callback,
     )
 
+    private fun logMessages() = ShadowLog.getLogsForTag("LSPosed-Bridge").map { it.msg }
+
     private fun bind(api: Int): Builder {
         XposedApiCapabilities.initialize(api)
         val builder = Builder()
@@ -147,13 +208,21 @@ class Api102HookInstallationTest {
         var idFailure: Throwable? = null
         var installFailure: Throwable? = null
         var unhookCalls = 0
+        var getIdCalls = 0
+        var overrideReportedId = false
+        var reportedId: String? = null
+        var readbackFailure: Throwable? = null
         private val handle = Proxy.newProxyInstance(
             XposedInterface.HookHandle::class.java.classLoader, arrayOf(XposedInterface.HookHandle::class.java),
         ) { _, method, _ ->
             when (method.name) {
                 "unhook" -> { unhookCalls++; null }
                 "getExecutable" -> target
-                "getId" -> id
+                "getId" -> {
+                    getIdCalls++
+                    readbackFailure?.let { throw it }
+                    if (overrideReportedId) reportedId else id
+                }
                 else -> throw UnsupportedOperationException(method.name)
             }
         } as XposedInterface.HookHandle

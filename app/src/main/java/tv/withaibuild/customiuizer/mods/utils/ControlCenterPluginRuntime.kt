@@ -219,10 +219,11 @@ open class ControlCenterPluginRuntimeEngine(
      * Overridable so tests can observe or replace the installer.
      */
     protected open fun onInstallCreatePluginHook(classLoader: ClassLoader, hook: MethodHook) {
-        ModuleHelper.hookAllMethods(
+        ModuleHelper.hookAllMethodsWithId(
             "com.android.systemui.shared.plugins.PluginInstance\$PluginFactory",
             classLoader,
             "createPlugin",
+            Api102HookBridge.STABLE_ID_PLUGIN_CREATE,
             hook,
         )
     }

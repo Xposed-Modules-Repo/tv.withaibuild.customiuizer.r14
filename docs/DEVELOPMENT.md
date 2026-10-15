@@ -1,6 +1,6 @@
 # 开发
 
-先读 [AGENTS.md](../AGENTS.md)，从 `main` 的 exact SHA 建工作分支。不要覆盖未知修改，也不要为了 Review 建平行分支。
+先读 [AGENTS.md](../AGENTS.md)，核对当前分支与 exact SHA。按任务授权沿用已有试验分支，或从约定 SHA 建工作分支。不要覆盖未知修改，也不要为了 Review 建平行分支。
 
 ## 环境
 
@@ -15,6 +15,12 @@
 compileSdk 是编译工具输入；minSdk / targetSdk 仍为 34，运行支持限于 HyperOS 1 / Android 14。主机 KGP、Kotlin language / API 2.2 和 APK Kotlin BOM / stdlib 是不同配置，不能只升级编译器就隐式抬升运行依赖。
 
 默认使用官方仓库。`-PuseChinaMirrors=true` 为插件、buildscript 和普通依赖选择已有镜像；libxposed 始终独占 Maven Central，并按 [verification-metadata.xml](../gradle/verification-metadata.xml) 校验所列产物。这个校验范围不覆盖所有依赖。不要为解决下载故障删校验或降级 JDK。
+
+## 安全升级与能力试验
+
+允许为尝试新版本、API 能力、兼容性、安全性和维护流程而升级，不以明确的性能提升或 APK 缩小为前提。
+每阶段保留来源、差异、兼容回退和相应回归结果；性能仅按真实测量报告，试验通过不自动授权推广到 main 或发布。
+API 102 的安装能力与 [DexSQL 取证流程](rom-intelligence/DEXSQL.md) 协作：先核对目标声明与来源，再复核最终 R8 隔离，最后分别做目标框架实机验证。
 
 ## 日常验证
 

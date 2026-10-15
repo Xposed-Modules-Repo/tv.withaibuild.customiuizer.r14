@@ -31,6 +31,8 @@ correctness
 
 不为微优化增加框架。不重做 PrefMap、ResourceHooks、FeatureRegistry、ProcessRouter、PreferenceBootstrap。不重新设计 Dynamic Island 视觉。不把整个 Java 树 Kotlin 化。不用 Compose 或新 DI。
 
+安全升级与能力试验可以出于新 API、兼容性探索、安全修复、可维护性或开发工具整合，不要求先证明性能提升或 APK 变小。允许在当前授权的试验分支分阶段升级、验证和回退；仍须遵守产品、生命周期、API 隔离和验证边界。没有测量证据时不得宣称性能收益。
+
 ## 3. Git
 
 - `main` 是唯一长期稳定生产线。

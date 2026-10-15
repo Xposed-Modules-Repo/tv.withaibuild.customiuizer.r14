@@ -96,6 +96,15 @@ XposedApiCapabilities.initialize(getApiVersion())
         rules = (REPO_ROOT / 'app/proguard-rules.pro').read_text(encoding='utf-8')
         self.assertRegex(rules, r'(?m)^-keep,allowobfuscation class tv\.withaibuild\.customiuizer\.mods\.utils\.Api102HookBridge \{ \*; \}')
 
+    def test_bulk_id_path_preserves_capability_guard_and_legacy_selection(self):
+        source = (SOURCE_ROOT / 'tv/withaibuild/customiuizer/mods/utils/ModuleHelper.kt').read_text(encoding='utf-8')
+        start = source.index('private fun hookAllMethodsInternal(')
+        bulk = source[start:source.index('fun hookAllMethods(hookClass:', start)]
+        guarded = bulk.index('id != null && XposedApiCapabilities.supportsStableHookId()')
+        optional = bulk.index('Api102HookBridge.interceptAllWithStableId')
+        self.assertLess(guarded, optional)
+        self.assertIn('XposedHelpers.hookAllMethods(hookClass, methodName, callback)', bulk[optional:])
+
     def test_systemui_hook_id_does_not_enable_hot_reload(self):
         coordinator = (SOURCE_ROOT / 'tv/withaibuild/customiuizer/mods/utils/SystemUiBootstrapCoordinator.kt').read_text(encoding='utf-8')
         self.assertIn('ModuleHelper.findAndHookMethodWithId(', coordinator)

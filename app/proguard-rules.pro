@@ -10,7 +10,7 @@
 # app resolve the compileOnly libxposed API during process initialization.
 -keep,allowobfuscation class * implements io.github.libxposed.api.XposedInterface$Hooker { *; }
 
-# API 101 must not verify the API 102 setId call on an entry/common installation
+# API 101 must not verify the API 102 setId/getId calls on an entry/common installation
 # class. Keep the optional bridge as a separate class and prevent method inlining.
 -keep,allowobfuscation class tv.withaibuild.customiuizer.mods.utils.Api102HookBridge { *; }
 

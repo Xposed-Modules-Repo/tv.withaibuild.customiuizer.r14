@@ -1,5 +1,45 @@
 # API 102 稳定 Hook ID 本地试用
 
+## 239：稳定 ID、回读与 DexSQL 联合取证
+
+沿用当前升级分支，从 `8a8c2f4` 继续。本阶段允许以兼容性探索、API 能力和开发流程为升级理由，
+不要求先证明提速或 APK 缩小。版本名仍为 r14.23.1，versionCode 239，仅用于本地试用。
+
+| 既有安装点 | API 102 ID | 行为边界 |
+| --- | --- | --- |
+| SystemUIInitializer.init(boolean) | `systemui.init` | 保留原初始化回调与安装时序 |
+| PluginInstance$PluginFactory.createPlugin 所有声明重载 | `systemui.plugin.create` | 保留原重载选择、插件筛选、lease 与加载器生命周期 |
+| 已选择进程中的 Application.attach(Context) | `application.attach` | 使用 Application 实际加载器，保留既有偏好 / 包选择及 post-attach 回调 |
+
+只有实际 Hook API ≥102 进入隔离桥；API 101 使用既有普通安装。
+成功设置 ID 后用 API 102 `HookHandle.getId()` 回读，相等才记录 `API 102 stable hook ID installed: <id> (confirmed)`。
+setter 的普通失败继续同一 builder 的普通安装；回读不匹配、方法缺失或普通失败只记诊断，
+保留已安装 handle，不取消 / 重装。`intercept` 永不重试；致命错误及反射 / 代理包装的致命错误继续传播。
+所有可选调用仍受禁止 R8 内联的桥隔离，回调热路径不读取框架 ID，也没有新增 Receiver / Observer / 任务。
+
+DexSQL 当前已在聊天原生接入。已用 `resources/read`、schema、真实 ROM 联合数据集、
+定义 / 来源查询及 Smali 核对 SystemUI 初始化与插件入口：定义在宿主 APK，
+createPlugin 从 Supplier 取 ClassLoader，再加载 / 构造插件；插件实现仍来自独立插件 APK。
+新增 [查询](../tools/dexsql/README.md) 将目标声明、最终 DEX 的 setId / getId / replaceHook 调用数量、
+固定 ID 的使用位置与同产物 mapping 串联。它不进入 APK，也不生成未经审查的 Hook。
+
+根据 [官方 102.0.0 源码](https://repo.maven.apache.org/maven2/io/github/libxposed/api/102.0.0/api-102.0.0-sources.jar)，
+setId 的原子替换以模块和 executable 为边界，同一 ID 可用于不同重载，但不能替代本项目的一次安装状态。
+`replaceHook`、自动热重载与 detach 暂不启用：热重载不会重放包生命周期，必须先完成旧代线程、JNI、
+Receiver / Observer、系统持有对象和 native 生命周期交接。暂缓依据是兼容与生命周期要求，不是缺少性能收益。
+
+回归覆盖 API 101 零可选调用、API 102 重载 / 优先级 / 模式 / 回调保留、ID 回读、
+普通回退、部分安装失败不重试、致命异常传播和既有插件释放测试。
+本阶段原始数据在 `.di-evidence/api102-dexsql-integration-20261015/`。
+连接设备仍安装 238；日志未找到可确认的 API 102 ID 记录，不能把设备连接或普通使用正常当成 239 实机验收。
+
+已通过 Full（含 lintDebug），JUnit 2,609 项零失败 / 错误、2 项跳过；Python 工具 512 项零失败、5 项跳过。
+设备 Vector 2.2 (3112) 的 framework DEX 也已读取并由原生 MCP 验证：SHA-256 为
+`fc5ae6b445a9b35216474176ced3e2e874067e1ccb4b8a146d88747b02cfaea1`，声明 setId / getId / replaceHook，
+getApiVersion 方法体返回 102。它是框架产物证据，仍不能代替新 APK 的 Hook 安装回读。
+
+## 238：首次稳定 ID 试验记录
+
 从用户反馈无明显问题的 237 阶段提交 `451b2d3819a8605053c1e03369670985965499b6` 创建 `codex/api102-hook-id-local-20261015`。r14.23.1 / 238，仅生成既有正式证书签名的本地 Release，不推送、合并或发布。
 
 项目此前已编译到 API 102，动态作用域请求已按项目策略在 Service API ≥102 启用；Hook ID 桥此前没有生产调用。本阶段只为既有 `SystemUIInitializer.init(boolean)` 安装点接入 ID `systemui.init`，不增加业务 Hook，不修改回调、安装时序、偏好、Receiver/Observer 或 FeatureRegistry。

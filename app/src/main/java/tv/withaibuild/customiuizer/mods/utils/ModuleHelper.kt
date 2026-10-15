@@ -304,6 +304,15 @@ class ModuleHelper private constructor() {
 
         @JvmStatic
         fun hookAllMethods(className: String, classLoader: ClassLoader?, methodName: String, callback: MethodHook) {
+            hookAllMethodsInternal(className, classLoader, methodName, null, callback)
+        }
+
+        @JvmStatic
+        fun hookAllMethodsWithId(className: String, classLoader: ClassLoader?, methodName: String, id: String, callback: MethodHook) {
+            hookAllMethodsInternal(className, classLoader, methodName, id, callback)
+        }
+
+        private fun hookAllMethodsInternal(className: String, classLoader: ClassLoader?, methodName: String, id: String?, callback: MethodHook) {
             try {
                 val hookClass = XposedHelpers.findClassIfExists(className, classLoader)
                 if (hookClass == null) {
@@ -318,8 +327,12 @@ class ModuleHelper private constructor() {
                     )
                     return
                 }
-                val unhookers = XposedHelpers.hookAllMethods(hookClass, methodName, callback)
-                if (unhookers.isEmpty()) {
+                val installed = if (id != null && XposedApiCapabilities.supportsStableHookId()) {
+                    Api102HookBridge.interceptAllWithStableId(hookClass, methodName, callback, id)
+                } else {
+                    XposedHelpers.hookAllMethods(hookClass, methodName, callback).isNotEmpty()
+                }
+                if (!installed) {
                     XposedHelpers.log("Failed to hook " + methodName + " method in " + className + " (no methods found)")
                     HookDiagnostics.record(
                         PreferenceObserverRegistry.processName(),
