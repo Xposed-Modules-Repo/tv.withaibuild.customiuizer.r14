@@ -19,6 +19,11 @@ DexSQL 作为可选主机分析工具，与当前 DexKit 运行时定位、ROM �
    还须在 API 102 设备记录 `<id> (confirmed)` 才能确认 readback；API 101 则验证回退且没有可选调用。
 5. 关闭数据集并保存工具版本、输入哈希、SQL、mapping 归属和验证范围；不要把这些结果转成自动热重载授权。
 
+R8 会合并类或内联安装方法。类映射只说明输出容器，还需匹配方法 / 行号映射才能归属原安装器。
+239 的 `systemui.init` 指令位于 `Ldg0;`，类映射标题是 PreferenceResourceResolver，
+成员映射才指出 SystemUiBootstrapCoordinator.install；Application.attach 则已内联进 MainModule。
+不要仅凭反混淆类名判断 Hook 属于哪个功能。
+
 ## 安装与接入
 
 使用 [官方发布](https://github.com/LSPosed/dexsql-release/releases) 中与主机匹配的可执行文件，

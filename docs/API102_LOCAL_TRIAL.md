@@ -38,6 +38,18 @@ Receiver / Observer、系统持有对象和 native 生命周期交接。暂缓�
 `fc5ae6b445a9b35216474176ced3e2e874067e1ccb4b8a146d88747b02cfaea1`，声明 setId / getId / replaceHook，
 getApiVersion 方法体返回 102。它是框架产物证据，仍不能代替新 APK 的 Hook 安装回读。
 
+签名 Release 来自 `0c0702738a1ad1669a1537e70e95662465199e4c`，clean、关闭构建 / 配置缓存和 Kotlin 增量编译，
+Release / R8 analyzer / lintRelease 用时 185.34 秒。原证书 V2 单签名、16 KiB ZIP 对齐、版本来源、
+SDK 34 / arm64 与 ZIP CRC 通过。APK 为 3,799,501 字节，与 238 相同；DEX 为 2,022,424 字节，增加 1,020 字节。
+资源表仍为 804,712 字节、native 394,984 字节；完整资源 / ID / 值、Xposed 元数据、业务 assets 和 ServiceLoader 语义一致。
+
+原生 DexSQL MCP 与 SDK dexdump 独立确认：setId / getId 各一处 invoke，均在映射回 Api102HookBridge 的 `Lr3;`；
+没有显式 replaceHook / 热重载类型或调用。三个固定 ID 分别在插件安装、SystemUI 初始化和应用入口的最终 DEX 中使用；
+两个公共安装器中保留能力位判断与普通安装回退，已逐方法 decode 复核。
+本地包在 `release-output/r14.23.1-api102-dexsql-local-239/`，SHA-256：
+`f4cc59ce73e70419e6c18e7a603703cc7e7bf915b3d7052a8090346f5ab066d0`。
+该包尚未覆盖安装到设备，未做重复 Release 或 API 101 / 102 新包实机验收，不宣称运行时性能提升。
+
 ## 238：首次稳定 ID 试验记录
 
 从用户反馈无明显问题的 237 阶段提交 `451b2d3819a8605053c1e03369670985965499b6` 创建 `codex/api102-hook-id-local-20261015`。r14.23.1 / 238，仅生成既有正式证书签名的本地 Release，不推送、合并或发布。
