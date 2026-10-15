@@ -15,6 +15,7 @@
 | 2. 有明确维护 / 兼容性价值 | `apk_size_report.py`、`apk_size_delta.py` | 前者测量 APK 并比较两个 baseline 的预算；后者处理显式多变体 manifest、双源码 SHA、校验与 Markdown 报告，输入和职责不同。 |
 | 2 | `build_debug_apk.py`、`build_revision.py`、`verify_apk_provenance.py` | 诊断构建限制 tracked clean HEAD，校验 AGP output metadata、variant / version、内嵌 revision 并输出 SHA-256；裸 assemble 命令没有完整替代这些保障。provenance verifier 也用于正式发布核验。 |
 | 2 | `rom_inventory.py`、`rom-contract-scan.py`、`rom_target_diff.py` 与 ROM 测试 fixtures | 分别生成样本 provenance / ABI 清单、扫描 smali 必需契约、分类目标变化；输入和输出不同，现有测试覆盖各自行为。保留离线 HyperOS 1 / Android 14 兼容取证能力。 |
+| 2 | `tools/dexsql/` 查询集与 [开发指引](rom-intelligence/DEXSQL.md) | 可选主机取证，补充字符串 / 调用 / 字段 / Smali；直接使用官方 CLI / MCP，不添加 APK 或 CI 依赖，不替代上述门禁。 |
 | 2 | `legacy_semantic_compare.py` | [继承功能契约](maintenance/LEGACY_SEMANTIC_CALIBRATION.md) 的可重建差异入口；比较上游与 A14 的偏好、数组和 getter 默认值，当前 schema 验证器没有替代跨仓比较。结果需人工判断已批准的 A14 差异。 |
 | 2 | `SOURCE_HAZARD_BASELINE.json` | `source_hazard_scan.py` 的默认 baseline；普通扫描按 fingerprint 区分历史与新命中，严格 mutation 模式不用它。它不是漏洞数量或实机结果。 |
 | 2 | `scripts/verify.ps1`、`scripts/check-signing-config.ps1`、`scripts/test-check-signing-config.ps1` | Windows 验证入口和不输出秘密的外部签名 preflight / 回归。签名工具不能用普通 Gradle 构建替代。 |

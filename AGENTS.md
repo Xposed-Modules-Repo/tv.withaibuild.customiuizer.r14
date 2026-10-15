@@ -98,3 +98,4 @@ git diff --check
 - 无实机证据不得修改成熟热路径基础设施。
 - 候选缺陷必须可复现，并有内存 / 线程 / 日志 / CPU 证据。
 - “这里可以 cache” 不构成缺陷。
+- APK / DEX 深查可选用 [DexSQL 指引](docs/rom-intelligence/DEXSQL.md) 与 `tools/dexsql/` 查询；先核实已安装 schema、样本哈希与定义来源，结果不能代替实机验收。
