@@ -6,9 +6,10 @@ Retained releases and withdrawal notices are listed. Each section covers changes
 
 ## r14.23.1 — 2026-10-15
 
-HyperOS 1 / Android 14, versionCode 237. Local dependency trial only; the published release is build 233, which replaced the withdrawn build 232 of the same version. Changes since r14.22.7:
+HyperOS 1 / Android 14, versionCode 238. Local API 102 trial only; the published release is build 233, which replaced the withdrawn build 232 of the same version. Changes since r14.22.7:
 
-- Stage the DexKit update from 2.2.0 to 2.3.0 in build 237. Keep the existing queries, bridge lifecycle, compiler and other dependency versions; native query/device acceptance remains pending.
+- Assign the stable ID `systemui.init` to the existing SystemUI initializer hook on API 102, with API 101 using the original installer. Preserve priority, exception mode, callback, diagnostics and unhook behavior; isolate the optional call from R8 inlining. Hot reload and explicit hook replacement remain deferred.
+- Stage the DexKit update from 2.2.0 to 2.3.0 in build 237. Keep the existing queries, bridge lifecycle, compiler and other dependency versions. The user reported no apparent issues; no native query/device trace is recorded.
 - Update AGP from 9.3.3 to 9.4.1 with its bundled R8, and Kotlin BOM/stdlib from 2.3.21 to 2.4.21 in build 236. The user reported no apparent issues; retain compiler 2.4.21, language/API 2.2 and JVM 25 output. No measured ART performance improvement is claimed.
 - Align Java source/target and Kotlin JVM output at 25. Users reported no apparent issues with the JVM 21 and JVM 25 trials (builds 234/235); no measured ART performance improvement is claimed.
 

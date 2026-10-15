@@ -83,6 +83,27 @@ XposedApiCapabilities.initialize(getApiVersion())
         )
         self.assertEqual(0, len(findings))
 
+    def test_installation_bridge_has_capability_guard_and_legacy_fallback(self):
+        facade = (SOURCE_ROOT / 'tv/withaibuild/customiuizer/mods/utils/HookInstallerFacade.kt').read_text(encoding='utf-8')
+        guarded = facade.index('id != null && XposedApiCapabilities.supportsStableHookId()')
+        bridge = facade.index('Api102HookBridge.interceptWithStableId')
+        self.assertLess(guarded, bridge)
+        self.assertIn('XposedHelpers.findAndHookMethod(hookClass, methodName', facade[bridge:])
+        java = (SOURCE_ROOT / 'tv/withaibuild/customiuizer/mods/utils/XposedHelpers.java').read_text(encoding='utf-8')
+        self.assertNotIn('Api102HookBridge', java)
+
+    def test_r8_keeps_optional_bridge_out_of_api101_callers(self):
+        rules = (REPO_ROOT / 'app/proguard-rules.pro').read_text(encoding='utf-8')
+        self.assertRegex(rules, r'(?m)^-keep,allowobfuscation class tv\.withaibuild\.customiuizer\.mods\.utils\.Api102HookBridge \{ \*; \}')
+
+    def test_systemui_hook_id_does_not_enable_hot_reload(self):
+        coordinator = (SOURCE_ROOT / 'tv/withaibuild/customiuizer/mods/utils/SystemUiBootstrapCoordinator.kt').read_text(encoding='utf-8')
+        self.assertIn('ModuleHelper.findAndHookMethodWithId(', coordinator)
+        self.assertIn('Api102HookBridge.STABLE_ID_SYSTEMUI_INIT', coordinator)
+        metadata = (REPO_ROOT / 'app/src/main/resources/META-INF/xposed/module.prop').read_text(encoding='utf-8')
+        self.assertIn('minApiVersion=101', metadata)
+        self.assertNotIn('autoHotReload=true', metadata)
+
 
 if __name__ == "__main__":
     unittest.main()

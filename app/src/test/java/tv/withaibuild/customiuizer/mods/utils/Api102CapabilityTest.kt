@@ -6,6 +6,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
+import org.junit.After
 import org.junit.Test
 
 class Api102CapabilityTest {
@@ -13,6 +14,11 @@ class Api102CapabilityTest {
     @Before
     fun resetCapabilities() {
         // Reset to a clean state before each test so order does not leak.
+        XposedApiCapabilities.initialize(101)
+    }
+
+    @After
+    fun restoreCapabilities() {
         XposedApiCapabilities.initialize(101)
     }
 

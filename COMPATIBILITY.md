@@ -14,6 +14,8 @@
 
 `staticScope=true`。框架需启用模块并授予目标包作用域；四类普通应用选择（状态栏颜色、去除滚动边缘效果、媒体按键、闹钟兼容）按项目兼容策略仅在 Service API 102 及以上请求动态作用域，API 101 保持手动配置。`requestScope` 与对应监听接口在 Service API 101 已存在；该版本限制属于当前验证范围，不表示接口首次引入于 API 102。PermissionController 同时识别 AOSP 与 Google 包名，模块不能安全识别应用自绘授权说明页。
 
+本地 238 试验在真实 Hook API ≥102 时给既有 SystemUI 初始化 Hook 设置 `systemui.init` ID；API 101 走原安装路径。可选 setter 失败在安装前局部降级，不重试已失败的 `intercept`。API 102 调用留在独立且禁止 R8 内联的桥中；未启用自动热重载、显式 Hook 替换或 entry detach。两种 API 的实机结果仍需分别验证，见 [试用说明](docs/API102_LOCAL_TRIAL.md)。
+
 ## 证据与限制
 
 | 证据 | 能证明的范围 |

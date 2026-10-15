@@ -117,6 +117,10 @@ class ModuleHelper private constructor() {
             HookInstallerFacade.findAndHookMethod(className, classLoader, methodName, *parameterTypesAndCallback)
 
         @JvmStatic
+        fun findAndHookMethodWithId(className: String, classLoader: ClassLoader?, methodName: String, id: String, vararg parameterTypesAndCallback: Any?): CustomMethodUnhooker? =
+            HookInstallerFacade.findAndHookMethodWithId(className, classLoader, methodName, id, *parameterTypesAndCallback)
+
+        @JvmStatic
         fun callMethodSilently(obj: Any?, methodName: String, vararg args: Any?): Any? {
             return try {
                 XposedHelpers.callMethod(obj, methodName, *args)
