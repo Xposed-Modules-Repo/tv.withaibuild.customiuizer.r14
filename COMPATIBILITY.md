@@ -13,7 +13,7 @@
 
 `staticScope=true`。框架需启用模块并授予目标包作用域；四类普通应用选择（状态栏颜色、去除滚动边缘效果、媒体按键、闹钟兼容）通过原生 Service 请求动态作用域，仍需框架授权。PermissionController 同时识别 AOSP 与 Google 包名，模块不能安全识别应用自绘授权说明页。
 
-r14.23.3 直接使用 API 102 安装 Hook；移除 API 101 能力位、安装回退和隔离桥。SystemUI 初始化、插件创建和 Application.attach 保留固定 ID 与安装后回读，插件仍安装所有匹配的声明重载。ID 设置失败停止该次安装；回读不匹配或普通失败只记录诊断，保留已安装 Hook，`intercept` 不重试。保留 before/after 语义、致命错误传播与所有者释放；不启用自动热重载、显式 Hook 替换或 entry detach。设置进程不加载 compileOnly Hook API。见 [API 102 说明](docs/API102_LOCAL_TRIAL.md)。
+r14.23.3 起最低要求 API 102，直接使用原生 Hook 安装和 Service 能力；不维护 API 101 兼容路径。固定 ID、回调语义、类加载与生命周期边界见 [架构说明](ARCHITECTURE.md#api-102-安装与-service)。
 
 ## 证据与限制
 

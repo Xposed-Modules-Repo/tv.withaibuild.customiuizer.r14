@@ -38,7 +38,7 @@ Duo 默认关闭，入口为「系统 → 状态栏 → Duo 三合一状态栏�
 
 ## 开发与维护
 
-构建使用 JDK 25，Java / Kotlin 输出目标同步为 25，Kotlin language/API 为 2.4。构建链与 Android 14 运行边界见 [工具链说明](docs/JVM_LOCAL_TRIAL.md)。完整验证入口：
+构建使用 JDK 25，Java / Kotlin 输出目标同步为 25，Kotlin language/API 为 2.4。构建链与 Android 14 运行边界见 [开发说明](docs/DEVELOPMENT.md#环境)。完整验证入口：
 
 ```powershell
 python tools/verify.py full

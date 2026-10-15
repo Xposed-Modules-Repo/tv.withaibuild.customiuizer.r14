@@ -2,26 +2,21 @@
 
 DexSQL 作为可选主机分析工具，与当前 DexKit 运行时定位、ROM 清单和契约扫描协作。
 它不进入 APK、不修改 Hook 注册，也不是默认构建 / CI 的前置条件。
-本轮实测和选型依据见 [2026-10-15 评估](DEXSQL_EVALUATION_2026-10-15.md)。
-
-当前聊天已原生接入并调用过 DexSQL MCP；此前评估中“尚未热加载”是当时的连接状态。
-安全升级与能力探索不以确定的性能收益为门槛，仍分别记录兼容性和实际测量边界。
+工具连接状态、样本测量和逐次评估留在本地证据或 Git 历史；使用前核对已安装工具及其文档。
 
 ## 与 API 102 的联合验证
 
 1. 对真实 ROM 运行 `bootstrap_contract.sql`，从定义视图和 `dex_files` 确认安装点属于宿主、插件还是 boot framework。
    对匹配方法使用 `decode`、`method_calls` 和字段引用复核原回调所需的签名 / 加载链。
 2. 为既有基础设施安装点选择固定 ID；最低 API 102 原生配置 ID / 回读确认。
-   实现与生命周期范围见 [API 102 试验](../API102_LOCAL_TRIAL.md)。
+   实现与生命周期范围见 [API 102 架构](../../ARCHITECTURE.md#api-102-安装与-service)。
 3. R8 后重新打开该 APK，运行 `api102_bridge_calls.sql`，用同产物 mapping 确认原生安装 invoke 的 owner。
    检查 setId/getId 及其安装调用链，replaceHook 应为零；不以 R8 内联后的指令数推断运行安装次数。
 4. 用 `api102_hook_ids.sql` 检查 ID 的实际指令使用位置。它只证明产物包含安装配置，
    还须在 API 102 设备记录 `<id> (confirmed)` 才能确认 readback。
 5. 关闭数据集并保存工具版本、输入哈希、SQL、mapping 归属和验证范围；不要把这些结果转成自动热重载授权。
 
-R8 会合并类或内联安装方法。类映射只说明输出容器，还需匹配方法 / 行号映射才能归属原安装器。
-239 的 `systemui.init` 指令位于 `Ldg0;`，类映射标题是 PreferenceResourceResolver，
-成员映射才指出 SystemUiBootstrapCoordinator.install；Application.attach 则已内联进 MainModule。
+R8 会合并类或内联安装方法。类映射只说明输出容器，还需匹配方法 / 行号映射才能归属原安装器；
 不要仅凭反混淆类名判断 Hook 属于哪个功能。
 
 ## 安装与接入
@@ -85,8 +80,8 @@ $hookQuery = Get-Content -LiteralPath tools/dexsql/screenshot_candidates.sql -Ra
 使用 `--sql=...` 使文件开头的 SQL 注释不被 CLI 当成参数。
 一次 CLI 调用可以重复 `--input` 和 `--sql=...`；每项 SQL 保持一条语句。
 需要反复探索时优先复用 MCP 数据集；CLI 的按需加载与 MCP 完整准备耗时口径不同。
-大量重复会话可另评估官方 `prepare-cache` / `query-cache`，但本轮样本缓存没有提速，
-因此不自动建缓存。保留默认来源校验，不使用 `--trusted-input` 绕过缓存新鲜度检查。
+大量重复会话按实际成本评估官方 `prepare-cache` / `query-cache`，不默认增加缓存管理层。
+保留默认来源校验，不使用 `--trusted-input` 绕过缓存新鲜度检查。
 
 ## 结果的边界
 
@@ -103,7 +98,7 @@ $hookQuery = Get-Content -LiteralPath tools/dexsql/screenshot_candidates.sql -Ra
 `file_id` 和各类索引仅在当前数据集内有效；跨 APK 比较使用完整描述符与样本哈希。
 SQL 的 `COUNT(*)` 不等于 Hook 调用次数。
 Smali 输出不是完整 Java / Kotlin 反编译，必要时继续用 JADX。
-Quickened / odex 指令不受本轮 CLI 支持；缺少 ART 映像时保持 UNKNOWN。
+Quickened / odex 指令按已安装版本确认支持情况；缺少 ART 映像时保持 UNKNOWN。
 
 `rom_inventory.py` 继续管理 provenance / ABI，`rom-contract-scan.py` 继续扫描已有 smali 合同，
 `rom_target_diff.py` 继续分类已确认的目标矩阵。DexSQL 为这些流程补充调用与指令证据，

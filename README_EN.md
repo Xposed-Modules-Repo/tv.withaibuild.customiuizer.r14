@@ -38,7 +38,7 @@ Availability depends on the ROM and system-app versions. Dynamic app-scope reque
 
 ## Development and Maintenance
 
-Builds use JDK 25, Java/Kotlin output target 25 and Kotlin language/API 2.4. See the [toolchain notes](docs/JVM_LOCAL_TRIAL.md) for the Android 14 runtime boundary. Full local verification:
+Builds use JDK 25, Java/Kotlin output target 25 and Kotlin language/API 2.4. See the [development guide](docs/DEVELOPMENT.md#环境) for the Android 14 runtime boundary. Full local verification:
 
 ```powershell
 python tools/verify.py full

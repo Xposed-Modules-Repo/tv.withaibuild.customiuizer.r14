@@ -23,6 +23,26 @@ Installer 按进程与开关选择 Feature。`FeatureInstallRegistry` 使用进�
 - 灵动额头使用 ROM StrongToast 原地调整，加上 `DynamicIslandStatusBarFade`，没有独立模块窗口 Host。
 - 反射缓存按 ClassLoader 隔离且有界；成熟 Hook 基础设施的修改需要目标 ROM 证据。
 
+## API 102 安装与 Service
+
+`minApiVersion=102`、`targetApiVersion=102`、`staticScope=true`。`HookInstallation` 直接调用原生 HookBuilder，统一方法、构造器及基础设施 ID 安装；优先级和 `PASSTHROUGH` 模式保持一致。`HookerClassHelper` 继续承担参数改写、提前返回、原方法异常及 after 恢复，致命错误必须传播。
+
+仅为三个既有基础设施安装点设置固定 ID：
+
+| 安装点 | ID |
+| --- | --- |
+| SystemUIInitializer.init(boolean) | `systemui.init` |
+| PluginFactory.createPlugin 的所有声明重载 | `systemui.plugin.create` |
+| 已选择目标进程的 Application.attach(Context) | `application.attach` |
+
+ID 由模块和 executable 隔离，同 ID 可用于不同重载，不能代替一次安装状态和所有者管理。设置 ID 失败时停止该次安装；`intercept` 永不重试。安装后回读 ID，相等才记录 `<id> (confirmed)`；普通回读失败只记诊断并保留 handle，致命错误传播。
+
+不启用自动热重载、显式 replaceHook 或 detach；这些能力需要独立的旧代任务、JNI、Receiver / Observer、系统持有对象和 ClassLoader 交接设计。API 契约可查 [官方源码](https://repo.maven.apache.org/maven2/io/github/libxposed/api/102.0.0/api-102.0.0-sources.jar)。
+
+`XposedServiceManager` 每次选择只读一次 scope Binder 快照，仅请求尚未授权的包；批准由框架决定。异步失败提示只持有 Application Context。偏好镜像核对真实提交结果，保留每个连接的一次重试预算。
+
+R8 保留 Hooker、入口、JNI 与设置进程的 compileOnly 类加载边界。最终 APK 核查 setId/getId、禁用热重载与替换、ServiceLoader 和入口；[DexSQL](docs/rom-intelligence/DEXSQL.md) 产物检查不能代替框架安装日志与设备验收。
+
 ## 设置与持久化
 
 `res/xml/prefs_*.xml` 是设置源。构建任务 `generatePreferenceArtifacts` 生成分页面资源、搜索索引和当前偏好目录，输出在 `app/build/generated/`，不要直接编辑或提交生成物。搜索保留页面控制器、目标键与导航元数据；设置恢复由当前偏好契约校准。
