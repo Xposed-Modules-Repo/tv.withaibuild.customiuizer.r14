@@ -15,3 +15,5 @@
 实机试用：覆盖安装后重启，检查 SystemUI 启动、状态栏/控制中心与设置应用。API 102 成功安装时仅在冷路径记录 `API 102 stable hook ID installed: systemui.init`；setter 不可用时记录降级原因。若没有该日志，不能把普通运行无问题视为新能力已启用。API 101 回退的主机测试不替代 API 101 框架实机验收；不宣称运行性能提升。
 
 原始证据在忽略目录 `.di-evidence/api102-hook-id-local-20261015/`，APK 与验收记录在 `release-output/r14.23.1-api102-local-238/`。
+
+本轮结果：Full、2598 项 JVM 测试（跳过 2，含 7 项安装回归）和 510 项 Python 测试（跳过 5）零失败；签名 Release、R8 analyzer、lintRelease 与 16 KiB ZIP 对齐检查通过。最终 DEX 只有一处 `setId` 调用，位于独立桥类，未引入热重载类型或显式替换/detach 调用。资源、ID/值、native、业务 assets、既有项目保留成员与反混淆后的 ServiceLoader 元数据保持。APK 仍为 3,799,501 字节，DEX 较 237 增加 4,848 字节；未做本构建的实机或重复 Release 验证。
