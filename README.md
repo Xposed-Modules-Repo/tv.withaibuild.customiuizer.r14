@@ -4,7 +4,7 @@
 
 面向 **HyperOS 1 / Android 14** 的系统界面与交互定制模块，基于 CustoMIUIzer 持续维护。使用独立包名、签名和版本线。
 
-- 当前本地试验：`r14.23.1`（versionCode 241，Hook 异常边界与配置同步修复；保留 Kotlin language/API 2.4、JVM 25、API 102、DexSQL、DexKit 2.3.0）；公开发行版仍为 233。见 [工具链试用说明](docs/JVM_LOCAL_TRIAL.md)与 [API 102 试用说明](docs/API102_LOCAL_TRIAL.md)。
+- 升级 Dev 线：`codex/dev-toolchain-api102`，当前 `r14.23.1`（versionCode 241，Hook 异常边界与配置同步修复；保留 Kotlin language/API 2.4、JVM 25、API 102、DexSQL、DexKit 2.3.0）；公开发行版仍为 233。见 [工具链试用说明](docs/JVM_LOCAL_TRIAL.md)与 [API 102 试用说明](docs/API102_LOCAL_TRIAL.md)。
 - 维护与开发：`thetvplus`
 - 应用 ID：`tv.withaibuild.customiuizer.r14`
 - [下载正式版](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/latest) · [源码与发行版](https://github.com/thetvplus/customiuizer-a14) · [更新记录](CHANGELOG_CN.md)
