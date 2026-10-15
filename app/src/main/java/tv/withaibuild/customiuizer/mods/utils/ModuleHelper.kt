@@ -327,8 +327,8 @@ class ModuleHelper private constructor() {
                     )
                     return
                 }
-                val installed = if (id != null && XposedApiCapabilities.supportsStableHookId()) {
-                    Api102HookBridge.interceptAllWithStableId(hookClass, methodName, callback, id)
+                val installed = if (id != null) {
+                    HookInstallation.interceptAllWithStableId(hookClass, methodName, callback, id)
                 } else {
                     XposedHelpers.hookAllMethods(hookClass, methodName, callback).isNotEmpty()
                 }

@@ -24,7 +24,7 @@ Windows 预检：
 
 它只检查字段与文件存在，不验证密码或签名证书。普通开发无配置可跳过签名，`-RequireSigning` 无配置或无效配置必须失败。
 
-在工作区干净、最终 main SHA 已确认后构建：
+在工作区干净、最终候选 source SHA 已确认后构建；设备验收通过后将同一提交快进至 main，使用同一 APK 发布：
 
 ```powershell
 $releaseRevision = git rev-parse --short=8 HEAD

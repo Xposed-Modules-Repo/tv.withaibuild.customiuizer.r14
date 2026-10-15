@@ -79,7 +79,7 @@ class VerifyJvmTargetTests(unittest.TestCase):
                 patch.object(_verify, "REPO_ROOT", root),
                 patch.object(_verify, "read_build_gradle", return_value=build),
                 patch.object(_verify, "read_module_prop", return_value=(
-                    "minApiVersion=101\ntargetApiVersion=102\nstaticScope=true\n"
+                    "minApiVersion=102\ntargetApiVersion=102\nstaticScope=true\n"
                 )),
             ):
                 return _verify.check_static_rules()

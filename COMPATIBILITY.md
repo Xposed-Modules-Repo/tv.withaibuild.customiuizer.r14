@@ -6,15 +6,14 @@
 | --- | --- |
 | 系统 | HyperOS 1 / Android 14；运行入口要求 SDK 34 |
 | APK | `tv.withaibuild.customiuizer.r14`，minSdk / targetSdk 34，`arm64-v8a` |
-| API 101 | 最低运行基线，必经签名与初始化不依赖 API 102 专属类型 |
-| API 102 | 能力探测后使用隔离桥接；动态作用域仍需框架授权 |
+| Xposed | libxposed API 102 最低基线；API 101 不支持 |
 | 其他平台 | Android 13 / 15 / 16、其他 MIUI / HyperOS 大版本不支持 |
 
 较新的 compileSdk 或构建工具不会扩展运行支持范围。跨版本移植需要独立任务和 API、ROM、生命周期、资源差异证据，不维护逐文件上游 parity。
 
-`staticScope=true`。框架需启用模块并授予目标包作用域；四类普通应用选择（状态栏颜色、去除滚动边缘效果、媒体按键、闹钟兼容）按项目兼容策略仅在 Service API 102 及以上请求动态作用域，API 101 保持手动配置。`requestScope` 与对应监听接口在 Service API 101 已存在；该版本限制属于当前验证范围，不表示接口首次引入于 API 102。PermissionController 同时识别 AOSP 与 Google 包名，模块不能安全识别应用自绘授权说明页。
+`staticScope=true`。框架需启用模块并授予目标包作用域；四类普通应用选择（状态栏颜色、去除滚动边缘效果、媒体按键、闹钟兼容）通过原生 Service 请求动态作用域，仍需框架授权。PermissionController 同时识别 AOSP 与 Google 包名，模块不能安全识别应用自绘授权说明页。
 
-本地 239 试验在真实 Hook API ≥102 时给既有 SystemUI 初始化、插件创建和 Application.attach Hook 设置固定 ID，并回读 handle ID；API 101 走原安装路径。插件入口保留按名称安装所有声明重载的策略。可选 setter 失败在安装前局部降级；回读不匹配或普通失败只记录诊断，不丢弃已安装 Hook，也不重试 `intercept`。API 102 调用留在独立且禁止 R8 内联的桥中；未启用自动热重载、显式 Hook 替换或 entry detach。两种 API 的实机结果仍需分别验证，见 [试用说明](docs/API102_LOCAL_TRIAL.md)。
+r14.23.3 直接使用 API 102 安装 Hook；移除 API 101 能力位、安装回退和隔离桥。SystemUI 初始化、插件创建和 Application.attach 保留固定 ID 与安装后回读，插件仍安装所有匹配的声明重载。ID 设置失败停止该次安装；回读不匹配或普通失败只记录诊断，保留已安装 Hook，`intercept` 不重试。保留 before/after 语义、致命错误传播与所有者释放；不启用自动热重载、显式 Hook 替换或 entry detach。设置进程不加载 compileOnly Hook API。见 [API 102 说明](docs/API102_LOCAL_TRIAL.md)。
 
 ## 证据与限制
 
@@ -26,7 +25,7 @@
 | LOG / DEVICE / RUNTIME | 指定 APK、设备、ROM 与操作下的实际路径或行为 |
 | CANDIDATE | 待取证猜测，不能作为生产兼容合同 |
 
-已有样本来自 Xiaomi 13 / fuxi、`V816.0.7.0.UMCTWXM`、Android 14。样本哈希和插件 ClassLoader 边界保存在 [ROM 资料](docs/rom-intelligence/README.md)。这些历史资料不证明当前安装 APK、其他机型或全部功能已经验收。API 102 框架的实机结果也不能当作 API 101 框架验收。
+已有样本来自 Xiaomi 13 / fuxi、`V816.0.7.0.UMCTWXM`、Android 14。样本哈希和插件 ClassLoader 边界保存在 [ROM 资料](docs/rom-intelligence/README.md)。这些历史资料不证明当前安装 APK、其他机型或全部功能已经验收。其他框架实现仍需专项验收。
 
 ## 当前功能边界
 

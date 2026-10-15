@@ -6,7 +6,7 @@
 
 安全升级、新 API 探索和开发工具整合不要求先证明性能提升、APK 缩小或已有缺陷。
 可以用分阶段兼容性验证判断是否保留升级；安全、可维护性、诊断与新能力本身也是合理目标。
-缺少性能收益不构成自动拒绝理由，但产品边界、API 101 回退、生命周期、回归与回退单位仍需明确。
+缺少性能收益不构成自动拒绝理由，但产品边界、API 102 最低基线、生命周期、回归与回退单位仍需明确。
 
 ## 每项改动的证据
 
@@ -54,7 +54,7 @@ python tools/apk_size_report.py before.json --compare after.json --apk-budget-kb
 - 应用列表以固定数据对照已选项稳定分组和每项状态读取次数；搜索以分配计数验证准备字段的效果，避免脆弱耗时阈值。元数据准备与四类适配器接入属于同一回退单位。
 - 备份对照覆盖最大允许 payload、严格格式 / CRC、输入所有权与可变集合；避免只测正常小文件。
 - 资源表压缩比较完整 AAPT2 dump，并在 Android 14 上检查资源名、ID、类型、值、密度、语言、day/night 与缺失项。隔离 compact 效果时，先对 R8 转回 binary 的资源包执行 `aapt2 optimize --shorten-resource-paths`，再对该输出执行 `aapt2 optimize --enable-compact-entries`；比较两份完整 dump，避免把路径缩短也计为 compact 收益。当前处理依赖固定 AGP 的内部 `OptimizeResourcesTask`，声明输入标记并在签名之前处理该任务自己的输出；公开 artifact API 没有等效的 optimized resource package 入口，继续保留。升级 AGP 必须复核无缓存双构建、mapping、资源 dump、UP-TO-DATE / FROM-CACHE 输出和最终 APK 对齐；参考 [AAPT2](https://developer.android.com/tools/aapt2) 与 [Android 14 资源格式](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/android14-release/libs/androidfw/include/androidfw/ResourceTypes.h)。
-- 2026-10-09 的 fuxi 独立 ART 对照未证明 DexKit 2.3.0 或更高 JVM 输出有稳定收益，当时保留 DexKit 2.2.0 与 JVM 17。后续授权的本地试验已采用 JVM 25、DexKit 2.3.0，并继续验证 API 102；见 [试验说明](API102_LOCAL_TRIAL.md)。历史性能结论不作为拒绝后续安全升级的门槛。
+- 2026-10-09 的 fuxi 独立 ART 对照未证明 DexKit 2.3.0 或更高 JVM 输出有稳定收益，当时保留 DexKit 2.2.0 与 JVM 17。r14.23.3 采用 JVM 25、DexKit 2.3.0 与 API 102 最低基线；见 [试验说明](API102_LOCAL_TRIAL.md)。历史性能结论不作为拒绝后续安全升级的门槛。
 - 当前缓存、monitor、FeatureRegistry 和 StrongToast 基础设施保持已有边界；“可以缓存”或静态模式命中不足以构成缺陷。
 
 单次审计的旧分支、测试总数、试验包大小和中间 PASS 不作为当前状态文档；发行变化写 CHANGELOG，取证方法和仍有效约束保存在本页及 [兼容矩阵](../COMPATIBILITY.md)。

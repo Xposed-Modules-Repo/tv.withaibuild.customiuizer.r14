@@ -127,13 +127,27 @@ object XposedServiceManager {
     private const val LOG_TAG = "XposedService"
 
     @JvmStatic
-    fun requestApi102Scope(
+    fun requestScope(
         packages: List<String>,
         callback: (Boolean, String?) -> Unit,
     ): Boolean {
         val boundService = service ?: return false
-        if (boundService.apiVersion < XposedService.API_102) return false
-        Api102ScopeRequester.request(boundService, packages, callback)
+        // getScope is a synchronous Binder call. Snapshot it once per selection.
+        val granted = boundService.scope.toHashSet()
+        val missing = packages.filterNot { it in granted }
+        if (missing.isEmpty()) {
+            callback(true, null)
+            return true
+        }
+        boundService.requestScope(missing, object : XposedService.OnScopeEventListener {
+            override fun onScopeRequestApproved(approved: List<String>) {
+                handler.post { callback(approved.containsAll(missing), null) }
+            }
+
+            override fun onScopeRequestFailed(message: String) {
+                handler.post { callback(false, message) }
+            }
+        })
         return true
     }
 

@@ -3,7 +3,7 @@ package tv.withaibuild.customiuizer.installers
 import android.app.Application
 import android.content.Context
 import io.github.libxposed.api.XposedModuleInterface.PackageReadyParam
-import tv.withaibuild.customiuizer.mods.utils.Api102HookBridge
+import tv.withaibuild.customiuizer.mods.utils.HookInstallation
 import tv.withaibuild.customiuizer.mods.utils.FeatureInstallRegistry
 import tv.withaibuild.customiuizer.mods.utils.FeatureSpec
 import tv.withaibuild.customiuizer.mods.utils.FeatureTarget
@@ -37,7 +37,7 @@ object GenericAppInstaller {
             Application::class.java.name,
             Application::class.java.classLoader,
             "attach",
-            Api102HookBridge.STABLE_ID_APPLICATION_ATTACH,
+            HookInstallation.STABLE_ID_APPLICATION_ATTACH,
             Context::class.java,
             object : MethodHook() {
                 override fun after(param: AfterHookCallback) {

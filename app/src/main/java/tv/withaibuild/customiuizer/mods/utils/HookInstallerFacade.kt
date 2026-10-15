@@ -48,13 +48,13 @@ object HookInstallerFacade {
             return null
         }
         return try {
-            val unhooker = if (id != null && XposedApiCapabilities.supportsStableHookId()) {
+            val unhooker = if (id != null) {
                 val callback = parameterTypesAndCallback.lastOrNull() as? HookerClassHelper.MethodHook
                     ?: throw IllegalArgumentException("no callback defined")
                 val method = XposedHelpers.findMethodExact(
                     hookClass, methodName, *parameterTypesAndCallback.copyOf(parameterTypesAndCallback.size - 1),
                 )
-                val handle = Api102HookBridge.interceptWithStableId(XposedHelpers.moduleInst.hook(method), callback, id)
+                val handle = HookInstallation.intercept(XposedHelpers.moduleInst.hook(method), callback, id)
                 object : CustomMethodUnhooker {
                     override fun unhook() = handle.unhook()
                 }

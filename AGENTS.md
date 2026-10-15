@@ -8,8 +8,8 @@
 - HyperOS 1 / Android 14 / SDK 34。
 - `applicationId`：`tv.withaibuild.customiuizer.r14`
 - `minSdk=34`、`targetSdk=34`、ABI `arm64-v8a`
-- libxposed API 101 为最低运行基线，API 102 为隔离能力。
-- API 102 专属类型不得进入 API 101 必经生产路径。
+- libxposed API 102 为最低运行基线；不维护 API 101 兼容路径。
+- 保留设置进程与 compileOnly Hook API 的 R8 类加载边界。
 - 不支持 Android 13、Android 15 或 Android 16。
 - A14 独立版本、签名、APK、发布和兼容策略。
 
@@ -60,7 +60,7 @@ correctness
 ## 5. JVM
 
 - 构建运行时为 JDK 25。`JAVA_HOME` 指向 JDK 根目录，不得指向 `bin`。
-- `main` 的 Android Java / Kotlin 输出目标保持 17；本次用户授权的本地 JVM 25 试验分支将 `sourceCompatibility` / `targetCompatibility` / `jvmTarget` 同步设为 25。该例外不代表已完成 JVM 25 实机验收或授权推广到 `main`。
+- Android Java / Kotlin 输出目标同步为 25；通过 R8/D8 生成 SDK 34 可运行的 DEX。语言/API 级别与 JVM 输出目标分别验证。
 - 不得为了绕过环境错误降级到 JDK 17。
 - 默认保留 Java：`MainModule.java`、`XposedHelpers.java`、`MemberUtilsX.java`。
 - Java→Kotlin 必须小批量、行为等价，并与功能变化分开。

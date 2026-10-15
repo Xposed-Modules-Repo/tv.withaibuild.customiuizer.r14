@@ -331,7 +331,7 @@ def check_no_direct_hook_installation(path: Path, text: str) -> list[Finding]:
 
 
 def check_no_legacy_xposed(path: Path, text: str) -> list[Finding]:
-    """The module runs on libxposed API 101/102 only."""
+    """The module runs on libxposed API 102 and later."""
     findings = []
     for match in re.finditer(r"de\.robv\.android\.xposed", text):
         findings.append(
@@ -367,37 +367,19 @@ def check_no_regex_split_on_literal(path: Path, text: str) -> list[Finding]:
     return findings
 
 
-SET_ID_ALLOWED = {
-    "tv/withaibuild/customiuizer/mods/utils/Api102HookBridge.kt",
-}
-
 API_VERSION_ALLOWED = {
     "tv/withaibuild/customiuizer/MainModule.java",
-    "tv/withaibuild/customiuizer/mods/utils/XposedApiCapabilities.kt",
 }
 
 
-def check_api102_isolation(path: Path, text: str) -> list[Finding]:
-    """API 102 hook features are isolated behind a capability gate.
-
-    - setId may only be called from Api102HookBridge.
+def check_api102_lifecycle(path: Path, text: str) -> list[Finding]:
+    """Native API 102 calls must preserve the existing installation lifecycle.
     - replaceHook is not enabled in production.
     - HotReloadingParam / HotReloadedParam are not used.
     - getApiVersion may only be read from the module entry cold path.
     """
     rel = rel_posix(path)
     findings: list[Finding] = []
-
-    for match in re.finditer(r"\bsetId\s*\(", text):
-        if rel not in SET_ID_ALLOWED:
-            findings.append(
-                Finding(
-                    "api102-isolation",
-                    path,
-                    line_of(text, match.start()),
-                    "setId may only be called from Api102HookBridge",
-                )
-            )
 
     for match in re.finditer(r"\breplaceHook\s*\(", text):
         findings.append(
@@ -2321,7 +2303,7 @@ RULES = (
     check_no_direct_hook_installation,
     check_no_legacy_xposed,
     check_no_regex_split_on_literal,
-    check_api102_isolation,
+    check_api102_lifecycle,
     check_feature_install_oom_cleanup,
     check_feature_install_boundary,
     check_device_info_monitor_hot_path,

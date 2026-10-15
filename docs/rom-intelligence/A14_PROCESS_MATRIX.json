@@ -750,7 +750,7 @@
       "phase": "PACKAGE_READY",
       "installer": "SystemUiFeatures",
       "installHook": "Controls.NavBarButtonsHook(lpparam)",
-      "enableCondition": "prefs.getInt(\"controls_navbarleft_action\", 1) > 1 || prefs.getInt(\"controls_navbarleftlong_action\", 1) > 1 || prefs.getInt(\"controls_navbarright_action\", 1) > 1 || prefs.getInt(\"controls_navbarrightlong_action\", 1) > 1 || prefs.getInt(\"controls_homelong_action\", 1) > 1",
+      "enableCondition": "prefs.getInt(\"controls_navbarleft_action\", 1) > 1 || prefs.getInt(\"controls_navbarleftlong_action\", 1) > 1 || prefs.getInt(\"controls_navbarright_action\", 1) > 1 || prefs.getInt(\"controls_navbarrightlong_action\", 1) > 1",
       "allowedProcess": "com.android.systemui",
       "deniedProcess": "miui.systemui.plugin (ClassLoader extracted at runtime)"
     },

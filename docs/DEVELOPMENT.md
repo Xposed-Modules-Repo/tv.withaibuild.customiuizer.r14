@@ -4,7 +4,7 @@
 
 ## 环境
 
-- JDK 25；`JAVA_HOME` 指向 JDK 根目录，不能指向 `bin`。Gradle daemon 与 Java toolchain 都固定 25；本地 JVM 25 试验分支的 Java / Kotlin 输出目标同步为 25，公开稳定线保持 17。见 [试验范围与验证](JVM_LOCAL_TRIAL.md)。
+- JDK 25；`JAVA_HOME` 指向 JDK 根目录，不能指向 `bin`。Gradle daemon 与 Java toolchain 都固定 25；Java / Kotlin 输出目标同步为 25，R8/D8 产物运行于 SDK 34。见 [工具链说明](JVM_LOCAL_TRIAL.md)。
 - Python 3.12 或更新版本；安装主机工具依赖：
   ```powershell
   python -m pip install -r tools/requirements.txt
@@ -12,7 +12,7 @@
 - Android SDK：当前使用 `platforms;android-37.0`、`build-tools;36.0.0` 与 `platform-tools`。通过 Android Studio / SDK Manager 安装，`local.properties` 的 `sdk.dir` 指向本机 SDK 根目录，不提交该文件。
 - 使用仓库 Gradle wrapper。AGP / APK 依赖版本见 [版本清单](../gradle/libs.versions.toml)，KGP 与主机构建依赖约束见 [根构建脚本](../build.gradle.kts)，wrapper 校验见 [wrapper 配置](../gradle/wrapper/gradle-wrapper.properties)。
 
-compileSdk 是编译工具输入；minSdk / targetSdk 仍为 34，运行支持限于 HyperOS 1 / Android 14。当前本地试验将 Kotlin language / API 提升至 2.4，编译器与 APK Kotlin BOM / stdlib 保持 2.4.21；三者是独立配置，见 [阶段验证](JVM_LOCAL_TRIAL.md)。语言级别与 JVM 输出目标也不能混为一谈。
+compileSdk 是编译工具输入；minSdk / targetSdk 仍为 34，运行支持限于 HyperOS 1 / Android 14。Kotlin language / API 使用 2.4，编译器与 APK Kotlin BOM / stdlib 保持 2.4.21；三者是独立配置，见 [阶段验证](JVM_LOCAL_TRIAL.md)。语言级别与 JVM 输出目标也不能混为一谈。
 
 默认使用官方仓库。`-PuseChinaMirrors=true` 为插件、buildscript 和普通依赖选择已有镜像；libxposed 始终独占 Maven Central，并按 [verification-metadata.xml](../gradle/verification-metadata.xml) 校验所列产物。这个校验范围不覆盖所有依赖。不要为解决下载故障删校验或降级 JDK。
 
@@ -20,7 +20,7 @@ compileSdk 是编译工具输入；minSdk / targetSdk 仍为 34，运行支持�
 
 允许为尝试新版本、API 能力、兼容性、安全性和维护流程而升级，不以明确的性能提升或 APK 缩小为前提。
 每阶段保留来源、差异、兼容回退和相应回归结果；性能仅按真实测量报告，试验通过不自动授权推广到 main 或发布。
-API 102 的安装能力与 [DexSQL 取证流程](rom-intelligence/DEXSQL.md) 协作：先核对目标声明与来源，再复核最终 R8 隔离，最后分别做目标框架实机验证。
+API 102 的安装能力与 [DexSQL 取证流程](rom-intelligence/DEXSQL.md) 协作：先核对目标声明与来源，再复核最终 R8 回调与类加载边界，最后做 API 102 框架实机验证。
 
 ## 日常验证
 

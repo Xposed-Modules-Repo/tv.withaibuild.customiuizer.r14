@@ -9,6 +9,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import org.robolectric.shadows.ShadowLog
+import java.lang.reflect.Executable
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Proxy
 
@@ -22,23 +23,22 @@ class Api102HookInstallationTest {
     @Before
     fun prepare() {
         previousModule = XposedHelpers.moduleInst
-        XposedApiCapabilities.initialize(101)
         ShadowLog.clear()
     }
 
     @After
     fun restore() {
         XposedHelpers.moduleInst = previousModule
-        XposedApiCapabilities.initialize(101)
     }
 
     @Test
-    fun api101InstallsThroughLegacyBuilderWithoutCallingSetId() {
-        val builder = bind(101)
-        builder.idFailure = AbstractMethodError("API 101 has no setId")
-        val unhooker = install()
+    fun ordinaryMethodUsesTheSameNativePolicyWithoutAnId() {
+        val builder = bind()
+        val unhooker = XposedHelpers.findAndHookMethod(Target::class.java, "init", Boolean::class.javaPrimitiveType, callback)
         assertNotNull(unhooker)
         assertEquals(listOf("priority", "mode", "intercept"), builder.calls)
+        assertEquals(73, builder.priority)
+        assertSame(XposedInterface.ExceptionMode.PASSTHROUGH, builder.mode)
         assertNull(builder.id)
         assertEquals(0, builder.getIdCalls)
         assertSame(callback, builder.callback)
@@ -47,8 +47,23 @@ class Api102HookInstallationTest {
     }
 
     @Test
+    fun constructorsKeepTheNativePriorityModeAndUnhookPolicy() {
+        val constructor = Target::class.java.getDeclaredConstructor()
+        val builder = bind(expected = constructor)
+        val unhooker = XposedHelpers.findAndHookConstructor(Target::class.java, callback)
+        assertNotNull(unhooker)
+        assertEquals(listOf("priority", "mode", "intercept"), builder.calls)
+        assertEquals(73, builder.priority)
+        assertSame(XposedInterface.ExceptionMode.PASSTHROUGH, builder.mode)
+        assertSame(callback, builder.callback)
+        assertEquals(0, builder.getIdCalls)
+        unhooker!!.unhook()
+        assertEquals(1, builder.unhookCalls)
+    }
+
+    @Test
     fun api102PreservesPriorityModeCallbackAndUnhookWithStableId() {
-        val builder = bind(102)
+        val builder = bind()
         val unhooker = install()
         assertNotNull(unhooker)
         assertEquals(listOf("priority", "mode", "id", "intercept"), builder.calls)
@@ -63,22 +78,20 @@ class Api102HookInstallationTest {
     }
 
     @Test
-    fun missingOptionalApiFallsBackBeforeSingleIntercept() {
-        val builder = bind(102)
+    fun missingRequiredIdApiFailsBeforeIntercept() {
+        val builder = bind()
         builder.idFailure = AbstractMethodError("missing implementation")
-        assertNotNull(install())
+        assertNull(install())
         assertEquals(1, builder.calls.count { it == "id" })
-        assertEquals(1, builder.calls.count { it == "intercept" })
-        assertNull(builder.id)
+        assertFalse(builder.calls.contains("intercept"))
         assertEquals(0, builder.getIdCalls)
-        assertSame(callback, builder.callback)
     }
 
     @Test
     fun idReadbackMismatchDoesNotRetryOrDiscardInstalledHook() {
         for (reported in listOf(null, "different.id")) {
             ShadowLog.clear()
-            val builder = bind(102)
+            val builder = bind()
             builder.overrideReportedId = true
             builder.reportedId = reported
             val unhooker = install()
@@ -96,7 +109,7 @@ class Api102HookInstallationTest {
     fun unavailableIdReadbackPreservesInstalledHookAndReportsUnconfirmed() {
         for (failure in listOf(AbstractMethodError("missing getId"), IllegalStateException("readback failed"))) {
             ShadowLog.clear()
-            val builder = bind(102)
+            val builder = bind()
             builder.readbackFailure = failure
             val unhooker = install()
             assertNotNull(unhooker)
@@ -113,7 +126,7 @@ class Api102HookInstallationTest {
     fun fatalIdReadbackErrorsPropagateWithoutRetryingInstalledHook() {
         for (fatal in listOf(OutOfMemoryError("readback"), ThreadDeath(), StackOverflowError("readback"))) {
             for (failure in listOf(fatal, InvocationTargetException(fatal))) {
-                val builder = bind(102)
+                val builder = bind()
                 builder.readbackFailure = failure
                 try {
                     install()
@@ -128,17 +141,16 @@ class Api102HookInstallationTest {
     }
 
     @Test
-    fun ordinaryIdFailureStillInstallsOriginalCallbackOnce() {
-        val builder = bind(102)
+    fun rejectedIdDoesNotSilentlyInstallAnUnidentifiedHook() {
+        val builder = bind()
         builder.idFailure = IllegalArgumentException("unsupported ID")
-        assertNotNull(install())
-        assertEquals(1, builder.calls.count { it == "intercept" })
-        assertSame(callback, builder.callback)
+        assertNull(install())
+        assertFalse(builder.calls.contains("intercept"))
     }
 
     @Test
     fun interceptFailureIsNotRetried() {
-        val builder = bind(102)
+        val builder = bind()
         builder.installFailure = IllegalStateException("installation failed")
         assertNull(install())
         assertEquals(1, builder.calls.count { it == "intercept" })
@@ -147,7 +159,7 @@ class Api102HookInstallationTest {
     @Test
     fun fatalIdErrorsPreventInstallationAndPropagate() {
         for (failure in listOf(OutOfMemoryError("test"), ThreadDeath(), StackOverflowError("test"))) {
-            val builder = bind(102)
+            val builder = bind()
             builder.idFailure = failure
             try {
                 install()
@@ -160,8 +172,8 @@ class Api102HookInstallationTest {
     }
 
     @Test
-    fun wrappedFatalIdErrorIsUnwrappedBeforeFallback() {
-        val builder = bind(102)
+    fun wrappedFatalIdErrorIsUnwrappedBeforeReportingFailure() {
+        val builder = bind()
         val failure = OutOfMemoryError("wrapped test")
         builder.idFailure = InvocationTargetException(failure)
         try {
@@ -180,18 +192,17 @@ class Api102HookInstallationTest {
 
     private fun logMessages() = ShadowLog.getLogsForTag("LSPosed-Bridge").map { it.msg }
 
-    private fun bind(api: Int): Builder {
-        XposedApiCapabilities.initialize(api)
+    private fun bind(expected: Executable = target): Builder {
         val builder = Builder()
         val framework = Proxy.newProxyInstance(
             XposedInterface::class.java.classLoader, arrayOf(XposedInterface::class.java),
         ) { _, method, args ->
             when (method.name) {
                 "hook" -> {
-                    assertEquals(target, args!![0])
+                    assertEquals(expected, args!![0])
                     builder
                 }
-                "getApiVersion" -> api
+                "getApiVersion" -> error("Native installation must not probe API capabilities")
                 else -> throw UnsupportedOperationException(method.name)
             }
         }

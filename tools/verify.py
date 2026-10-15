@@ -255,7 +255,7 @@ def check_static_rules() -> int:
         fail("gradle daemon JVM criteria not found")
     require_in_text(daemon_criteria.read_text(encoding="utf-8"), r'(?m)^toolchainVersion=25$', "Gradle daemon JDK 25")
 
-    require_in_text(prop, r"minApiVersion\s*=\s*101", "module.prop minApiVersion=101")
+    require_in_text(prop, r"minApiVersion\s*=\s*102", "module.prop minApiVersion=102")
     require_in_text(prop, r"targetApiVersion\s*=\s*102", "module.prop targetApiVersion=102")
     require_in_text(prop, r"staticScope\s*=\s*true", "module.prop staticScope=true")
 

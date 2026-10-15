@@ -5,9 +5,9 @@ import java.lang.reflect.Member
 import java.lang.reflect.Method
 
 /**
- * API 101 compatibility adapter for the module's existing before/after hooks.
+ * Before/after callback semantics on the native API 102 interceptor chain.
  *
- * The adapter deliberately keeps the API 100 callback behavior used by the Android 14
+ * The adapter deliberately keeps the callback behavior used by the Android 14
  * codebase, including mutable arguments, early return/throw and after-hook exception recovery.
  */
 class HookerClassHelper private constructor() {

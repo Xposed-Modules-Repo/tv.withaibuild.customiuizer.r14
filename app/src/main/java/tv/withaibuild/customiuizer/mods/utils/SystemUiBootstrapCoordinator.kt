@@ -104,7 +104,7 @@ object SystemUiBootstrapCoordinator {
             "com.android.systemui.SystemUIInitializer",
             lpparam.classLoader,
             "init",
-            Api102HookBridge.STABLE_ID_SYSTEMUI_INIT,
+            HookInstallation.STABLE_ID_SYSTEMUI_INIT,
             Boolean::class.javaPrimitiveType,
             initStatusBarHook
         )

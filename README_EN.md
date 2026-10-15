@@ -4,12 +4,12 @@
 
 A system UI and interaction customization module maintained for **HyperOS 1 / Android 14**, derived from CustoMIUIzer. It has an independent package, signing identity and release line.
 
-- Upgrade Dev branch: `codex/dev-toolchain-api102`, currently `r14.23.1` (versionCode 241, Hook fatal-boundary and preference-sync fixes; retains Kotlin language/API 2.4, JVM 25, API 102, DexSQL and DexKit 2.3.0); the published release remains build 233. See [toolchain trial notes](docs/JVM_LOCAL_TRIAL.md) and [API 102 trial notes](docs/API102_LOCAL_TRIAL.md).
+- Current release: `r14.23.3` (versionCode 242), requiring libxposed API 102.
 - Development and maintenance: `thetvplus`
 - Application ID: `tv.withaibuild.customiuizer.r14`
 - [Download the official release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/latest) · [Source and releases](https://github.com/thetvplus/customiuizer-a14) · [Changelog](CHANGELOG.md)
 
-This build fixes blank settings pages and the blank screen when returning from About, replacing the withdrawn build 232 of the same version. Installation over the previous build retains application data with the same signing identity. Full checks and Android 14 UI-model regressions pass; no target HyperOS device acceptance is recorded.
+This release adopts JVM 25, Kotlin language/API 2.4 and native API 102 hook installation. Updates retain the existing signing identity and app data. Confirm framework API 102 support before upgrading.
 
 ## Features
 
@@ -27,18 +27,18 @@ This build fixes blank settings pages and the blank screen when returning from A
 | --- | --- |
 | System | HyperOS 1 / Android 14, SDK 34 |
 | ABI | `arm64-v8a` |
-| Xposed framework | libxposed API 101 minimum; isolated optional API 102 capabilities |
-| Module metadata | `minApiVersion=101`, `targetApiVersion=102`, `staticScope=true` |
+| Xposed framework | libxposed API 102 minimum |
+| Module metadata | `minApiVersion=102`, `targetApiVersion=102`, `staticScope=true` |
 
 Install the official APK, enable the module and required scopes in your framework, then restart the affected process or device. Settings indicate which changes require a restart. Hooks selected at installation time require restarting their target process after changing the switch.
 
 Duo is disabled by default. Open System → Status bar → Duo, then restart System UI after changes. See [Duo notes](docs/DUO_STATUS_BAR.md) for sizing, signal and hint behavior.
 
-Availability depends on the ROM and system-app versions. On API 101 frameworks, selected app scopes need manual configuration; dynamic API 102 requests still require framework approval. Do not enable this module together with upstream or another CustoMIUIzer-derived module. Android 13 / 15 / 16 and other major MIUI / HyperOS versions are unsupported. See [COMPATIBILITY.md](COMPATIBILITY.md).
+Availability depends on the ROM and system-app versions. Dynamic app-scope requests still require framework approval. Do not enable this module together with upstream or another CustoMIUIzer-derived module. Android 13 / 15 / 16 and other major MIUI / HyperOS versions are unsupported. See [COMPATIBILITY.md](COMPATIBILITY.md).
 
 ## Development and Maintenance
 
-Builds use JDK 25. This local trial aligns Java and Kotlin output targets at 25; the published stable line remains at 17. See the [local JVM trial](docs/JVM_LOCAL_TRIAL.md) for scope and validation results. Full local verification:
+Builds use JDK 25, Java/Kotlin output target 25 and Kotlin language/API 2.4. See the [toolchain notes](docs/JVM_LOCAL_TRIAL.md) for the Android 14 runtime boundary. Full local verification:
 
 ```powershell
 python tools/verify.py full

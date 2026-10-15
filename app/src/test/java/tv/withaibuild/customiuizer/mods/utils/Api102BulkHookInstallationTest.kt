@@ -26,23 +26,11 @@ class Api102BulkHookInstallationTest {
     @After
     fun restoreModule() {
         XposedHelpers.moduleInst = previousModule
-        XposedApiCapabilities.initialize(101)
-    }
-
-    @Test
-    fun api101KeepsAllDeclaredOverloadsWithoutOptionalCalls() {
-        bind(101)
-        install()
-        assertSelection()
-        for (attempt in attempts) {
-            assertEquals(listOf("setPriority", "setExceptionMode", "intercept"), attempt.calls)
-            assertNull(attempt.id)
-        }
     }
 
     @Test
     fun api102IdsAndConfirmsEachOverloadWithoutChangingCallbackOrPriority() {
-        bind(102)
+        bind()
         install()
         assertSelection()
         for (attempt in attempts) {
@@ -52,18 +40,18 @@ class Api102BulkHookInstallationTest {
     }
 
     @Test
-    fun optionalSetterFailureFallsBackOncePerOverload() {
-        bind(102)
+    fun requiredSetterFailureStopsBeforeInstallingAnyOverload() {
+        bind()
         failSetter = true
         install()
-        assertSelection()
-        assertTrue(attempts.all { it.calls.count { call -> call == "intercept" } == 1 })
-        assertTrue(attempts.all { !it.calls.contains("getId") })
+        assertEquals(1, attempts.size)
+        assertFalse(attempts.single().calls.contains("intercept"))
+        assertFalse(attempts.single().calls.contains("getId"))
     }
 
     @Test
     fun partialInstallFailureDoesNotRetryEarlierOrFailedOverload() {
-        bind(102)
+        bind()
         failSecondIntercept = true
         install()
         assertEquals(2, attempts.size)
@@ -73,14 +61,14 @@ class Api102BulkHookInstallationTest {
 
     @Test
     fun absentMethodNeverCreatesBuilder() {
-        bind(102)
+        bind()
         install("missing")
         assertTrue(attempts.isEmpty())
     }
 
     @Test
     fun ordinaryBulkEntryDoesNotOptInToIdsOnApi102() {
-        bind(102)
+        bind()
         ModuleHelper.hookAllMethods(Target::class.java.name, Target::class.java.classLoader, "createPlugin", callback)
         assertSelection()
         assertTrue(attempts.all { !it.calls.contains("setId") && !it.calls.contains("getId") })
@@ -88,7 +76,7 @@ class Api102BulkHookInstallationTest {
 
     private fun install(name: String = "createPlugin") = ModuleHelper.hookAllMethodsWithId(
         Target::class.java.name, Target::class.java.classLoader, name,
-        Api102HookBridge.STABLE_ID_PLUGIN_CREATE, callback,
+        HookInstallation.STABLE_ID_PLUGIN_CREATE, callback,
     )
 
     private fun assertSelection() {
@@ -99,8 +87,7 @@ class Api102BulkHookInstallationTest {
         attempts.forEach { assertEquals(71, it.priority); assertSame(callback, it.callback) }
     }
 
-    private fun bind(api: Int) {
-        XposedApiCapabilities.initialize(api)
+    private fun bind() {
         XposedHelpers.moduleInst = proxy(XposedInterface::class.java) { name, args ->
             check(name == "hook")
             val attempt = Attempt(args!![0] as Method)

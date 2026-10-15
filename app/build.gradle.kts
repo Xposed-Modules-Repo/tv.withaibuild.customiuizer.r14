@@ -26,7 +26,7 @@ abstract class WriteBuildProvenance : WriteProperties() {
 
 kotlin {
     compilerOptions {
-        // Local staged trial: align stable language/API with compiler and stdlib 2.4.
+        // Align stable language/API with compiler and stdlib 2.4.
         languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_4)
         apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_4)
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25)
@@ -61,8 +61,8 @@ if (officialRelease) {
     }
 }
 
-val lastVersion = 241
-val lastVersionName = "r14.23.1"
+val lastVersion = 242
+val lastVersionName = "r14.23.3"
 
 fun resolveBuildRevision(): String {
     val prop = project.findProperty("buildRevision")?.toString()

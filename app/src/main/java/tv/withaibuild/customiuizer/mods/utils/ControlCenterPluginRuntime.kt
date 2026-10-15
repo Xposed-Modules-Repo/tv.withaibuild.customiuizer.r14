@@ -223,7 +223,7 @@ open class ControlCenterPluginRuntimeEngine(
             "com.android.systemui.shared.plugins.PluginInstance\$PluginFactory",
             classLoader,
             "createPlugin",
-            Api102HookBridge.STABLE_ID_PLUGIN_CREATE,
+            HookInstallation.STABLE_ID_PLUGIN_CREATE,
             hook,
         )
     }

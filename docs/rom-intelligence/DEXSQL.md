@@ -11,12 +11,12 @@ DexSQL 作为可选主机分析工具，与当前 DexKit 运行时定位、ROM �
 
 1. 对真实 ROM 运行 `bootstrap_contract.sql`，从定义视图和 `dex_files` 确认安装点属于宿主、插件还是 boot framework。
    对匹配方法使用 `decode`、`method_calls` 和字段引用复核原回调所需的签名 / 加载链。
-2. 为已有安装点选择固定 ID；API 101 保持原安装，API 102 通过隔离桥配置 ID / 回读确认。
+2. 为既有基础设施安装点选择固定 ID；最低 API 102 原生配置 ID / 回读确认。
    实现与生命周期范围见 [API 102 试验](../API102_LOCAL_TRIAL.md)。
-3. R8 后重新打开该 APK，运行 `api102_bridge_calls.sql`，用同产物 mapping 确认每个可选 invoke 的 owner。
-   239 阶段预期 setId 和 getId 各一处指令，都在桥内，replaceHook 为零；指令数不等于运行安装次数。
+3. R8 后重新打开该 APK，运行 `api102_bridge_calls.sql`，用同产物 mapping 确认原生安装 invoke 的 owner。
+   检查 setId/getId 及其安装调用链，replaceHook 应为零；不以 R8 内联后的指令数推断运行安装次数。
 4. 用 `api102_hook_ids.sql` 检查 ID 的实际指令使用位置。它只证明产物包含安装配置，
-   还须在 API 102 设备记录 `<id> (confirmed)` 才能确认 readback；API 101 则验证回退且没有可选调用。
+   还须在 API 102 设备记录 `<id> (confirmed)` 才能确认 readback。
 5. 关闭数据集并保存工具版本、输入哈希、SQL、mapping 归属和验证范围；不要把这些结果转成自动热重载授权。
 
 R8 会合并类或内联安装方法。类映射只说明输出容器，还需匹配方法 / 行号映射才能归属原安装器。
