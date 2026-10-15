@@ -12,7 +12,7 @@
 - Android SDK：当前使用 `platforms;android-37.0`、`build-tools;36.0.0` 与 `platform-tools`。通过 Android Studio / SDK Manager 安装，`local.properties` 的 `sdk.dir` 指向本机 SDK 根目录，不提交该文件。
 - 使用仓库 Gradle wrapper。AGP / APK 依赖版本见 [版本清单](../gradle/libs.versions.toml)，KGP 与主机构建依赖约束见 [根构建脚本](../build.gradle.kts)，wrapper 校验见 [wrapper 配置](../gradle/wrapper/gradle-wrapper.properties)。
 
-compileSdk 是编译工具输入；minSdk / targetSdk 仍为 34，运行支持限于 HyperOS 1 / Android 14。主机 KGP、Kotlin language / API 2.2 和 APK Kotlin BOM / stdlib 是不同配置，不能只升级编译器就隐式抬升运行依赖。
+compileSdk 是编译工具输入；minSdk / targetSdk 仍为 34，运行支持限于 HyperOS 1 / Android 14。当前本地试验将 Kotlin language / API 提升至 2.4，编译器与 APK Kotlin BOM / stdlib 保持 2.4.21；三者是独立配置，见 [阶段验证](JVM_LOCAL_TRIAL.md)。语言级别与 JVM 输出目标也不能混为一谈。
 
 默认使用官方仓库。`-PuseChinaMirrors=true` 为插件、buildscript 和普通依赖选择已有镜像；libxposed 始终独占 Maven Central，并按 [verification-metadata.xml](../gradle/verification-metadata.xml) 校验所列产物。这个校验范围不覆盖所有依赖。不要为解决下载故障删校验或降级 JDK。
 

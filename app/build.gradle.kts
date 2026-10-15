@@ -26,10 +26,9 @@ abstract class WriteBuildProvenance : WriteProperties() {
 
 kotlin {
     compilerOptions {
-        // Keep the validated compiler and Kotlin language/API level while
-        // testing optional API 102 hook IDs with JVM 25 output locally.
-        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
-        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
+        // Local staged trial: align stable language/API with compiler and stdlib 2.4.
+        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_4)
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_4)
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25)
     }
 }
@@ -62,7 +61,7 @@ if (officialRelease) {
     }
 }
 
-val lastVersion = 239
+val lastVersion = 240
 val lastVersionName = "r14.23.1"
 
 fun resolveBuildRevision(): String {

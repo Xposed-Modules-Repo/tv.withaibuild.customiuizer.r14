@@ -6,8 +6,9 @@ Retained releases and withdrawal notices are listed. Each section covers changes
 
 ## r14.23.1 — 2026-10-15
 
-HyperOS 1 / Android 14, versionCode 239. Local API 102 trial only; the published release is build 233, which replaced the withdrawn build 232 of the same version. Changes since r14.22.7:
+HyperOS 1 / Android 14, versionCode 240. Local upgrade trial only; the published release is build 233, which replaced the withdrawn build 232 of the same version. Changes since r14.22.7:
 
+- Raise Kotlin language/API from 2.2 to stable 2.4 in build 240, keeping compiler/stdlib 2.4.21, AGP 9.4.1 and JVM 25. Validate recompilation, metadata/Java boundaries, the final APK and target-device behavior as a separate stage.
 - Assign stable IDs to the existing SystemUI initializer, plugin creation and Application.attach hooks on API 102, and confirm them through handle readback. Keep API 101 installers, overload selection, callbacks and lifecycle; isolate optional calls from R8 inlining, avoid installation retries and propagate proxy-wrapped fatal errors. Hot reload and explicit hook replacement remain deferred.
 - Add optional DexSQL queries and a native MCP workflow for ROM definitions, call references and final APK isolation checks. Safe staged upgrades no longer require demonstrated performance gains.
 - Stage the DexKit update from 2.2.0 to 2.3.0 in build 237. Keep the existing queries and bridge lifecycle. The user reported no apparent issues; subsequent isolated ART queries match DexSQL for the screenshot target and Global GuardProvider's empty result, independently of full module device acceptance.

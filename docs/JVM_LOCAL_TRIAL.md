@@ -1,5 +1,25 @@
 # JVM 与工具链本地试验
 
+## 当前阶段（240）：Kotlin language / API 2.4
+
+沿用 `codex/api102-hook-id-local-20261015`，从 `6b027bc` 继续，不切换或新建分支。
+用户反馈 239 试用正常，并授权使用已连接的 HyperOS 1 / Android 14 设备继续验证。
+本阶段只将 Kotlin language / API 2.2 → 2.4，保留编译器 / BOM / stdlib 2.4.21、
+AGP 9.4.1 / 内置 R8 9.4.24、Gradle 9.8.1、JDK / JVM 25，以及既有 API 101 / 102 隔离和 Hook 行为。
+版本名保持 r14.23.1，versionCode 240，仅生成本地签名 Release；不推送或发布。
+
+2026-10-15 再次核对官方 Maven 元数据，上述编译器、AGP、协程 1.11.0、libxposed API / Service 102.0.0
+已是各自最新稳定版本；Kotlin 2.5 Beta / AGP 9.5 alpha 不混入本轮。
+语言级别此前独立停留在 2.2，本轮按官方 [2.3 迁移说明](https://kotlinlang.org/docs/compatibility-guide-23.html)
+和 [2.4 迁移说明](https://kotlinlang.org/docs/compatibility-guide-24.html) 验证更严格的类型检查、
+注解目标默认规则和元数据变化；不引入为迁移而重写的框架或新运行依赖。
+
+收口包括 Fast / Full、工具测试、clean Release / R8 analyzer / lintRelease、签名与来源检查、
+中间 class / 最终 DEX 与资源对照，以及安装后的设置导航、偏好保存和 API 102 安装回读。
+原始证据在忽略目录 `.di-evidence/kotlin24-local-20261015/`。验证结论另行补记；不预先宣称性能收益。
+
+## 前序阶段（234—237）
+
 目标 21 试验从公开版 `1b620121c317cda018798837864751967f01b2b1` 开始，提交为 `39ac5e02cd54f25fa5940c12698273607704487a`；目标 25 试验提交为 `2420550bdadc640440c9152cc109e48ee0efb44c`。用户反馈两者及工具链试用包 236 无明显问题后，授权继续分阶段升级测试，不要求优化收益。本阶段从 `66f2fae13e32b5f65180be48753564a1acac7bb8` 创建本地分支 `codex/dexkit23-local-20261015`，仅升级 DexKit 2.2.0 → 2.3.0，保留既有查询与桥生命周期。产物只保存到本地，用现有正式证书签名的 Release 配置供用户试用；版本名保持 `r14.23.1`，versionCode 增至 237。
 
 ## 已完成的工具链阶段（236）
