@@ -16,7 +16,33 @@ AGP 9.4.1 / 内置 R8 9.4.24、Gradle 9.8.1、JDK / JVM 25，以及既有 API 10
 
 收口包括 Fast / Full、工具测试、clean Release / R8 analyzer / lintRelease、签名与来源检查、
 中间 class / 最终 DEX 与资源对照，以及安装后的设置导航、偏好保存和 API 102 安装回读。
-原始证据在忽略目录 `.di-evidence/kotlin24-local-20261015/`。验证结论另行补记；不预先宣称性能收益。
+原始证据在忽略目录 `.di-evidence/kotlin24-local-20261015/`。
+
+240 验证结果：Fast / Full（含 lintDebug）、2,609 项 JVM 测试（跳过 2）和 512 项 Python 测试（跳过 5）
+零失败，无需修改业务源码。2,077 个中间 class 均为 major 69，2,063 个 Kotlin 类的 metadata 版本由
+2.2.0 升至 2.4.0。抽查确认协程 DebugMetadata v2、容器桥方法的 CLASS 级空值注解变化；
+成员清单仅有一个私有 SAM 辅助方法的返回类型擦除为 Object，LambdaMetafactory 引用同步变化。
+R8 后 DEX 在明确归一化备份头版本常量、来源日志、校验值及 R8 map ID 后字节一致；
+没有新增 Android / Java 平台引用，不将中间 class 的变化等同于 ART 运行成本变化。
+
+签名 Release 来自 `276f522c5f87eb1cc09efec761589243fc7d09d7`。两次 clean、关闭构建 / 配置缓存及 Kotlin 增量的
+Release / R8 analyzer / lintRelease 分别用时 192.44 / 184.63 秒，APK 与 mapping 各自字节一致。
+与 239 相比，APK 仍为 3,799,501 字节，DEX 2,022,424 字节，resources.arsc 804,712 字节，native 394,984 字节；
+资源 / ID / 值、native、Xposed 元数据、业务 assets 和 ServiceLoader 语义保持，R8 配置不变。
+原证书 V2 单签名、来源、ZIP CRC、16 KiB ZIP 对齐、SDK 34 / arm64 检查通过。
+原生 DexSQL MCP 确认类 / 方法 / 字段定义数量及注解保留清单保持，setId / getId 各一处调用仍隔离在桥内；
+两个公共安装器的能力位与 API 101 普通回退已逐方法解码复核。
+
+已在 Xiaomi 13 / fuxi、HyperOS 1 `V816.0.7.0.UMCTWXM` / Android 14、Vector 2.2 (3112) 上覆盖安装并重启。
+安装包哈希与本地产物一致；三个 API 102 稳定 ID 均有 confirmed 回读，SystemUI / Launcher / system_server
+安装汇总无 failed。实机检查四个分类、各一个设置子页、关于页返回、桌面与控制中心；
+入口位置偏好在应用进程重启后保留，测试后全部 402 项原偏好及临时唤醒设置已恢复。
+本次观察窗口内未发现目标进程崩溃，SystemUI / Launcher 的 PID 保持；这不等于全功能长期验收，
+也未覆盖 API 101 框架、国内 ROM 的全部功能或 ART 性能基准。
+
+本地包：`release-output/r14.23.1-kotlin24-local-240/CustoMIUIzer-A14-r14.23.1-kotlin24-local-240.apk`，
+SHA-256：`bb065ebbb80db7aace4f1e173ac41a548cadbe26fa1eac2da43b69d5134a0df6`。
+没有推送、合并或发布；不宣称性能收益。
 
 ## 前序阶段（234—237）
 
@@ -41,7 +67,7 @@ AGP 9.4.1 / 内置 R8 9.4.24、Gradle 9.8.1、JDK / JVM 25，以及既有 API 10
 
 236 阶段实际结果：R8 9.3.28 → 9.4.24；相同输入的 APK 均为 3,769,157 字节，DEX 2,012,564 → 2,012,372 字节（减少 192 字节），没有可见 APK 瘦身收益。资源 ID / 值、资源文件、Manifest、native、业务 assets 和保留成员集合一致，平台 API 引用没有变化。两次禁用缓存与增量的 clean 新组合构建，APK 和 mapping 分别字节一致。Fast / Full、2591 JVM 测试（跳过 2，包含 7 项设置导航界面模型）及 507 Python 测试（跳过 5）零失败，Release / R8 analyzer / lintRelease、正式证书 V2 签名与 16 KiB 对齐检查通过。实际构建耗时和完整数据见本地验收说明；没有实机性能测量，不宣称运行更快。
 
-## 当前依赖阶段（237）
+## 依赖阶段（237）
 
 237 的验证复用既有流程：Fast / Full、Python 工具测试与签名 Release / R8 analyzer / lintRelease；确认实际解析 DexKit 2.3.0、arm64 ELF 与 JNI 入口保留、16 KiB ZIP 对齐、SDK / Xposed 元数据、资源 ID / 值及新增平台 API。证据保存到忽略目录 `.di-evidence/dexkit23-local-20261015/`，APK 与验收说明保存到 `release-output/r14.23.1-dexkit23-local-237/`。本轮验证升级可构建与静态兼容，不重做优化收益基准。
 

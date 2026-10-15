@@ -1,5 +1,20 @@
 # API 102 稳定 Hook ID 本地试用
 
+## 240：目标设备安装回读
+
+沿用当前分支，Kotlin language / API 2.4 阶段的构建、APK 对照和完整结果见 [工具链试验](JVM_LOCAL_TRIAL.md)。
+240 已在 fuxi / HyperOS 1 `V816.0.7.0.UMCTWXM` / Android 14、Vector 2.2 (3112) 上覆盖安装并重启，
+设备 APK 哈希与 `276f522c` 的本地签名产物一致。启动日志分别确认：
+
+- `application.attach (confirmed)`：Launcher 进程。
+- `systemui.init (confirmed)`：SystemUI 进程。
+- `systemui.plugin.create (confirmed)`：SystemUI 进程。
+
+SystemUI、Launcher 和 system_server 的 Hook 汇总未报告安装失败；设置分类及子页抽查、关于返回、
+偏好持久化、桌面和控制中心显示检查通过。全部原偏好已恢复，观察窗口内未发现目标进程崩溃。
+这确认了当前 API 102 框架上的安装能力，不代表 API 101 实机验收、全功能长期稳定性或性能测量。
+仍未启用自动热重载、显式 replaceHook 或 detach，API 101 普通安装回退继续保留。
+
 ## 239：稳定 ID、回读与 DexSQL 联合取证
 
 沿用当前升级分支，从 `8a8c2f4` 继续。本阶段允许以兼容性探索、API 能力和开发流程为升级理由，
@@ -31,7 +46,7 @@ Receiver / Observer、系统持有对象和 native 生命周期交接。暂缓�
 回归覆盖 API 101 零可选调用、API 102 重载 / 优先级 / 模式 / 回调保留、ID 回读、
 普通回退、部分安装失败不重试、致命异常传播和既有插件释放测试。
 本阶段原始数据在 `.di-evidence/api102-dexsql-integration-20261015/`。
-连接设备仍安装 238；日志未找到可确认的 API 102 ID 记录，不能把设备连接或普通使用正常当成 239 实机验收。
+本阶段当时采样的设备仍安装 238；日志未找到可确认的 API 102 ID 记录，不能把设备连接或普通使用正常当成 239 实机验收。后续 240 的实机结果见上。
 
 已通过 Full（含 lintDebug），JUnit 2,609 项零失败 / 错误、2 项跳过；Python 工具 512 项零失败、5 项跳过。
 设备 Vector 2.2 (3112) 的 framework DEX 也已读取并由原生 MCP 验证：SHA-256 为
@@ -48,7 +63,7 @@ SDK 34 / arm64 与 ZIP CRC 通过。APK 为 3,799,501 字节，与 238 相同；
 两个公共安装器中保留能力位判断与普通安装回退，已逐方法 decode 复核。
 本地包在 `release-output/r14.23.1-api102-dexsql-local-239/`，SHA-256：
 `f4cc59ce73e70419e6c18e7a603703cc7e7bf915b3d7052a8090346f5ab066d0`。
-该包尚未覆盖安装到设备，未做重复 Release 或 API 101 / 102 新包实机验收，不宣称运行时性能提升。
+该阶段交付时尚未覆盖安装到设备，未做重复 Release 或 API 101 / 102 新包实机验收，不宣称运行时性能提升。
 
 ## 238：首次稳定 ID 试验记录
 

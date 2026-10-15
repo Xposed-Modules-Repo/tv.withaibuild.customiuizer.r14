@@ -8,14 +8,14 @@ Retained releases and withdrawal notices are listed. Each section covers changes
 
 HyperOS 1 / Android 14, versionCode 240. Local upgrade trial only; the published release is build 233, which replaced the withdrawn build 232 of the same version. Changes since r14.22.7:
 
-- Raise Kotlin language/API from 2.2 to stable 2.4 in build 240, keeping compiler/stdlib 2.4.21, AGP 9.4.1 and JVM 25. Validate recompilation, metadata/Java boundaries, the final APK and target-device behavior as a separate stage.
+- Raise Kotlin language/API from 2.2 to stable 2.4 in build 240, keeping compiler/stdlib 2.4.21, AGP 9.4.1 and JVM 25. Full checks, repeatable signed builds and a HyperOS 1 device smoke test pass; all three API 102 IDs are confirmed. APK size is unchanged; no performance gain is claimed.
 - Assign stable IDs to the existing SystemUI initializer, plugin creation and Application.attach hooks on API 102, and confirm them through handle readback. Keep API 101 installers, overload selection, callbacks and lifecycle; isolate optional calls from R8 inlining, avoid installation retries and propagate proxy-wrapped fatal errors. Hot reload and explicit hook replacement remain deferred.
 - Add optional DexSQL queries and a native MCP workflow for ROM definitions, call references and final APK isolation checks. Safe staged upgrades no longer require demonstrated performance gains.
 - Stage the DexKit update from 2.2.0 to 2.3.0 in build 237. Keep the existing queries and bridge lifecycle. The user reported no apparent issues; subsequent isolated ART queries match DexSQL for the screenshot target and Global GuardProvider's empty result, independently of full module device acceptance.
 - Update AGP from 9.3.3 to 9.4.1 with its bundled R8, and Kotlin BOM/stdlib from 2.3.21 to 2.4.21 in build 236. The user reported no apparent issues; retain compiler 2.4.21, language/API 2.2 and JVM 25 output. No measured ART performance improvement is claimed.
 - Align Java source/target and Kotlin JVM output at 25. Users reported no apparent issues with the JVM 21 and JVM 25 trials (builds 234/235); no measured ART performance improvement is claimed.
 
-- Fix blank settings pages and the blank screen on returning from About by preserving page position and alpha while collecting animators; retain the pre-upgrade back behavior. Add Android 14 UI-model regression tests for all four categories and their settings pages, return and recreation; no HyperOS device acceptance is recorded.
+- Fix blank settings pages and the blank screen on returning from About by preserving page position and alpha while collecting animators; retain the pre-upgrade back behavior. Add Android 14 UI-model regression tests for all four categories and their settings pages, return and recreation. Build 240 also passes a HyperOS 1 smoke test of the four categories, one subpage each and return from About.
 - Add an independent Duo charging-bolt switch, enabled by default; percentage and charging colour remain independent.
 - Refine silent and DND shortcut colours while preserving the native appearance and animation; restore original colours when custom styling is disabled.
 - Fix navigation long presses, key consumption and Control Center gesture cleanup. Restart the phone when first enabling navigation long presses.
