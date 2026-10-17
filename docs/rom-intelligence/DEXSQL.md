@@ -1,6 +1,7 @@
 # DexSQL 开发取证
 
-DexSQL 作为可选主机分析工具，与当前 DexKit 运行时定位、ROM 清单和契约扫描协作。
+DexSQL 是 ROM 适配、Hook 定位、目标差异和最终 DEX 复核的核心主机取证入口，
+与当前 DexKit 运行时定位、ROM 清单和契约扫描协作；优先复用官方 CLI / MCP 与[现有查询集](../../tools/dexsql/README.md)。
 它不进入 APK、不修改 Hook 注册，也不是默认构建 / CI 的前置条件。
 工具连接状态、样本测量和逐次评估留在本地证据或 Git 历史；使用前核对已安装工具及其文档。
 
@@ -10,7 +11,8 @@ DexSQL 作为可选主机分析工具，与当前 DexKit 运行时定位、ROM �
    对匹配方法使用 `decode`、`method_calls` 和字段引用复核原回调所需的签名 / 加载链。
 2. 为既有基础设施安装点选择固定 ID；最低 API 102 原生配置 ID / 回读确认。
    实现与生命周期范围见 [API 102 架构](../../ARCHITECTURE.md#api-102-安装与-service)。
-3. R8 后重新打开该 APK，运行 `api102_bridge_calls.sql`，用同产物 mapping 确认原生安装 invoke 的 owner。
+3. R8 后重新打开该 APK，先运行 `definition_sources.sql`、`apk_hook_api_definitions.sql` 和
+   `apk_settings_api_refs.sql` 复核来源与设置进程边界，再运行 `api102_bridge_calls.sql`，用同产物 mapping 确认原生安装 invoke 的 owner。
    检查 setId/getId 及其安装调用链，replaceHook 应为零；不以 R8 内联后的指令数推断运行安装次数。
 4. 用 `api102_hook_ids.sql` 检查 ID 的实际指令使用位置。它只证明产物包含安装配置，
    还须在 API 102 设备记录 `<id> (confirmed)` 才能确认 readback。

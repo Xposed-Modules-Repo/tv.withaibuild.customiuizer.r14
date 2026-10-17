@@ -61,8 +61,8 @@ if (officialRelease) {
     }
 }
 
-val lastVersion = 242
-val lastVersionName = "r14.23.3"
+val lastVersion = 243
+val lastVersionName = "r14.23.5"
 
 fun resolveBuildRevision(): String {
     val prop = project.findProperty("buildRevision")?.toString()
@@ -220,6 +220,11 @@ android {
     }
     buildFeatures {
         buildConfig = true
+    }
+    androidResources {
+        // These Open With samples need seekable asset FDs. Match only their names,
+        // leaving licenses and other text/ZIP entries compressed.
+        noCompress += listOf("test3.txt", "test4.zip")
     }
     lint {
         // Supported translations intentionally fall back to the base strings when incomplete.

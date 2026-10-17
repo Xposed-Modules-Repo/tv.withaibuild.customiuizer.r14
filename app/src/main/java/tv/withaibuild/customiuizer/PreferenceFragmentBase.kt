@@ -53,6 +53,8 @@ import tv.withaibuild.customiuizer.utils.XposedServiceManager
 open class PreferenceFragmentBase : PreferenceFragmentCompat() {
 
     private var actContext: Context? = null
+    private var groupedList: RecyclerView? = null
+    private var groupedDecoration: PreferenceGroupDecoration? = null
 
     /**
      * AndroidX invokes change listeners before ListPreference persists its new value. A listener
@@ -457,12 +459,30 @@ open class PreferenceFragmentBase : PreferenceFragmentCompat() {
     private fun attachGroupedPreferenceChrome() {
         val list = try {
             getListView()
-        } catch (_: Throwable) {
+        } catch (t: Throwable) {
+            FatalErrors.rethrowIfFatal(t)
             null
         } ?: return
         setDivider(null)
         setDividerHeight(0)
-        list.addItemDecoration(PreferenceGroupDecoration { preferenceScreen })
+        groupedDecoration?.let {
+            groupedList?.removeItemDecoration(it)
+            it.dispose()
+        }
+        val decoration = PreferenceGroupDecoration { preferenceScreen }
+        groupedList = list
+        groupedDecoration = decoration
+        list.addItemDecoration(decoration)
+    }
+
+    override fun onDestroyView() {
+        groupedDecoration?.let {
+            groupedList?.removeItemDecoration(it)
+            it.dispose()
+        }
+        groupedDecoration = null
+        groupedList = null
+        super.onDestroyView()
     }
 
     open fun openSubFragment(

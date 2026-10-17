@@ -269,6 +269,7 @@ class System : SubFragment() {
                             val viewIntent = Intent().apply {
                                 action = Intent.ACTION_VIEW
                                 setDataAndType(Uri.parse("content://${PrefsProvider.AUTHORITY}/test/$which"), type)
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                             }
                             context.startActivity(Intent.createChooser(viewIntent, null))
                         }

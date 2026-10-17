@@ -4,12 +4,12 @@
 
 A system UI and interaction customization module maintained for **HyperOS 1 / Android 14**, derived from CustoMIUIzer. It has an independent package, signing identity and release line.
 
-- Current release: `r14.23.3` (versionCode 242), requiring libxposed API 102.
+- Current release: `r14.23.5` (versionCode 243), requiring libxposed API 102.
 - Development and maintenance: `thetvplus`
 - Application ID: `tv.withaibuild.customiuizer.r14`
 - [Download the official release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/latest) · [Source and releases](https://github.com/thetvplus/customiuizer-a14) · [Changelog](CHANGELOG.md)
 
-This release adopts JVM 25, Kotlin language/API 2.4 and native API 102 hook installation. Updates retain the existing signing identity and app data. Confirm framework API 102 support before upgrading.
+This release reduces repeated settings-page grouping, restores sample-file access and tightens external entry points. Updates retain the existing signing identity and app data. Confirm framework API 102 support before upgrading.
 
 ## Features
 
