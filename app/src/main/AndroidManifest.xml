@@ -135,6 +135,13 @@
             android:grantUriPermissions="true"
             android:exported="false" />
 
+        <!-- The privileged framework can deliver its Binder; ordinary apps cannot
+             replace the settings process's service connection with an arbitrary Binder. -->
+        <provider
+            android:name="io.github.libxposed.service.XposedProvider"
+            android:authorities="${applicationId}.XposedService"
+            android:permission="${applicationId}.permission.BROADCAST" />
+
         <service
             android:exported="true"
             android:name="tv.withaibuild.customiuizer.qs.AutoRotateService"

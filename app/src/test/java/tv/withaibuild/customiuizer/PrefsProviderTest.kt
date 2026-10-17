@@ -1,6 +1,7 @@
 package tv.withaibuild.customiuizer
 
 import android.app.Application
+import android.content.pm.PermissionInfo
 import android.net.Uri
 import java.io.FileNotFoundException
 import org.junit.Assert.assertFalse
@@ -48,5 +49,17 @@ class PrefsProviderTest {
         val info = context.packageManager.resolveContentProvider(PrefsProvider.AUTHORITY, 0)!!
         assertFalse(info.exported)
         assertTrue(info.grantUriPermissions)
+    }
+
+    @Test
+    fun nativeServiceBinderProviderRequiresTheModuleSignature() {
+        val pm = RuntimeEnvironment.getApplication().packageManager
+        val permission = BuildConfig.APPLICATION_ID + ".permission.BROADCAST"
+        val info = pm.resolveContentProvider(BuildConfig.APPLICATION_ID + ".XposedService", 0)!!
+        assertTrue("Framework handshake must remain exported", info.exported)
+        org.junit.Assert.assertEquals(permission, info.readPermission)
+        org.junit.Assert.assertEquals(permission, info.writePermission)
+        org.junit.Assert.assertEquals(PermissionInfo.PROTECTION_SIGNATURE,
+            pm.getPermissionInfo(permission, 0).protectionLevel and PermissionInfo.PROTECTION_MASK_BASE)
     }
 }
