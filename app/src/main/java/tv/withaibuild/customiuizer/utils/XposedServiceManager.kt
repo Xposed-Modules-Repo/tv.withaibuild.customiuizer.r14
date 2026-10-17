@@ -133,22 +133,34 @@ object XposedServiceManager {
     ): Boolean {
         val boundService = service ?: return false
         // getScope is a synchronous Binder call. Snapshot it once per selection.
-        val granted = boundService.scope.toHashSet()
+        val granted = try {
+            boundService.scope.toHashSet()
+        } catch (t: Throwable) {
+            FatalErrors.unwrapAndRethrowIfFatal(t)
+            return false
+        }
         val missing = packages.filterNot { it in granted }
         if (missing.isEmpty()) {
             callback(true, null)
             return true
         }
-        boundService.requestScope(missing, object : XposedService.OnScopeEventListener {
-            override fun onScopeRequestApproved(approved: List<String>) {
-                handler.post { callback(approved.containsAll(missing), null) }
-            }
+        return try {
+            boundService.requestScope(missing, object : XposedService.OnScopeEventListener {
+                override fun onScopeRequestApproved(approved: List<String>) {
+                    handler.post { callback(approved.containsAll(missing), null) }
+                }
 
-            override fun onScopeRequestFailed(message: String) {
-                handler.post { callback(false, message) }
-            }
-        })
-        return true
+                override fun onScopeRequestFailed(message: String) {
+                    handler.post { callback(false, message) }
+                }
+            })
+            true
+        } catch (t: Throwable) {
+            FatalErrors.unwrapAndRethrowIfFatal(t)
+            // The service can die or deny access before onServiceDied reaches us.
+            // Report unavailability to the existing UI; never retry an uncertain request.
+            false
+        }
     }
 
     private var initialized = false

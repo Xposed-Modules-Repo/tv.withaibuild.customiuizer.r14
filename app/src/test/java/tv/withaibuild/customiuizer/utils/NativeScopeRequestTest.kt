@@ -1,6 +1,7 @@
 package tv.withaibuild.customiuizer.utils
 
 import android.os.Looper
+import android.os.DeadObjectException
 import io.github.libxposed.service.XposedService
 import java.lang.reflect.Proxy
 import org.junit.After
@@ -22,6 +23,8 @@ class NativeScopeRequestTest {
     private var requested: List<String>? = null
     private var approval: List<String>? = null
     private var failure: String? = null
+    private var scopeFailure: Throwable? = null
+    private var requestFailure: Throwable? = null
 
     @Before fun save() { previous = XposedServiceManager.service }
     @After fun restore() { XposedServiceManager.service = previous }
@@ -71,13 +74,57 @@ class NativeScopeRequestTest {
         assertFalse(XposedServiceManager.requestScope(listOf("app.one")) { _, _ -> fail("no service") })
     }
 
+    @Test fun deadServiceAndAuthorizationFailureDoNotCrashOrClaimApproval() {
+        bind(emptyList())
+        for (error in listOf(DeadObjectException(), SecurityException("not authorized"))) {
+            scopeFailure = error
+            assertFalse(XposedServiceManager.requestScope(listOf("app.one")) { _, _ -> fail("no approval") })
+        }
+        assertEquals(2, scopeReads)
+        assertEquals(0, requests)
+    }
+
+    @Test fun failedRequestDoesNotRetryOrClaimApproval() {
+        bind(emptyList())
+        for (error in listOf(DeadObjectException(), SecurityException("not authorized"))) {
+            requestFailure = error
+            assertFalse(XposedServiceManager.requestScope(listOf("app.one")) { _, _ -> fail("no approval") })
+        }
+        assertEquals(2, scopeReads)
+        assertEquals(2, requests)
+    }
+
+    @Test fun fatalNativeScopeFailuresStillEscape() {
+        bind(emptyList())
+        for (error in listOf(OutOfMemoryError("fixture"), ThreadDeath(), InternalError("fixture"))) {
+            scopeFailure = error
+            assertSame(error, assertThrows(error.javaClass) {
+                XposedServiceManager.requestScope(listOf("app.one")) { _, _ -> fail("no approval") }
+            })
+            scopeFailure = null
+            requestFailure = error
+            assertSame(error, assertThrows(error.javaClass) {
+                XposedServiceManager.requestScope(listOf("app.one")) { _, _ -> fail("no approval") }
+            })
+        }
+    }
+
+    @Test fun callerCallbackFailureIsNotMistakenForABinderFailure() {
+        bind(listOf("already.granted"))
+        val error = IllegalStateException("caller failure")
+        assertSame(error, assertThrows(IllegalStateException::class.java) {
+            XposedServiceManager.requestScope(listOf("already.granted")) { _, _ -> throw error }
+        })
+    }
+
     private fun bind(granted: List<String>) {
         val type = Class.forName("io.github.libxposed.service.IXposedService")
         val binder = Proxy.newProxyInstance(type.classLoader, arrayOf(type)) { _, method, args ->
             when (method.name) {
-                "getScope" -> { scopeReads++; granted }
+                "getScope" -> { scopeReads++; scopeFailure?.let { throw it }; granted }
                 "requestScope" -> {
                     requests++
+                    requestFailure?.let { throw it }
                     @Suppress("UNCHECKED_CAST")
                     requested = args!![0] as List<String>
                     val callback = args[1]!!

@@ -1,4 +1,5 @@
--- Inspect ALL rows. Every optional invoke must belong to the isolated bridge.
+-- Inspect ALL rows against this APK's mapping: setId/getId belong to
+-- the shared native HookInstallation policy; replaceHook must remain absent.
 -- COUNT(*) counts invoke instructions; DISTINCT callers alone would hide duplicates.
 SELECT file_id, method_idx, method, callee, COUNT(*) AS invoke_count
 FROM method_calls
