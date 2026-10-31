@@ -38,6 +38,23 @@ import java.time.Duration
 @Config(sdk = [34], qualifiers = "w1080dp-h2400dp-mdpi", shadows = [IslandLaunchPackageManagerShadow::class])
 @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
 class IslandActivityLifecycleTest {
+    @Test fun refreshingTheSameLiveClockReusesOnlyItsCurrentOwnersPreparedIcon() {
+        val controller = controller(media = false, liveKinds = setOf("stopwatch"))
+        val current = IslandLiveActivity(IslandLiveKind.STOPWATCH, context.packageName,
+            context.applicationInfo.uid, IslandLiveClock(1000, false), session = 17)
+        val icon = android.graphics.drawable.ColorDrawable(android.graphics.Color.WHITE)
+        val before = IslandToastContent("00:02", context.packageName, icon, liveActivity = current)
+        org.robolectric.util.ReflectionHelpers.setField(controller, "liveContent", before)
+        fun snapshot(value: IslandLiveActivity) = org.robolectric.util.ReflectionHelpers.callInstanceMethod<IslandToastContent>(
+            controller, "liveToast", org.robolectric.util.ReflectionHelpers.ClassParameter.from(IslandLiveActivity::class.java, value))
+        val corrected = current.copy(clock = IslandLiveClock(1001, false))
+        val next = snapshot(corrected)
+        assertSame("A native clock update must not reload an identical app icon", icon, next.icon)
+        assertEquals(corrected, next.liveActivity)
+        assertNotSame("A new source session cannot borrow the previous owner's icon", icon,
+            snapshot(corrected.copy(session = 18)).icon)
+    }
+
     private var owner: IslandActivityController? = null
     private var adds = 0
     private var removes = 0
@@ -242,7 +259,8 @@ class IslandActivityLifecycleTest {
             assertEquals(activity.key, org.robolectric.util.ReflectionHelpers.getField<IslandToastContent>(controller, "lastContent").liveActivity!!.key)
             repeat(12) {
                 controller.foregroundChanged(activity.packageName)
-                // No advancing time, IO or drawing is necessary to select the known source.
+                // Commit the coalesced Main delivery without advancing time, IO or drawing.
+                shadowOf(Looper.getMainLooper()).idle()
                 val current = org.robolectric.util.ReflectionHelpers.getField<Any?>(controller, "lastContent")
                 assertTrue("Music must be ready at the activity foreground edge", current is IslandMediaContent)
                 assertEquals(player.sessionToken, (current as IslandMediaContent).token)
@@ -606,7 +624,11 @@ class IslandActivityLifecycleTest {
     }
 
     private fun drain() {
+        // State reads use the coroutine scheduler; their coalesced presentation uses Main's queue.
         shadowOf(Looper.getMainLooper()).idle(); scheduler.runCurrent()
+        if (owner?.let { org.robolectric.util.ReflectionHelpers.getField<Boolean>(it, "renderQueued") } == true) {
+            shadowOf(Looper.getMainLooper()).idle(); scheduler.runCurrent()
+        }
         if (drawFrames) {
             frame.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(2400, View.MeasureSpec.EXACTLY))
@@ -1833,6 +1855,7 @@ class IslandActivityLifecycleTest {
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(1))
         assertEquals(1, adds)
         controller.foregroundChanged(context.packageName)
+        shadowOf(Looper.getMainLooper()).idle()
         assertEquals(1, removes)
         val feedback = controller.showToast(IslandToastContent("Saved", context.packageName, null), 1000)!!
         assertEquals(2, adds) // Immediate action feedback remains available inside its own app.
@@ -2895,6 +2918,70 @@ class IslandActivityLifecycleTest {
         assertEquals(1, (shell!!.parent as IslandTouchWindow).childCount)
     }
 
+    @Test fun clockOverMusicKeepsItsQueuedLaunchAcrossBaseUpdatesAndThirtyClicks() {
+        val controller = controller(media = true, simplified = true, liveKinds = setOf("stopwatch"))
+        native.player = launchablePlayer("covered-music")
+        controller.updateFromNative(native); drain(); revealMedia()
+        val registry = org.robolectric.util.ReflectionHelpers.getField<IslandLiveRegistry>(controller, "live")
+        val open = android.app.PendingIntent.getActivity(context, 707,
+            android.content.Intent(context, Activity::class.java), android.app.PendingIntent.FLAG_IMMUTABLE)
+        var clock = IslandLiveActivity(IslandLiveKind.STOPWATCH, context.packageName, context.applicationInfo.uid,
+            IslandLiveClock(android.os.SystemClock.elapsedRealtime() - 4000L, false), open, session = 77)
+        registry.update(clock.kind, clock)
+        org.robolectric.util.ReflectionHelpers.callInstanceMethod<Boolean>(controller, "render"); drain()
+        val app = shadowOf(org.robolectric.RuntimeEnvironment.getApplication())
+        var starts = 0
+        repeat(30) {
+            shell!!.performClick()
+            clock = clock.copy(clock = clock.clock!!.copy(base = clock.clock!!.base + 1))
+            registry.update(clock.kind, clock)
+            org.robolectric.util.ReflectionHelpers.callInstanceMethod<Boolean>(controller, "render")
+            drain()
+            while (app.nextStartedActivity != null) starts++
+        }
+        assertEquals(1, starts)
+        val state = org.robolectric.util.ReflectionHelpers.getField<IslandActivityState<IslandToastContent, IslandMediaContent>>(controller, "state")
+        assertNotNull("Covered music remains a real active slot", state.uncoveredMedia())
+        assertEquals(clock.clock!!.base, org.robolectric.util.ReflectionHelpers.getField<android.widget.Chronometer>(shell, "title").base)
+    }
+
+    @Test fun thirtyClicksBeforeForegroundCommitOnlyOnePlayerLaunch() {
+        val controller = controller(media = true, simplified = true)
+        native.player = launchablePlayer("single-flight")
+        controller.updateFromNative(native); drain(); revealMedia()
+        val app = shadowOf(org.robolectric.RuntimeEnvironment.getApplication())
+        var starts = 0
+        repeat(30) {
+            shell!!.performClick(); drain()
+            while (app.nextStartedActivity != null) starts++
+        }
+        assertEquals("A completed send stays committed until foreground confirmation or timeout", 1, starts)
+        controller.foregroundChanged(context.packageName); drain()
+        controller.foregroundChanged(IslandMusicReturnSignal.LAUNCHER); drain(); revealMedia()
+        shell!!.performClick(); drain()
+        assertNotNull("Leaving the confirmed foreground permits a normal reopen", app.nextStartedActivity)
+    }
+
+    @Test fun foregroundBurstPresentsOnlyItsFinalStateAndDisposeRemovesQueuedRender() {
+        var reads = 0
+        val controller = controller(idle = true, simplified = true,
+            pipStateReader = {
+                if (Thread.currentThread().stackTrace.none { it.methodName == "frameAllowed" }) reads++
+                IslandPipSnapshot(0, 0)
+            })
+        drawFrames = false
+        val before = reads
+        repeat(30) { controller.foregroundChanged("example.app$it") }
+        assertEquals("Non-synchronous updates wait for the existing main queue", before, reads)
+        drain(); drain()
+        assertEquals("One render consumes the latest state", before + 1, reads)
+        controller.foregroundChanged("example.pending")
+        controller.dispose(); drain()
+        val disposedReads = reads
+        drain()
+        assertEquals(disposedReads, reads)
+    }
+
     private fun launchablePlayer(tag: String, activity: android.app.PendingIntent? = null): MediaController {
         val session = MediaSession(context, tag)
         org.robolectric.util.ReflectionHelpers.setField(session.sessionToken, "mUid", context.applicationInfo.uid)
@@ -2938,6 +3025,9 @@ class IslandActivityLifecycleTest {
                     "launch=${context.packageManager.getLaunchIntentForPackage(context.packageName)}", started)
                 assertEquals(context.packageName, started!!.component!!.packageName)
                 assertNull(application.nextStartedActivity)
+                // A subsequent independent gesture reopens after a real foreground round trip.
+                controller.foregroundChanged(context.packageName); drain()
+                controller.foregroundChanged(IslandMusicReturnSignal.LAUNCHER); drain(); revealMedia()
             }
         }
     }
@@ -2969,6 +3059,43 @@ class IslandActivityLifecycleTest {
         native.player = launchablePlayer("replacement")
         controller.updateFromNative(native); drain()
         assertNull(shadowOf(org.robolectric.RuntimeEnvironment.getApplication()).nextStartedActivity)
+    }
+
+    @Test fun transparentOrClippedBarsReleaseCaptureWithoutEndingThePlayingSource() {
+        var acquired = 0; var released = 0; var subscribed = 0
+        val backend = object : IslandAudioSpectrum.Backend {
+            override fun permitted() = true
+            override fun session(player: MediaController, user: android.os.UserHandle?) = 42
+            override fun subscribe(changed: () -> Unit): AutoCloseable { subscribed++; return AutoCloseable { subscribed-- } }
+            override fun capture(session: Int, fft: (ByteArray, Int) -> Unit): AutoCloseable {
+                acquired++; fft(ByteArray(512) { 64 }, 48_000_000)
+                return AutoCloseable { released++ }
+            }
+        }
+        val controller = controller(media = true, waveformMode = 2, spectrumBackend = backend)
+        native.player = launchablePlayer("occluded-wave")
+        controller.updateFromNative(native); revealMedia()
+        val original = shell!!
+        val wave = original.getChildAt(2) as IslandWaveView
+        assertEquals(1, acquired)
+        repeat(3) {
+            wave.alpha = 0f; original.refreshWaveformVisibility(); drain()
+            assertEquals(acquired, released); assertEquals(0, subscribed)
+            val count = acquired
+            repeat(120) { original.refreshWaveformVisibility() }
+            drain(); assertEquals(count, acquired)
+            assertTrue(original.isMedia); assertTrue(wave.playing)
+            wave.alpha = 1f; original.refreshWaveformVisibility(); drain()
+            assertEquals(count + 1, acquired); assertEquals(1, subscribed)
+        }
+        original.clipBounds = Rect(0, 0, wave.left, original.height)
+        original.refreshWaveformVisibility(); drain()
+        assertEquals(acquired, released); assertEquals(0, subscribed)
+        original.clipBounds = null; original.refreshWaveformVisibility(); drain()
+        assertEquals(acquired - 1, released); assertEquals(1, subscribed)
+        assertSame(original, shell); assertEquals(1, adds)
+        controller.dispose(); drain()
+        assertEquals(acquired, released); assertEquals(0, subscribed)
     }
 
     @Test fun expandedMediaReleasesItsHiddenSpectrumAndCompactMediaReacquiresOnlyOnce() {

@@ -21,7 +21,7 @@
 | ROM 样本清单、smali 契约与目标差异 | `rom_inventory.py`、`rom-contract-scan.py`、`rom_target_diff.py` 及测试 fixtures |
 | 继承功能语义对照 | `legacy_semantic_compare.py`，见 [语义契约](maintenance/LEGACY_SEMANTIC_CALIBRATION.md) |
 | 离线运行日志分析 | `analyze_lsposed_log.py` |
-| 可选 DEX 深查 | [DexSQL 查询集](../tools/dexsql/README.md)与[取证说明](rom-intelligence/DEXSQL.md) |
+| ROM 持久清单与精确检索 | `rom_catalog.py` 的 `status / locate / search / compare`；[缓存、更新与测量](rom-intelligence/DEXSQL.md#离线-rom-知识库)，复杂 SQL 复用[官方查询集](../tools/dexsql/README.md) |
 | Windows 正式签名预检 | `scripts/check-signing-config.ps1`、`scripts/test-check-signing-config.ps1` |
 
 `feature-semantics/` 和 `rom-contracts/` 是当前校验输入；进程矩阵是源码生成物。ROM 原件、APK、mapping、日志、临时评估和设备原始证据放忽略目录或仓库外，不建立重复的状态报告或未接入工具的证据模板。
@@ -39,9 +39,13 @@ python tools/query_aux_data.py semantics --confidence UNKNOWN --summary
 python tools/query_aux_data.py matrix --target SYSTEM_UI --limit 5
 python tools/query_aux_data.py rom --target launcher --full
 python tools/query_aux_data.py hazards --source SystemUi --limit 5
+python tools/query_aux_data.py context --key pref_key_system_strong_toast_mode
+python tools/query_aux_data.py context --contains LauncherMusicReturnHooks --device munch
+python tools/query_aux_data.py context --contains 动态岛 --fields feature,entrypoints,rom
+python tools/query_aux_data.py context --key launcher_dock_background --full
 ```
 
-无筛选时只输出计数；筛选后默认最多 10 条，可用 `--offset` / `--limit` 翻页，`nextOffset` 为下一页位置。`--fields` 选择原字段，`--full` 取当前页完整证据；`--summary` 只看筛选后计数。`--contains` 做子串检索，`--key` 同时识别存储键和运行时别名。查询只读原文件，不生成缓存、索引或第二份数据。文件由 Python 读取，Agent 上下文只接收查询结果。
+无筛选时只输出计数；原数据集筛选后默认最多 10 条，`context` 默认 3 条摘要，可用 `--offset` / `--limit` 翻页，`nextOffset` 为下一页位置。`--fields` 精确选择字段，`--full` 取当前页详细证据；`--summary` 只看筛选后计数。`--contains` 做子串检索，`--key` 同时识别存储键和运行时别名。原数据集只读文件；文件由 Python 读取，Agent 上下文只接收结果。
 
 | 数据集 | 权威输入与维护方式 | 证据边界 |
 | --- | --- | --- |
@@ -49,6 +53,20 @@ python tools/query_aux_data.py hazards --source SystemUi --limit 5
 | `matrix` | `extract_process_matrix.py` 生成 JSON / CSV，确定性门禁检查 | 静态 catalog / routing 视图；`featureIdName` / 整数 ID 与语义目录的 ID 不同 |
 | `rom` | `rom-contracts/hyperos1-a14-core.json` 与同目录 Schema | 部分源码契约；coverage 按目标条目计数，optional 仍须真实样本取证 |
 | `hazards` | `tools/SOURCE_HAZARD_BASELINE.json` | 已存基线，查询不重新扫描或接受新增风险 |
+| `context` | 上述语义、Process Matrix、当前源码与 XML、既有 ROM Catalog；`agent_context.py` 仅为此入口的实现模块 | 原设置键精确关联，次级键与词法依赖标为 CANDIDATE；引用实际源码行号，保留语义 confidence，不把候选调用图或 DEX 当实机证据 |
+
+`context` 默认读取当前工作区；`--repo-root` 可指定最新有效源码，不能默认为远端 main。
+它在既有外部 Catalog SQLite 中按工作区、文件状态及提取器哈希增量保存源码事实，不另建数据库 / MCP。
+只枚举 Git 的相关源码文件名并检查状态；热查询不重读未变化的源码，不扫描 ROM。新文件、未提交修改、删除和切换源码会使相应事实失效。
+源码 / XML 是事实来源，Matrix 只提供路由视图；`matrixStale` 或 `matrixWarning` 出现时先核对并运行原生成器。
+来源可疑或存在保留文件状态的替换时，显式 `context --refresh` 重读源码事实，不扫描 ROM。
+`--full` 的 source / callers / dependencies / classLoader / verification 给出生命周期、异常分支和相关测试入口；词法关系未经过编译器解析，必须阅读对应方法，不能自动生成 Hook 或宣称完整调用图。
+没有实机验证时保持未测；测试候选不能替代按 [TESTING](TESTING.md#执行分级)选择的必要检查。
+
+ROM 默认只选 fuxi CN 主基准，`--device munch` 或 `--region TW` 按元数据选一个目标；不自动查询整套矩阵。
+组件包名与声明进程不一致会标 `processAdmission=NOT_ESTABLISHED`；找到 POCO 类不证明生产路由已接入。
+仅在目标已收敛时添加 `--dex-class <完整描述符>` 或 `--dex-method <完整方法描述符>`，可用 `--dex-calls callers/callees` 追加直接 invoke 证据；返回文件哈希与 DEX 来源。
+其他情况复用结果里的现有 SQL 入口，再通过官方 DexSQL MCP / Smali 按需深入。`context` 始终不接受跨版本参考输入；显式设计研究只能走[隔离入口](rom-intelligence/DEXSQL.md#跨版本参考隔离)。
 
 `audit-feature-semantics.py --init` 仅用于新目录；已有目录不会被覆盖。需要重新提取时用 `--output <新临时路径>` 生成候选，审查后合入逐项变化，保留排除理由与人工校准，不将候选当成新的事实来源。`--repo-root` 同时决定读取的源码、目录与 Schema。
 

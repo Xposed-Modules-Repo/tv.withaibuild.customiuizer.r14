@@ -52,6 +52,7 @@ object LockScreenAlbumArtController {
 
     private data class CacheKey(
         val sourceId: Int,
+        val sourceGenerationId: Int,
         val sourceWidth: Int,
         val sourceHeight: Int,
         val blur: Int,
@@ -70,6 +71,7 @@ object LockScreenAlbumArtController {
     private var isAod = false
 
     private var pendingSource: Bitmap? = null
+    private var pendingSourceGenerationId = 0
     private var pendingBlur: Int = 0
     private var pendingRescale: Int = 1
     private var pendingGrayscale: Boolean = false
@@ -90,6 +92,7 @@ object LockScreenAlbumArtController {
 
     private val controllerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default.limitedParallelism(1) + ModuleHelper.coroutineFailureHandler)
     private var generationJob: Job? = null
+    private var generationKey: CacheKey? = null
 
     /** Bumped by every new request; only the newest may publish. See [AlbumArtPolicy]. */
     private val requestGeneration = AtomicLong()
@@ -103,7 +106,7 @@ object LockScreenAlbumArtController {
     fun setAod(aod: Boolean) {
         if (isAod == aod) return
         isAod = aod
-        if (!isAod) processPending()
+        if (isAod) invalidateGeneration() else processPending()
     }
 
     /**
@@ -115,13 +118,20 @@ object LockScreenAlbumArtController {
      */
     @JvmStatic
     fun clear() {
-        requestGeneration.incrementAndGet()
-        generationJob?.cancel()
-        generationJob = null
+        invalidateGeneration()
         pendingSource = null
+        pendingSourceGenerationId = 0
         albumArtCache?.evictAll()
         albumArtCache = null
         cacheBudgetBytes = 0
+        miuiThemeUtilsClass?.let { cls ->
+            XposedHelpers.setAdditionalStaticField(cls, "mAlbumArtSource", null)
+            XposedHelpers.setAdditionalStaticField(cls, "mAlbumArt", null)
+        }
+        val view = lastViewRef?.get()
+        lastViewRef = null
+        lastContextRef = null
+        if (view != null) clearViewBackground(view)
     }
 
     @JvmStatic
@@ -129,15 +139,25 @@ object LockScreenAlbumArtController {
         lastContextRef = WeakReference(context)
         val cls = miuiThemeUtilsClass ?: return
 
+        val previousSource = XposedHelpers.getAdditionalStaticField(cls, "mAlbumArtSource") as Bitmap?
+        val sourceGenerationId = art?.generationId ?: 0
+        // MediaMetadata may reuse a Bitmap while its pixels or rendering options change.
+        // Compare the saved generation and all inputs before replacing the pending values.
+        val sameInput = art != null && art === previousSource && art === pendingSource &&
+            sourceGenerationId == pendingSourceGenerationId && blur == pendingBlur &&
+            rescale == pendingRescale && grayscale == pendingGrayscale
         pendingSource = art
+        pendingSourceGenerationId = sourceGenerationId
         pendingBlur = blur
         pendingRescale = rescale
         pendingGrayscale = grayscale
 
-        val previousSource = XposedHelpers.getAdditionalStaticField(cls, "mAlbumArtSource") as Bitmap?
-        if (art === previousSource && art != null) return
+        if (sameInput) return
         if (art == null && previousSource == null) return
 
+        // Invalidate before the AOD/screen-off deferral too: an older visible request may
+        // still be finishing its CPU pass and must not publish over this newer source.
+        invalidateGeneration()
         XposedHelpers.setAdditionalStaticField(cls, "mAlbumArtSource", art)
         XposedHelpers.setAdditionalStaticField(cls, "mAlbumArt", null)
 
@@ -163,7 +183,14 @@ object LockScreenAlbumArtController {
     @JvmStatic
     fun applyTo(view: View): Boolean {
         ensureLifecycleListener(view)
+        // Unmounted previous Views have no detach left to release our drawable.
+        // Attached outgoing Views retain native transition ownership until detach.
+        lastViewRef?.get()?.takeIf { it !== view && !it.isAttachedToWindow }?.let { clearViewBackground(it) }
         lastViewRef = WeakReference(view)
+        if (isAod) {
+            clearViewBackground(view)
+            return false
+        }
         val processed = getStaticAlbumArt()
         return if (processed != null && processed.width == view.width && processed.height == view.height && view.width > 0 && view.height > 0) {
             setViewBackground(view, processed)
@@ -229,12 +256,16 @@ object LockScreenAlbumArtController {
     }
 
     private fun processPending() {
+        if (isAod) return
         val source = getStaticSource() ?: return
         pendingSource = source
         val context = lastContextRef?.get() ?: return
         val view = lastViewRef?.get()
         val targetW = view?.width ?: 0
         val targetH = view?.height ?: 0
+        val processed = getStaticAlbumArt()
+        if (processed != null && targetW > 0 && targetH > 0 &&
+            processed.width == targetW && processed.height == targetH) return
         generate(context, source, pendingBlur, pendingRescale, pendingGrayscale, targetW, targetH)
     }
 
@@ -262,8 +293,13 @@ object LockScreenAlbumArtController {
     }
 
     private fun generate(context: Context, art: Bitmap, blur: Int, rescale: Int, grayscale: Boolean, targetWidth: Int, targetHeight: Int) {
-        val generation = requestGeneration.incrementAndGet()
-        generationJob?.cancel()
+        // Native wake is authoritative even if the shared screen broadcast arrives later.
+        // Media updates retain their existing shared-screen deferral at the entry point.
+        if (isAod) return
+        val key = cacheKey(art, blur, rescale, grayscale, targetWidth, targetHeight)
+        if (generationJob?.isActive == true && generationKey == key) return
+        val generation = invalidateGeneration()
+        generationKey = key
         generationJob = controllerScope.launch {
             val processed = process(context, art, blur, rescale, grayscale, targetWidth, targetHeight, generation)
             if (processed == null || !isCurrent(generation)) return@launch
@@ -283,10 +319,43 @@ object LockScreenAlbumArtController {
             if (!isCurrent(generation)) return@launch
 
             withContext(Dispatchers.Main) {
-                if (isCurrent(generation)) applyResult(context, processed, wallpaperColors)
+                if (isCurrent(generation)) {
+                    // Native layout can change while processing, without another bind.
+                    // Reuse the existing latest-only worker for the measured current size;
+                    // an unmeasured consumer still permits fallback preparation.
+                    val view = lastViewRef?.get()
+                    val currentWidth = view?.width ?: 0
+                    val currentHeight = view?.height ?: 0
+                    if (currentWidth > 0 && currentHeight > 0 &&
+                        (processed.width != currentWidth || processed.height != currentHeight)) {
+                        generate(context, art, blur, rescale, grayscale, currentWidth, currentHeight)
+                    } else {
+                        applyResult(context, processed, wallpaperColors)
+                    }
+                }
             }
         }
     }
+
+    private fun invalidateGeneration(): Long {
+        val generation = requestGeneration.incrementAndGet()
+        generationJob?.cancel()
+        generationJob = null
+        generationKey = null
+        return generation
+    }
+
+    private fun cacheKey(art: Bitmap, blur: Int, rescale: Int, grayscale: Boolean, width: Int, height: Int) = CacheKey(
+        sourceId = System.identityHashCode(art),
+        sourceGenerationId = art.generationId,
+        sourceWidth = art.width,
+        sourceHeight = art.height,
+        blur = blur,
+        rescale = rescale,
+        grayscale = grayscale,
+        targetWidth = width,
+        targetHeight = height
+    )
 
     private fun isCurrent(generation: Long): Boolean =
         AlbumArtPolicy.shouldPublish(generation, requestGeneration.get())
@@ -316,16 +385,7 @@ object LockScreenAlbumArtController {
         // Keyed on the source, not on the blurred intermediate. The old key hashed the
         // bitmap that came out of the blur - a new object every time - and recorded the blur
         // radius as a hard-coded 0, so it could never hit and the cache was pure cost.
-        val key = CacheKey(
-            sourceId = System.identityHashCode(art),
-            sourceWidth = art.width,
-            sourceHeight = art.height,
-            blur = blur,
-            rescale = rescale,
-            grayscale = grayscale,
-            targetWidth = width,
-            targetHeight = height
-        )
+        val key = cacheKey(art, blur, rescale, grayscale, width, height)
         val cache = cacheFor(width, height)
         cache?.get(key)?.let { return it }
 
@@ -414,7 +474,8 @@ object LockScreenAlbumArtController {
         val xTranslation = (width - originalWidth * scale) / 2.0f
         val yTranslation = (height - originalHeight * scale) / 2.0f
         drawMatrix.setScale(scale, scale)
-        drawMatrix.preTranslate(xTranslation, yTranslation)
+        // These offsets are target pixels; translating before scale would scale them again.
+        drawMatrix.postTranslate(xTranslation, yTranslation)
 
         val processed = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(processed)

@@ -7,7 +7,25 @@ import kotlin.math.pow
 internal object IslandAbsorptionMesh {
     const val ROWS = 48
     const val FLOATS = (ROWS + 1) * 4
-    private val rowWidths = FloatArray(ROWS + 1) { (it.toFloat() / ROWS).pow(.85f) }
+    private const val BEND_STEPS = 32
+    private const val BEND_STRENGTH = 2.6f
+
+    /** Immutable geometry only, initialized on the capture worker. Default returns
+     * never touch this holder. Interpolation avoids a power operation per mesh row. */
+    private object Tables {
+        val fractions = FloatArray(ROWS + 1) { it.toFloat() / ROWS }
+        val widths = FloatArray(ROWS + 1) { fractions[it].pow(.85f) }
+        val bends = FloatArray((ROWS + 1) * (BEND_STEPS + 1)) { index ->
+            val row = index % (ROWS + 1)
+            when (row) {
+                0 -> 0f
+                ROWS -> 1f
+                else -> fractions[row].pow(1f + BEND_STRENGTH * .25f * (index / (ROWS + 1)) / BEND_STEPS)
+            }
+        }
+    }
+
+    fun prepare() { Tables.bends }
 
     /** The lower mouth includes its full footprint and an antialias guard. A short
      * shell may pull it upward; a fixed percentage must never put the neck outside. */
@@ -34,10 +52,13 @@ internal object IslandAbsorptionMesh {
     /** At most 6% softer at the neck, after takeover, never across the page body.
      * Spatial contact and the first 14% of travel both ease in from zero. */
     fun contactColors(colors: IntArray, vertices: FloatArray, destination: RectF, progress: Float,
-        contactY: Float = destination.centerY()) {
+        contactY: Float = destination.centerY(), opaqueBodyReady: Boolean = false) {
         val phase = (progress / .14f).coerceIn(0f, 1f)
         val strength = .06f * phase * phase * (3f - 2f * phase)
-        for (row in 0..ROWS) {
+        // Owned mesh arrays prepare their opaque body once. Standalone callers still
+        // receive a complete result, independent of the array's previous contents.
+        if (!opaqueBodyReady) colors.fill(-1)
+        for (row in 0..(ROWS * .16f).toInt()) {
             val neck = (1f - row / (ROWS * .16f)).coerceIn(0f, 1f)
             val contact = (1f - kotlin.math.abs(vertices[row * 4 + 1] - contactY) /
                 destination.height().coerceAtLeast(1f)).coerceIn(0f, 1f)
@@ -53,7 +74,7 @@ internal object IslandAbsorptionMesh {
         ((progress - atCommit) / (1f - atCommit).coerceAtLeast(.01f)).coerceIn(0f, 1f)
 
     fun fill(output: FloatArray, rect: RectF, destination: RectF, progress: Float, bounds: RectF? = null,
-        intakeY: Float = destination.centerY()): Float {
+        intakeY: Float = destination.centerY(), occlusion: RectF? = null): Float {
         require(output.size == FLOATS)
         val t = progress.coerceIn(0f, 1f)
         // Keep the captured page's aspect while the leading edge enters first. The
@@ -71,14 +92,29 @@ internal object IslandAbsorptionMesh {
         val bottomWidth = rect.width() + (neck - rect.width()) * t.pow(2.4f)
         val topCenter = rect.centerX() + (destination.centerX() - rect.centerX()) * leading
         val bottomCenter = rect.centerX() + (destination.centerX() - rect.centerX()) * trailing
+        if (occlusion != null && bounds != null && t >= .96f) {
+            // This envelope contains every interpolated row, even for off-centre
+            // releases. Skip vertex work only when the existing merge rule would
+            // make all of it invisible. Visible/reversed frames rebuild normally.
+            val halfWidth = maxOf(topWidth, bottomWidth) * .5f
+            bounds.set(minOf(topCenter, bottomCenter) - halfWidth, top,
+                maxOf(topCenter, bottomCenter) + halfWidth, bottom)
+            if (mergeOpacity(bounds, occlusion) == 0f) return trailing
+        }
         var left = Float.POSITIVE_INFINITY
         var right = Float.NEGATIVE_INFINITY
-        val bend = 1f + 2.6f * t * (1f - t)
+        val table = Tables
+        val position = (4f * t * (1f - t) * BEND_STEPS).coerceIn(0f, BEND_STEPS.toFloat())
+        val lower = position.toInt().coerceAtMost(BEND_STEPS - 1)
+        val blend = position - lower
+        val offset = lower * (ROWS + 1)
         for (row in 0..ROWS) {
-            val v = row.toFloat() / ROWS
-            val width = topWidth + (bottomWidth - topWidth) * rowWidths[row]
+            val v = table.fractions[row]
+            val width = topWidth + (bottomWidth - topWidth) * table.widths[row]
             val center = topCenter + (bottomCenter - topCenter) * v
-            val y = top + (bottom - top) * v.pow(bend)
+            val curve = table.bends[offset + row] +
+                (table.bends[offset + ROWS + 1 + row] - table.bends[offset + row]) * blend
+            val y = top + (bottom - top) * curve
             val index = row * 4
             output[index] = center - width * .5f; output[index + 1] = y
             output[index + 2] = center + width * .5f; output[index + 3] = y

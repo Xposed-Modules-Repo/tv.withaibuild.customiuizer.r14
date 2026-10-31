@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Matrix
 import android.graphics.Rect
 import android.graphics.RenderEffect
 import android.graphics.Shader
@@ -54,6 +55,48 @@ internal class IslandStatusBarCompact internal constructor(root: ViewGroup, cloc
     private val island = Rect()
     private val occlusionBounds = Rect()
     private val visibleBounds = Rect()
+    /** One snapshot per native node, including ancestors shared by many icon leaves. */
+    private class Geometry(view: View) {
+        val view = WeakReference(view)
+        private val matrix = Matrix()
+        private val bounds = Rect()
+        private val clip = Rect()
+        private val nextClip = Rect()
+        private var clipped = false
+        private var visibility = -1
+        private var scrollX = 0
+        private var scrollY = 0
+        private var paddingLeft = 0
+        private var paddingRight = 0
+        private var paddingTop = 0
+        private var paddingBottom = 0
+        private var children = false
+        private var padding = false
+        fun changed(): Boolean {
+            val node = view.get() ?: return true
+            val hasClip = node.getClipBounds(nextClip)
+            val group = node as? ViewGroup
+            val changed = bounds.left != node.left || bounds.top != node.top || bounds.right != node.right ||
+                bounds.bottom != node.bottom || matrix != node.matrix || visibility != node.visibility ||
+                scrollX != node.scrollX || scrollY != node.scrollY || clipped != hasClip || hasClip && clip != nextClip ||
+                paddingLeft != node.paddingLeft || paddingRight != node.paddingRight ||
+                paddingTop != node.paddingTop || paddingBottom != node.paddingBottom ||
+                children != (group?.clipChildren == true) || padding != (group?.clipToPadding == true)
+            if (changed) {
+                bounds.set(node.left, node.top, node.right, node.bottom); matrix.set(node.matrix)
+                visibility = node.visibility; scrollX = node.scrollX; scrollY = node.scrollY
+                clipped = hasClip; clip.set(nextClip)
+                paddingLeft = node.paddingLeft; paddingRight = node.paddingRight
+                paddingTop = node.paddingTop; paddingBottom = node.paddingBottom
+                children = group?.clipChildren == true; padding = group?.clipToPadding == true
+            }
+            return changed
+        }
+    }
+    private val geometry = ArrayList<Geometry>()
+    private var geometryDirty = true
+    private var screenX = Int.MIN_VALUE
+    private var screenY = Int.MIN_VALUE
     private var active = false
     private var dirty = true
     private var restoring = false
@@ -69,10 +112,9 @@ internal class IslandStatusBarCompact internal constructor(root: ViewGroup, cloc
     private val draw = ViewTreeObserver.OnPreDrawListener {
         ModuleHelper.guarded {
             if (active) {
-                if (dirty) { dirty = false; collectBranches() }
-                updateOcclusion()
+                if (dirty) { dirty = false; collectBranches(); geometryDirty = true }
+                refreshGeometry()
                 applyHiddenAlpha()
-                positionKept()
             }
         }
         true
@@ -90,9 +132,10 @@ internal class IslandStatusBarCompact internal constructor(root: ViewGroup, cloc
     }
 
     fun show(bounds: Rect) {
+        if (island != bounds) geometryDirty = true
         island.set(bounds)
         val host = root.get() ?: return
-        if (active && !restoring) { updateOcclusion(); applyHiddenAlpha(); positionKept(); return }
+        if (active && !restoring) { refreshGeometry(); applyHiddenAlpha(); return }
         val wasRestoring = restoring
         cancelMotion()
         restoring = false
@@ -112,9 +155,9 @@ internal class IslandStatusBarCompact internal constructor(root: ViewGroup, cloc
             host.viewTreeObserver.addOnPreDrawListener(draw)
             host.addOnAttachStateChangeListener(attachment)
             collectBranches()
+            dirty = false
         }
-        updateOcclusion()
-        positionKept()
+        refreshGeometry()
         if (entering || wasRestoring) transition(reveal = false) else applyHiddenAlpha()
     }
 
@@ -162,6 +205,41 @@ internal class IslandStatusBarCompact internal constructor(root: ViewGroup, cloc
             }
         }
         for (view in leaves) if (hidden.none { it.view.get() === view }) hidden.add(Hidden(view))
+        val previous = IdentityHashMap<View, Geometry>()
+        for (entry in geometry) entry.view.get()?.let { previous[it] = entry }
+        geometry.clear()
+        val nodes = Collections.newSetFromMap(IdentityHashMap<View, Boolean>())
+        fun remember(view: View?) {
+            var node = view
+            var depth = 0
+            while (node != null && depth++ < 32 && nodes.add(node)) {
+                geometry.add(previous.remove(node) ?: Geometry(node))
+                node = node.parent as? View
+            }
+        }
+        for (entry in hidden) remember(entry.view.get())
+        for (entry in kept) remember(entry.view.get())
+        remember(host)
+        geometryDirty = true
+    }
+
+    private fun refreshGeometry() {
+        val host = root.get() ?: return
+        // A window can move without changing local layout or any child matrix.
+        host.getLocationOnScreen(position)
+        var changed = geometryDirty || screenX != position[0] || screenY != position[1]
+        screenX = position[0]; screenY = position[1]
+        for (node in geometry) if (node.changed()) changed = true
+        val essentialAlphaChanged = kept.any { item -> item.view.get()?.let {
+            if (item.suppressed) it.alpha != 0f else it.alpha != item.alpha
+        } == true }
+        if (changed || essentialAlphaChanged) positionKept()
+        if (changed) updateOcclusion()
+        if (changed) {
+            // Exclude our own avoidance translation and relaxed clips from the next frame.
+            for (node in geometry) node.changed()
+            geometryDirty = false
+        }
     }
 
     private fun updateOcclusion() {
@@ -385,7 +463,7 @@ internal class IslandStatusBarCompact internal constructor(root: ViewGroup, cloc
             item.suppressed = false
         }
         for (entry in clips) entry.view.get()?.let { it.clipChildren = entry.children; it.clipToPadding = entry.padding }
-        hidden.clear(); clips.clear()
+        hidden.clear(); clips.clear(); geometry.clear(); geometryDirty = true
     }
 
     companion object {

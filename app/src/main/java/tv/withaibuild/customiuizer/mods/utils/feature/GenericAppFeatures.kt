@@ -1,5 +1,6 @@
 package tv.withaibuild.customiuizer.mods.utils.feature
 
+import android.content.Context
 import io.github.libxposed.api.XposedModuleInterface.PackageReadyParam
 import tv.withaibuild.customiuizer.installers.LauncherInstaller
 import tv.withaibuild.customiuizer.mods.Controls
@@ -33,6 +34,7 @@ object GenericAppFeatures {
         includeNoOverscroll: Boolean,
         includeVolumeMediaPlayer: Boolean,
         includePocoFolderIconBlur: Boolean = false,
+        applicationContext: Context? = null,
     ): List<FeatureSpec> {
         val count = (if (includeLauncher) 1 else 0) +
             (if (includeStatusBarBackground) 1 else 0) +
@@ -51,7 +53,7 @@ object GenericAppFeatures {
                     target = FeatureTarget.ANY,
                     phase = InstallPhase.APPLICATION_ATTACHED,
                     enabled = { prefs -> PocoFolderIconBlurFeature.evaluateEnabled(prefs, lpparam.packageName.orEmpty()) },
-                    factory = { PocoFolderIconBlurFeature(lpparam, mPrefs) },
+                    factory = { PocoFolderIconBlurFeature(lpparam, mPrefs, applicationContext) },
                 )
             )
         }
@@ -111,7 +113,8 @@ object GenericAppFeatures {
     }
 }
 
-internal class PocoFolderIconBlurFeature(lpparam: PackageReadyParam, mPrefs: PrefMap) : BaseApplicationAttachedFeature(
+internal class PocoFolderIconBlurFeature(lpparam: PackageReadyParam, mPrefs: PrefMap,
+    private val applicationContext: Context?) : BaseApplicationAttachedFeature(
     lpparam, mPrefs, PocoFolderIconBlurFeatureId, "POCO Folder Icon Blur",
     "launcher_folder_icon_blur", FeatureTarget.ANY,
 ) {
@@ -121,7 +124,12 @@ internal class PocoFolderIconBlurFeature(lpparam: PackageReadyParam, mPrefs: Pre
     }
 
     override fun isEnabledCondition(prefs: PrefMap) = Companion.evaluateEnabled(prefs, packageName)
-    override fun installHook() = LauncherFolderIconBlur.install(lpparam.classLoader)
+    private fun attachedVersion(): String? {
+        val context = checkNotNull(applicationContext) { "POCO folder blur requires the attached context" }
+        require(context.packageName == packageName) { "Unexpected POCO attach context" }
+        return context.packageManager.getPackageInfo(packageName, 0).versionName
+    }
+    override fun installHook() = LauncherFolderIconBlur.installPoco(lpparam.classLoader, attachedVersion(), checkNotNull(applicationContext))
 }
 
 internal class LauncherPostAttachFeature(

@@ -23,6 +23,54 @@ import org.robolectric.util.ReflectionHelpers.setField
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class IslandTransitionContinuityTest {
+    @Test fun sameRunningClockSnapshotDoesNotRestartNativeTicks() {
+        val base = android.os.SystemClock.elapsedRealtime() - 2000L
+        val key = IslandLiveKey(IslandLiveKind.STOPWATCH, 10000, 9)
+        shell.simplified = true
+        shell.bind("00:02", "Clock", null, false, false, false, 0, false,
+            clock = IslandLiveClock(base, false), clockKey = key)
+        val title = getField<android.widget.Chronometer>(shell, "title")
+        var ticks = 0
+        title.setOnChronometerTickListener { ticks++ }
+        repeat(30) {
+            assertFalse(shell.bind("00:${it + 3}", "Clock", null, false, false, false, 0, false,
+                clock = IslandLiveClock(base, false), clockKey = key))
+        }
+        assertEquals("Label snapshots cannot stop, reset and start a running native clock", 0, ticks)
+        shell.bind("00:33", "Clock", null, false, false, false, 0, false,
+            clock = IslandLiveClock(base + 10, false), clockKey = key)
+        assertEquals(base + 10, title.base)
+    }
+
+    @Test fun runningClockCorrectionDuringEntryKeepsTheVisibleLayerAndItsEntryClock() {
+        val art = activity.getDrawable(android.R.drawable.ic_dialog_info)
+        for (countdown in listOf(false, true)) {
+            val owner = IslandLiveKey(if (countdown) IslandLiveKind.TIMER else IslandLiveKind.STOPWATCH, 10000, 7)
+            val base = android.os.SystemClock.elapsedRealtime() + if (countdown) 12000L else -2000L
+            shell.bind("00:02", "Clock", art, false, false, false, 0, false,
+                clock = IslandLiveClock(base, countdown), clockKey = owner)
+            shell.prepareEntry()
+            shell.transition(184, 40, 184, 40, true)
+            val entry = motion()
+            entry.currentPlayTime = 96
+            val visible = shell.getChildAt(1).alpha
+            assertTrue(visible > 0f)
+            repeat(4) { correction ->
+                assertFalse("A clock correction must not schedule another content arrival",
+                    shell.bind("00:03", "Clock", art, false, false, false, 0, false,
+                        clock = IslandLiveClock(base + correction + 1, countdown), clockKey = owner))
+                assertNull("Keep the active clock instead of fading it out", getField<Any?>(shell, "pendingContent"))
+                assertSame(entry, motion())
+                assertEquals(visible, shell.getChildAt(1).alpha, .001f)
+            }
+            entry.end()
+            assertTrue("A different clock session still performs its visual handoff",
+                shell.bind("00:03", "Clock", art, false, false, false, 0, false,
+                    clock = IslandLiveClock(base, countdown), clockKey = owner.copy(session = 8)))
+            assertNotNull(getField<Any?>(shell, "pendingContent"))
+        }
+    }
+
     @Test fun aGeometryHandoffAfterNativePageCompletionCannotResetTheStillVisibleShellTransform() {
         shell.prepareReturnFromCurrent()
         setField(shell, "mediaReturnProgress", 1f)

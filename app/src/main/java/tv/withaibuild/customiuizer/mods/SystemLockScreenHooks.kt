@@ -53,6 +53,7 @@ import java.util.ArrayList
 import java.util.Calendar
 import java.util.Collection
 import java.util.Collections
+import java.util.IdentityHashMap
 import java.util.Locale
 import java.util.Properties
 import java.util.TimeZone
@@ -129,7 +130,7 @@ object SystemLockScreenHooks {
      * Creates a preference observer for the charging-info TextView.
      *
      * The observer holds a [WeakReference] to the view, filters to the three
-     * charging-info keys, and re-applies [applyChargingInfoStyle] on the view's
+     * charging-info keys or a bulk refresh, and re-applies [applyChargingInfoStyle] on the view's
      * UI thread. Fatal errors are re-thrown; ordinary failures are logged and
      * swallowed, matching the production hook contract.
      */
@@ -140,7 +141,7 @@ object SystemLockScreenHooks {
         val viewRef = WeakReference(textView)
         return object : ModuleHelper.PreferenceObserver {
             override fun onChange(key: String?) {
-                if (key !in CHARGING_INFO_OBSERVED_KEYS) return
+                if (key != null && key !in CHARGING_INFO_OBSERVED_KEYS) return
                 val view = viewRef.get() ?: return
                 view.post {
                     try {
@@ -158,68 +159,74 @@ object SystemLockScreenHooks {
 
     @JvmStatic
     fun ScramblePINHook(lpparam: PackageReadyParam) {
-        ModuleHelper.findAndHookMethod("com.android.keyguard.KeyguardPINView", lpparam.classLoader, "onFinishInflate", object : MethodHook() {
-            override fun intercept(chain: XposedInterface.Chain): Any? {
-                var result: Any?
-                var throwable: Throwable? = null
-                try {
-                    result = chain.proceed()
-                } catch (t: Throwable) {
-                    throwable = t
-                    result = null
-                }
-                try {
-                    val thisObject = chain.thisObject
+        ModuleHelper.findAndHookMethod("com.android.keyguard.KeyguardPINView", lpparam.classLoader, "onFinishInflate", createScramblePinHook())
+    }
 
-                    val mViews = XposedHelpers.getObjectField(thisObject, "mViews") as Array<Array<View?>>?
-                    val mRandomViews = ArrayList<View>()
-                    if (mViews != null) {
-                        for (row in 1..3) {
-                            for (col in 0..2) {
-                                mViews[row][col]?.let { mRandomViews.add(it) }
-                            }
+    internal fun createScramblePinHook() = object : MethodHook() {
+        override fun intercept(chain: XposedInterface.Chain): Any? {
+            val result = chain.proceed()
+            try {
+                val thisObject = chain.thisObject
+
+                val mViews = XposedHelpers.getObjectField(thisObject, "mViews") as Array<Array<View?>>?
+                val mRandomViews = ArrayList<View>()
+                if (mViews != null) {
+                    if (mViews.size < 5 || (1..4).any { mViews[it].size < 3 }) return result
+                    for (row in 1..3) {
+                        for (col in 0..2) {
+                            mViews[row][col]?.let { mRandomViews.add(it) }
                         }
-                        mViews[4][1]?.let { mRandomViews.add(it) }
-                        Collections.shuffle(mRandomViews)
-
-                        val pinview = thisObject as View
-                        val row1 = pinview.findViewById<ViewGroup>(HookUtils.getResId(pinview.resources, "row1", "id", "com.android.systemui"))
-                        val row2 = pinview.findViewById<ViewGroup>(HookUtils.getResId(pinview.resources, "row2", "id", "com.android.systemui"))
-                        val row3 = pinview.findViewById<ViewGroup>(HookUtils.getResId(pinview.resources, "row3", "id", "com.android.systemui"))
-                        val row4 = pinview.findViewById<ViewGroup>(HookUtils.getResId(pinview.resources, "row4", "id", "com.android.systemui"))
-
-                        row1.removeAllViews()
-                        row2.removeAllViews()
-                        row3.removeAllViews()
-                        row4.removeViewAt(1)
-
-                        mViews[1] = arrayOf(mRandomViews[0], mRandomViews[1], mRandomViews[2])
-                        row1.addView(mRandomViews[0])
-                        row1.addView(mRandomViews[1])
-                        row1.addView(mRandomViews[2])
-
-                        mViews[2] = arrayOf(mRandomViews[3], mRandomViews[4], mRandomViews[5])
-                        row2.addView(mRandomViews[3])
-                        row2.addView(mRandomViews[4])
-                        row2.addView(mRandomViews[5])
-
-                        mViews[3] = arrayOf(mRandomViews[6], mRandomViews[7], mRandomViews[8])
-                        row3.addView(mRandomViews[6])
-                        row3.addView(mRandomViews[7])
-                        row3.addView(mRandomViews[8])
-
-                        mViews[4] = arrayOf(null, mRandomViews[9], mViews[4][2])
-                        row4.addView(mRandomViews[9], 1)
-
-                        XposedHelpers.setObjectField(thisObject, "mViews", mViews)
                     }
+                    mViews[4][1]?.let { mRandomViews.add(it) }
+                    if (mRandomViews.size != 10) return result
+                    val identities = IdentityHashMap<View, Boolean>(10)
+                    if (mRandomViews.any { identities.put(it, true) != null }) return result
 
-                } catch (t: Throwable) {
-                    XposedHelpers.log(t)
+                    val pinview = thisObject as View
+                    val row1 = pinview.findViewById<ViewGroup>(HookUtils.getResId(pinview.resources, "row1", "id", "com.android.systemui")) ?: return result
+                    val row2 = pinview.findViewById<ViewGroup>(HookUtils.getResId(pinview.resources, "row2", "id", "com.android.systemui")) ?: return result
+                    val row3 = pinview.findViewById<ViewGroup>(HookUtils.getResId(pinview.resources, "row3", "id", "com.android.systemui")) ?: return result
+                    val row4 = pinview.findViewById<ViewGroup>(HookUtils.getResId(pinview.resources, "row4", "id", "com.android.systemui")) ?: return result
+                    // Validate every native slot before detaching any key. Unknown themes or
+                    // partially prepared matrices retain their completed native layout.
+                    val rows = arrayOf(row1, row2, row3)
+                    for (row in rows.indices) {
+                        if (rows[row].childCount != 3 || (0..2).any { rows[row].getChildAt(it) !== mViews[row + 1][it] }) return result
+                    }
+                    if (row4.childCount <= 1 || row4.getChildAt(1) !== mViews[4][1]) return result
+                    Collections.shuffle(mRandomViews)
+
+                    row1.removeAllViews()
+                    row2.removeAllViews()
+                    row3.removeAllViews()
+                    row4.removeViewAt(1)
+
+                    mViews[1] = arrayOf(mRandomViews[0], mRandomViews[1], mRandomViews[2])
+                    row1.addView(mRandomViews[0])
+                    row1.addView(mRandomViews[1])
+                    row1.addView(mRandomViews[2])
+
+                    mViews[2] = arrayOf(mRandomViews[3], mRandomViews[4], mRandomViews[5])
+                    row2.addView(mRandomViews[3])
+                    row2.addView(mRandomViews[4])
+                    row2.addView(mRandomViews[5])
+
+                    mViews[3] = arrayOf(mRandomViews[6], mRandomViews[7], mRandomViews[8])
+                    row3.addView(mRandomViews[6])
+                    row3.addView(mRandomViews[7])
+                    row3.addView(mRandomViews[8])
+
+                    mViews[4] = arrayOf(null, mRandomViews[9], mViews[4][2])
+                    row4.addView(mRandomViews[9], 1)
+
+                    XposedHelpers.setObjectField(thisObject, "mViews", mViews)
                 }
-                return XposedHelpers.throwOrReturn(throwable, result)
+
+            } catch (t: Throwable) {
+                XposedHelpers.log(t)
             }
-        })
+            return result
+        }
     }
 
     @JvmStatic
@@ -1104,62 +1111,56 @@ object SystemLockScreenHooks {
 
     @JvmStatic
     fun ScrambleAppLockPINHook(lpparam: PackageReadyParam) {
-        ModuleHelper.hookAllConstructors("com.miui.applicationlock.widget.MiuiNumericInputView", lpparam.classLoader, object : MethodHook() {
-            override fun intercept(chain: XposedInterface.Chain): Any? {
-                var result: Any?
-                var throwable: Throwable? = null
-                try {
-                    result = chain.proceed()
-                } catch (t: Throwable) {
-                    throwable = t
-                    result = null
-                }
-                try {
-                    val thisObject = chain.thisObject
+        ModuleHelper.hookAllConstructors("com.miui.applicationlock.widget.MiuiNumericInputView", lpparam.classLoader, createScrambleAppLockPinHook())
+    }
 
-                    val keys = thisObject as LinearLayout
-                    val mRandomViews = ArrayList<View>()
-                    var bottom0: View? = null; var bottom2: View? = null
-                    for (row in 0..3) {
-                        val cols = keys.getChildAt(row) as ViewGroup
-                        for (col in 0..2) {
-                            if (row == 3)
-                                if (col == 0) {
-                                    bottom0 = cols.getChildAt(col)
-                                    continue
-                                } else if (col == 2) {
-                                    bottom2 = cols.getChildAt(col)
-                                    continue
-                                }
-                            mRandomViews.add(cols.getChildAt(col))
-                        }
-                        cols.removeAllViews()
+    internal fun createScrambleAppLockPinHook() = object : MethodHook() {
+        override fun intercept(chain: XposedInterface.Chain): Any? {
+            val result = chain.proceed()
+            try {
+                val keys = chain.thisObject as? LinearLayout ?: return result
+                if (keys.childCount < 4) return result
+                val rows = ArrayList<ViewGroup>(4)
+                val mRandomViews = ArrayList<View>(10)
+                val identities = IdentityHashMap<View, Boolean>(12)
+                // Prepare the complete native keypad before detaching any key or control.
+                for (row in 0..3) {
+                    val cols = keys.getChildAt(row) as? ViewGroup ?: return result
+                    if (cols.childCount != 3) return result
+                    for (col in 0..2) {
+                        val key = cols.getChildAt(col) ?: return result
+                        if (key.parent !== cols || identities.put(key, true) != null) return result
+                        if (row != 3 || col == 1) mRandomViews.add(key)
+                    }
+                    rows.add(cols)
+                }
+                val bottom0 = rows[3].getChildAt(0)
+                val bottom2 = rows[3].getChildAt(2)
+
+                Collections.shuffle(mRandomViews)
+                for (row in rows) row.removeAllViews()
+
+                var cnt = 0
+                for (row in 0..3)
+                    for (col in 0..2) {
+                        val cols = rows[row]
+                        if (row == 3)
+                            if (col == 0) {
+                                cols.addView(bottom0)
+                                continue
+                            } else if (col == 2) {
+                                cols.addView(bottom2)
+                                continue
+                            }
+                        cols.addView(mRandomViews[cnt])
+                        cnt++
                     }
 
-                    Collections.shuffle(mRandomViews)
-
-                    var cnt = 0
-                    for (row in 0..3)
-                        for (col in 0..2) {
-                            val cols = keys.getChildAt(row) as ViewGroup
-                            if (row == 3)
-                                if (col == 0) {
-                                    bottom0?.let { cols.addView(it) }
-                                    continue
-                                } else if (col == 2) {
-                                    bottom2?.let { cols.addView(it) }
-                                    continue
-                                }
-                            cols.addView(mRandomViews[cnt])
-                            cnt++
-                        }
-
-                } catch (t: Throwable) {
-                    XposedHelpers.log(t)
-                }
-                return XposedHelpers.throwOrReturn(throwable, result)
+            } catch (t: Throwable) {
+                XposedHelpers.log(t)
             }
-        })
+            return result
+        }
     }
 
     /**
@@ -1382,6 +1383,46 @@ object SystemLockScreenHooks {
         )
     }
 
+    internal fun chargingInfoInflationHook() = object : MethodHook() {
+        override fun intercept(chain: XposedInterface.Chain): Any? {
+            var result: Any?
+            var throwable: Throwable? = null
+            try {
+                result = chain.proceed()
+            } catch (t: Throwable) {
+                FatalErrors.unwrapAndRethrowIfFatal(t)
+                throwable = t
+                result = null
+            }
+            if (throwable != null) return XposedHelpers.throwOrReturn(throwable, result)
+            try {
+                val indicator = chain.thisObject as? TextView
+                    ?: return XposedHelpers.throwOrReturn(throwable, result)
+
+                applyChargingInfoStyle(indicator)
+
+                // The owner-bound observer only handles real preference changes that happen
+                // after this view is inflated. The initial snapshot is published silently by
+                // [PreferenceBootstrap], so the observer does not re-apply the style on first
+                // inflation. Any cold-boot gap must be reproduced and fixed with a device.
+                val observer = createChargingInfoPreferenceObserver(indicator)
+                ModuleHelper.observePreferenceChange(observer, indicator)
+            } catch (t: Throwable) {
+                FatalErrors.unwrapAndRethrowIfFatal(t)
+                XposedHelpers.log(t)
+            }
+            return XposedHelpers.throwOrReturn(throwable, result)
+        }
+    }
+
+    internal fun chargingInfoIndicationHook() = object : MethodHook() {
+        override fun after(callback: AfterHookCallback) {
+            if (callback.getThrowable() != null) return
+            val indicator = callback.getThisObject() as? TextView ?: return
+            applyChargingInfoStyle(indicator)
+        }
+    }
+
     /**
      * Install the charging-info hooks.
      *
@@ -1456,36 +1497,7 @@ object SystemLockScreenHooks {
             "com.android.systemui.statusbar.phone.KeyguardIndicationTextView",
             lpparam.classLoader,
             "onFinishInflate",
-            object : MethodHook() {
-                override fun intercept(chain: XposedInterface.Chain): Any? {
-                    var result: Any?
-                    var throwable: Throwable? = null
-                    try {
-                        result = chain.proceed()
-                    } catch (t: Throwable) {
-                        FatalErrors.unwrapAndRethrowIfFatal(t)
-                        throwable = t
-                        result = null
-                    }
-                    try {
-                        val indicator = chain.thisObject as? TextView
-                            ?: return XposedHelpers.throwOrReturn(throwable, result)
-
-                        applyChargingInfoStyle(indicator)
-
-                        // The owner-bound observer only handles real preference changes that happen
-                        // after this view is inflated. The initial snapshot is published silently by
-                        // [PreferenceBootstrap], so the observer does not re-apply the style on first
-                        // inflation. Any cold-boot gap must be reproduced and fixed with a device.
-                        val observer = createChargingInfoPreferenceObserver(indicator)
-                        ModuleHelper.observePreferenceChange(observer, indicator)
-                    } catch (t: Throwable) {
-                        FatalErrors.unwrapAndRethrowIfFatal(t)
-                        XposedHelpers.log(t)
-                    }
-                    return XposedHelpers.throwOrReturn(throwable, result)
-                }
-            }
+            chargingInfoInflationHook()
         )
 
         // ROM setNextIndication reapplies text appearance; restore the user's charging style afterwards.
@@ -1493,12 +1505,7 @@ object SystemLockScreenHooks {
             "com.android.systemui.statusbar.phone.KeyguardIndicationTextView",
             lpparam.classLoader,
             "setNextIndication",
-            object : MethodHook() {
-                override fun after(callback: AfterHookCallback) {
-                    val indicator = callback.getThisObject() as? TextView ?: return
-                    applyChargingInfoStyle(indicator)
-                }
-            }
+            chargingInfoIndicationHook()
         )
 
         return FeatureInstallResult.INSTALLED

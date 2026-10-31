@@ -124,9 +124,10 @@ def parse_install_hooks(text: str) -> dict[str, str]:
     for m in re.finditer(r"internal class (\w+)\s*\(", text):
         cls = m.group(1)
         body = extract_class_body(text, cls)
-        hm = re.search(r"override fun installHook\(\)\s*=\s*", body)
+        hm = re.search(r"override fun installHook\(\)\s*(?==|\{)", body)
         if hm:
-            hooks[cls] = extract_rhs(body, hm.end())
+            start = hm.end() + (1 if body[hm.end()] == "=" else 0)
+            hooks[cls] = extract_rhs(body, start).strip()
         else:
             hooks[cls] = "(default base install)"
     return hooks

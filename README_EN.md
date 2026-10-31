@@ -29,9 +29,9 @@ Availability depends on the ROM and system-app versions. Do not enable this modu
 
 The [documentation index](docs/README.md) covers development, testing, releases and feature contracts. Start with the [shared engineering rules](AGENTS.md) before contributing.
 
-Current source version: `r14.25.7` (versionCode 256). Maintainer: `thetvplus`. Application ID: `tv.withaibuild.customiuizer.r14`.
+Current source version: `r14.25.9` (versionCode 258). Maintainer: `thetvplus`. Application ID: `tv.withaibuild.customiuizer.r14`.
 
-The current source is a pre-release candidate. A locally signed trial does not establish public release. See the [current refinement state](docs/maintenance/A14_REFINEMENT_ROADMAP.md#全局-rc-审计与候选收口) for retained changes, the candidate audit and pending device checks; official downloads follow the actual releases in both repositories.
+r14.25.9 consolidates VPN auto switching, POCO folder-icon blur, Island and lock-screen refinements and is authorized for automated public release; see the [changelog](CHANGELOG_EN.md). The preceding public release is r14.25.7, with [concise release notes](docs/releases/r14.25.7.md#english). ROM coverage and pending device checks remain in the [current refinement state](docs/maintenance/A14_REFINEMENT_ROADMAP.md#poco-文件夹模糊完整性).
 
 ## Support and License
 

@@ -3,11 +3,10 @@ package tv.withaibuild.customiuizer.mods.island
 import android.graphics.Outline
 import android.graphics.Path
 import android.graphics.Region
-import android.graphics.Matrix
 import android.view.View
 import android.view.ViewOutlineProvider
 
-/** API 34 clips arbitrary Outline paths. Geometry is rebuilt only when measured bounds change. */
+/** API 34 clips arbitrary Outline paths. Reuse geometry until bounds, scale or contact changes. */
 internal open class IslandShape : ViewOutlineProvider() {
     val path = Path()
     private val region = Region()
@@ -15,25 +14,23 @@ internal open class IslandShape : ViewOutlineProvider() {
     private var height = -1
     private var horizontal = 1f
     private var vertical = 1f
-    private val inverse = Matrix()
+    private var contact = 0f
     private var regionDirty = false
 
-    fun resize(w: Int, h: Int, scaleX: Float = horizontal, scaleY: Float = vertical): Boolean {
+    fun resize(w: Int, h: Int, scaleX: Float = horizontal, scaleY: Float = vertical, fusion: Float = contact): Boolean {
         val sx = scaleX.coerceAtLeast(.01f)
         val sy = scaleY.coerceAtLeast(.01f)
-        if (w == width && h == height && horizontal == sx && vertical == sy) return false
+        val blend = if (w * sx > h * sy && fusion.isFinite()) fusion.coerceIn(0f, 1f) else 0f
+        if (w == width && h == height && horizontal == sx && vertical == sy && contact == blend) return false
         width = w
         height = h
-        horizontal = sx; vertical = sy
+        horizontal = sx; vertical = sy; contact = blend
         path.rewind()
         if (w > 0 && h > 0) {
             // Construct in visible pixels, then undo the parent's stretch locally. The
             // straight centre changes length while the physical end caps stay round.
-            IslandCapsuleGeometry.build(path, w * sx, h * sy)
-            if (sx != 1f || sy != 1f) {
-                inverse.setScale(1f / sx, 1f / sy)
-                path.transform(inverse)
-            }
+            // Emit local controls directly instead of transforming the completed Path.
+            IslandCapsuleGeometry.build(path, w * sx, h * sy, blend, 1f / sx, 1f / sy)
             regionDirty = true
         } else { region.setEmpty(); regionDirty = false }
         return true

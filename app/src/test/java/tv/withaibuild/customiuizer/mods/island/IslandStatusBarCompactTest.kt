@@ -30,6 +30,10 @@ class IslandStatusBarCompactTest {
         val clock = View(activity); val battery = View(activity)
         class Icon : View(activity) {
             var coordinateReads = 0
+            var occlusionReads = 0
+            override fun getGlobalVisibleRect(out: Rect, offset: android.graphics.Point?): Boolean {
+                occlusionReads++; return super.getGlobalVisibleRect(out, offset)
+            }
             override fun getLocationOnScreen(out: IntArray) { coordinateReads++; super.getLocationOnScreen(out) }
             override fun getLocationInWindow(out: IntArray) { coordinateReads++; super.getLocationInWindow(out) }
         }
@@ -46,19 +50,43 @@ class IslandStatusBarCompactTest {
         try {
             compact.show(180)
             covered.coordinateReads = 0; clear.coordinateReads = 0
+            covered.occlusionReads = 0; clear.occlusionReads = 0
             repeat(120) { root.viewTreeObserver.dispatchOnPreDraw() }
             assertEquals("Per-icon screen/window queries duplicate the window's common offset", 0,
                 covered.coordinateReads + clear.coordinateReads)
             assertEquals(0f, covered.alpha); assertEquals(.8f, clear.alpha)
+            assertEquals("Stable native geometry needs no full occlusion queries", 0,
+                covered.occlusionReads + clear.occlusionReads)
+            covered.alpha = .45f // Native alpha ownership still updates without a geometry scan.
+            root.viewTreeObserver.dispatchOnPreDraw()
+            assertEquals(0f, covered.alpha)
+            assertEquals(0, covered.occlusionReads + clear.occlusionReads)
             // RenderNode translation does not require a layout callback. Keep checking it each frame.
             icons.translationX = 160f
             root.viewTreeObserver.dispatchOnPreDraw()
-            assertEquals(.6f, covered.alpha)
+            assertEquals(.45f, covered.alpha)
+            assertTrue(covered.occlusionReads > 0)
             icons.translationX = 0f
             root.translationY = 100f
             root.viewTreeObserver.dispatchOnPreDraw()
-            assertEquals(.6f, covered.alpha)
+            assertEquals(.45f, covered.alpha)
             root.translationY = 0f
+            root.viewTreeObserver.dispatchOnPreDraw()
+            assertEquals(0f, covered.alpha)
+            // Ancestor padding/scroll/visibility may change clipping without layout.
+            icons.clipToPadding = true
+            icons.setPadding(0, 50, 0, 0)
+            root.viewTreeObserver.dispatchOnPreDraw()
+            assertEquals(.45f, covered.alpha)
+            icons.setPadding(0, 0, 0, 0)
+            root.viewTreeObserver.dispatchOnPreDraw()
+            assertEquals(0f, covered.alpha)
+            covered.scrollX = 5
+            root.viewTreeObserver.dispatchOnPreDraw()
+            icons.visibility = View.INVISIBLE
+            root.viewTreeObserver.dispatchOnPreDraw()
+            assertEquals(.45f, covered.alpha)
+            icons.visibility = View.VISIBLE
             root.viewTreeObserver.dispatchOnPreDraw()
             assertEquals(0f, covered.alpha)
         } finally { compact.restore(); activity.finish() }

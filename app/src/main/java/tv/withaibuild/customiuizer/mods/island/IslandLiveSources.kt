@@ -29,11 +29,14 @@ internal object IslandLiveCalls {
         } catch (_: SecurityException) { null }
     }
     @android.annotation.SuppressLint("MissingPermission")
-    fun open(context: Context) {
+    fun open(context: Context): Boolean {
         if (context.checkSelfPermission(Manifest.permission.READ_PHONE_STATE) !=
-            android.content.pm.PackageManager.PERMISSION_GRANTED) return
-        try { context.getSystemService(TelecomManager::class.java)?.showInCallScreen(false) }
-        catch (_: SecurityException) { /* Native call UI remains available through the system. */ }
+            android.content.pm.PackageManager.PERMISSION_GRANTED) return false
+        return try {
+            val telecom = context.getSystemService(TelecomManager::class.java) ?: return false
+            telecom.showInCallScreen(false)
+            true
+        } catch (_: SecurityException) { false } // Native call UI remains available through the system.
     }
 }
 

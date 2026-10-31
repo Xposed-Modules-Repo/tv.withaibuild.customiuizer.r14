@@ -48,6 +48,8 @@ internal class IslandAudioSpectrum(
     data class Track(val uid: Int, val session: Int, val active: Boolean, val usage: Int)
     private var player: MediaController? = null
     private var user: UserHandle? = null
+    private var retainedToken: android.media.session.MediaSession.Token? = null
+    private var retainedUser: UserHandle? = null
     private var job: Job? = null
     @Volatile private var generation = 0L
     private val frameLock = Any()
@@ -66,7 +68,8 @@ internal class IslandAudioSpectrum(
 
     fun start(selected: MediaController, foreground: UserHandle?) {
         if (player?.sessionToken == selected.sessionToken && user == foreground) return
-        val keepFrame = player?.packageName == selected.packageName && foreground != null && user == foreground
+        val keepFrame = foreground != null && (player?.packageName == selected.packageName && user == foreground ||
+            retainedToken == selected.sessionToken && retainedUser == foreground)
         stop(clearFrame = !keepFrame)
         player = selected; user = foreground
         val epoch = generation
@@ -173,6 +176,9 @@ internal class IslandAudioSpectrum(
     fun pauseKeepingFrame() = stop(clearFrame = false)
 
     private fun stop(clearFrame: Boolean) {
+        if (player == null && job == null && !posted.get() && (!clearFrame || retainedToken == null)) return
+        if (!clearFrame && player != null) { retainedToken = player?.sessionToken; retainedUser = user }
+        if (clearFrame) { retainedToken = null; retainedUser = null }
         captureGeneration.incrementAndGet()
         generation++ // Old callbacks become inert before asynchronous native release.
         player = null; user = null

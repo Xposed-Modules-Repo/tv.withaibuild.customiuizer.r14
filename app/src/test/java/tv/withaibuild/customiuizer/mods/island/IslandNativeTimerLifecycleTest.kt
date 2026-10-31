@@ -3,6 +3,7 @@ package tv.withaibuild.customiuizer.mods.island
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.pm.ApplicationInfo
+import android.os.SystemClock
 import com.android.deskclock.timer.TimerService
 import org.junit.Assert.*
 import org.junit.Test
@@ -12,8 +13,10 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowSystemClock
 import org.robolectric.util.ReflectionHelpers
 import tv.withaibuild.customiuizer.utils.PrefMap
+import java.time.Duration
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -80,11 +83,14 @@ class IslandNativeTimerLifecycleTest {
     }
 
     @Test fun completionGraceAndAnAlreadyRingingAlertSurviveCountdownOwnerDestruction() = runWithClock { clock, publisher, service ->
-        service.mTimer!!.deadline = System.currentTimeMillis()
+        service.mTimer!!.deadline = System.currentTimeMillis() + 60_000
         snapshot(clock)
         val ending = timer(publisher)
         assertNotNull(ending)
         service.mTimer = null
+        val completion = ending!!.clock!!.base
+        ShadowSystemClock.advanceBy(Duration.ofMillis(completion - SystemClock.elapsedRealtime()))
+        assertEquals("Exercise owner destruction at the published completion boundary", completion, SystemClock.elapsedRealtime())
         destroy(clock, service)
         assertEquals(ending, timer(publisher))
         ReflectionHelpers.setField(clock, "ringing", IslandLiveKind.TIMER)

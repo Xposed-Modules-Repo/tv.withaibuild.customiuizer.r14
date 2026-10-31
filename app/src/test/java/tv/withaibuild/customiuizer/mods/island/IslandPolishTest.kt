@@ -62,6 +62,7 @@ class IslandPolishTest {
         val wave=IslandWaveView(activity)
         activity.setContentView(wave,FrameLayout.LayoutParams(25,24))
         wave.onVisibilityAggregated(true)
+        wave.outputVisible = true
         wave.spectrum(FloatArray(5))
         wave.playing=true
         assertFalse(getField(wave,"scheduled"))

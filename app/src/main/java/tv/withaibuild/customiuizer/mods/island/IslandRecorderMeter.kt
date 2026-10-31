@@ -52,13 +52,16 @@ internal object IslandRecorderMeter {
         private var owner: IBinder? = null
         private var job: Job? = null
         private var epoch = 0L
+        private var retainedOwner: IBinder? = null
+        private val bars = FloatArray(5)
         fun start(next: IBinder) {
             if (owner == next && job?.isActive == true) return
-            stop(); owner = next
+            stop(clearFrame = false); owner = next
+            if (retainedOwner != next) { bars.fill(0f); output(bars) }
+            retainedOwner = next
             val generation = ++epoch
             job = scope.launch {
-                val bars = FloatArray(5)
-                var previous = -1f
+                var previous = bars.last()
                 while (isActive && generation == epoch) {
                     val start = SystemClock.uptimeMillis()
                     val raw = withContext(io) { ModuleHelper.guarded<Int?>(null) { read(next) } } ?: break
@@ -76,9 +79,12 @@ internal object IslandRecorderMeter {
                 if (generation == epoch) { owner = null; job = null; output(FloatArray(5)) }
             }
         }
-        fun stop() {
-            if (owner == null && job == null) return
-            epoch++; owner = null; job?.cancel(); job = null; output(null)
+        fun stop() = stop(clearFrame = true)
+        fun pauseKeepingFrame() = stop(clearFrame = false)
+        private fun stop(clearFrame: Boolean) {
+            if (owner == null && job == null && (!clearFrame || retainedOwner == null)) return
+            epoch++; owner = null; job?.cancel(); job = null
+            if (clearFrame) { retainedOwner = null; bars.fill(0f); output(null) }
         }
     }
 }

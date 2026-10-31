@@ -77,6 +77,23 @@ class LauncherReturnTimingTest {
         }
     }
 
+    @Test fun bothStylesRejectTheSameInvalidNativeParametersWithoutLeavingATimingLease() {
+        for (absorption in listOf(false, true)) {
+            val timing = LauncherReturnTiming(NativeSpring::class.java)
+            for (force in listOf(0f, -1f, Float.NaN, Float.POSITIVE_INFINITY)) {
+                val spring = NativeSpring().apply { tracks.getValue("Width").force = force }
+                val original = spring.tracks.mapValues { it.value.force }
+                assertFalse(timing.apply(spring, .5f, absorption))
+                assertNull(timing.lease(spring))
+                assertEquals(original, spring.tracks.mapValues { it.value.force })
+            }
+            val spring = NativeSpring().apply { durationRatio = Float.NaN }
+            assertFalse(timing.apply(spring, .5f, absorption))
+            assertNull(timing.lease(spring))
+            spring.tracks.values.forEach { assertEquals(900f, it.force, 0f) }
+        }
+    }
+
     @Test fun nativeDurationRatioIsAppliedOnceAndAnInvalidRatioCannotPartiallyAdjustTheSpring() {
         val timing = LauncherReturnTiming(NativeSpring::class.java)
         var baseline = 0f

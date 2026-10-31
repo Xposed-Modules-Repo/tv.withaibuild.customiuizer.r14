@@ -10,8 +10,9 @@ import kotlin.math.sin
  * The analytic curve is rendered with cached Hermite cubics, not an exact G4 spline.
  */
 internal object IslandCapsuleGeometry {
-    // Preserve the established contour; controls are generated once and reused.
-    private const val STEPS = 64
+    const val CONTACT_DEPTH_RATIO = .12f
+    // 32 Hermite segments per cap; unit controls are generated once and reused.
+    private const val STEPS = 32
     private const val RAMP = 0.25
 
     internal fun heading(t: Double): Double {
@@ -52,26 +53,43 @@ internal object IslandCapsuleGeometry {
         precise
     }
 
-    fun build(path: Path, width: Float, height: Float) {
-        val extent = cap[(STEPS / 2 - 1) * 6 + 4] * height
+    fun build(path: Path, width: Float, height: Float, contact: Float = 0f,
+        localX: Float = 1f, localY: Float = 1f) {
+        // A short meniscus uses the existing shell fill and stays inside its bounds.
+        // The end caps still use the same cached G4 controls; no blur/layer is added.
+        val amount = if (contact.isFinite()) contact.coerceIn(0f, 1f) else 0f
+        val depth = minOf(height * CONTACT_DEPTH_RATIO, (width - height).coerceAtLeast(0f) * .06f) * amount
+        val bodyHeight = height - depth
+        val extent = cap[(STEPS / 2 - 1) * 6 + 4] * bodyHeight
         val end = minOf(extent, width * 0.5f)
-        val sx = if (extent > 0) height * end / extent else 0f
-        path.moveTo(end, 0f)
-        path.lineTo(width - end, 0f)
+        val sx = if (extent > 0) bodyHeight * end / extent else 0f
+        path.moveTo(end * localX, 0f)
+        path.lineTo((width - end) * localX, 0f)
         for (side in 0..1) {
             val origin = if (side == 0) width - end else end
             val direction = if (side == 0) 1f else -1f
-            val top = if (side == 0) 0f else height
+            val top = if (side == 0) 0f else bodyHeight
             for (i in 0 until STEPS) {
                 val at = i * 6
-                path.cubicTo(origin + direction * cap[at] * sx, top + direction * cap[at + 1] * height,
-                    origin + direction * cap[at + 2] * sx, top + direction * cap[at + 3] * height,
-                    origin + direction * cap[at + 4] * sx, top + direction * cap[at + 5] * height)
+                path.cubicTo((origin + direction * cap[at] * sx) * localX, (top + direction * cap[at + 1] * bodyHeight) * localY,
+                    (origin + direction * cap[at + 2] * sx) * localX, (top + direction * cap[at + 3] * bodyHeight) * localY,
+                    (origin + direction * cap[at + 4] * sx) * localX, (top + direction * cap[at + 5] * bodyHeight) * localY)
                 // Subdivide the smooth end cap without changing its physical curvature.
                 // The zero-length side joins let API 34 interpolate the actual contours.
-                if (i == STEPS / 2 - 1) path.lineTo(if (side == 0) width else 0f, height * .5f)
+                if (i == STEPS / 2 - 1) path.lineTo(if (side == 0) width * localX else 0f, bodyHeight * .5f * localY)
             }
-            if (side == 0) path.lineTo(end, height)
+            if (side == 0) {
+                if (depth > 0f) {
+                    val center = width * .5f
+                    val span = minOf((width - 2f * end) * .3f, bodyHeight * .8f)
+                    path.lineTo((center + span) * localX, bodyHeight * localY)
+                    path.cubicTo((center + span * .45f) * localX, bodyHeight * localY,
+                        (center + span * .55f) * localX, height * localY, center * localX, height * localY)
+                    path.cubicTo((center - span * .55f) * localX, height * localY,
+                        (center - span * .45f) * localX, bodyHeight * localY, (center - span) * localX, bodyHeight * localY)
+                }
+                path.lineTo(end * localX, bodyHeight * localY)
+            }
         }
         path.close()
     }

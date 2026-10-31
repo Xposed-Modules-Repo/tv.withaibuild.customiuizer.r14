@@ -109,7 +109,7 @@ internal class LauncherWindowAbsorption private constructor(private val api: Acc
             if (root.context.checkSelfPermission("android.permission.READ_FRAME_BUFFER") != PackageManager.PERMISSION_GRANTED) return null
             api.surface(element, copy)?.takeIf { it.isValid } ?: return null
         } else null
-        val active = Session(element, copy, root, surface, frame.landingRectangle(captureWindow), frame.rectangle(), mesh)
+        val active = Session(element, copy, root, surface, frame.landingRectangle(captureWindow), if (mesh) frame.rectangle() else null, mesh)
         session = active
         val generation = epoch
         if (surface != null) captureJob = scope.launch(Dispatchers.Default) {
@@ -117,6 +117,7 @@ internal class LauncherWindowAbsorption private constructor(private val api: Acc
             try {
                 texture = captureMutex.withLock {
                     ensureActive()
+                    IslandAbsorptionMesh.prepare()
                     api.capture(surface, frame.screenWidth, frame.screenHeight)
                 }
                 withContext(Dispatchers.Main.immediate) {
@@ -157,7 +158,7 @@ internal class LauncherWindowAbsorption private constructor(private val api: Acc
         // its optional texture is still being prepared. Tail compression is local
         // mesh geometry, not a second clock for the island's physical response.
         active.progressChannel.write(active.progress)
-        if (!active.mesh) return
+        val drawing = active.drawing ?: return
         if (active.texture == null) return
         if (!active.installed) {
             if (!IslandAbsorptionMesh.mayReplaceNative(active.progress, active.nativeAlpha)) { cancel(); return }
@@ -165,20 +166,23 @@ internal class LauncherWindowAbsorption private constructor(private val api: Acc
             root.overlay.add(active)
             root.addOnAttachStateChangeListener(active)
         }
-        root.getLocationOnScreen(active.location)
-        active.rect.set(rect); active.rect.offset(-active.location[0].toFloat(), -active.location[1].toFloat())
-        val remaining = active.handoff.progress(active.progress, active.rect, active.presented)
-        active.destination.set(active.target); active.destination.offset(-active.location[0].toFloat(), -active.location[1].toFloat())
-        active.shellDestination.set(active.shellTarget)
-        active.shellDestination.offset(-active.location[0].toFloat(), -active.location[1].toFloat())
-        val intakeY = IslandAbsorptionMesh.intakeY(active.shellDestination, active.destination)
+        root.getLocationOnScreen(drawing.location)
+        drawing.rect.set(rect); drawing.rect.offset(-drawing.location[0].toFloat(), -drawing.location[1].toFloat())
+        val remaining = drawing.handoff.progress(active.progress, drawing.rect, active.presented)
+        drawing.destination.set(active.target); drawing.destination.offset(-drawing.location[0].toFloat(), -drawing.location[1].toFloat())
+        drawing.shellDestination.set(checkNotNull(active.shellTarget))
+        drawing.shellDestination.offset(-drawing.location[0].toFloat(), -drawing.location[1].toFloat())
+        val intakeY = IslandAbsorptionMesh.intakeY(drawing.shellDestination, drawing.destination)
         active.radius = radius.coerceAtLeast(0f)
-        IslandAbsorptionMesh.fill(active.vertices, active.handoff.source, active.destination, remaining, active.rect, intakeY)
-        IslandAbsorptionMesh.contactColors(active.colors, active.vertices, active.destination, remaining, intakeY)
+        IslandAbsorptionMesh.fill(drawing.vertices, drawing.handoff.source, drawing.destination, remaining, drawing.rect, intakeY,
+            occlusion = if (active.presented) drawing.shellDestination else null)
         // Keep release opacity until the entire page lies inside the island. Then
         // reveal the real island underneath, rather than leave a separately coloured dot.
-        active.paint.alpha = (255f * active.nativeAlpha * IslandAbsorptionMesh.mergeOpacity(active.rect, active.shellDestination)).toInt().coerceIn(0, 255)
+        drawing.paint.alpha = (255f * active.nativeAlpha * IslandAbsorptionMesh.mergeOpacity(drawing.rect, drawing.shellDestination)).toInt().coerceIn(0, 255)
+        if (drawing.paint.alpha > 0) IslandAbsorptionMesh.contactColors(drawing.colors, drawing.vertices,
+            drawing.destination, remaining, intakeY, opaqueBodyReady = true)
         active.setBounds(0, 0, root.width, root.height)
+        drawing.clipReady = false
         active.invalidateSelf()
         if (!active.presented && active.committed == null) {
             // Leave the native window visible until an equivalent mesh frame is submitted.
@@ -235,31 +239,20 @@ internal class LauncherWindowAbsorption private constructor(private val api: Acc
         } finally { old.progressChannel.close(); old.texture?.recycle(); old.texture = null }
     }
 
-    private inner class Session(element: Any, val copy: Any, root: View, val surface: SurfaceControl?,
-        val target: RectF, val shellTarget: RectF, val mesh: Boolean) : Drawable(), View.OnAttachStateChangeListener {
-        val element = WeakReference(element)
-        val rootWidth = root.width
-        val rootHeight = root.height
-        val root = WeakReference(root)
-        val progressChannel = IslandReturnProgress.Producer()
+    /** Drawing state is owned only by an actual absorption session. */
+    private class Mesh {
         val handoff = IslandAbsorptionHandoff()
         val vertices = FloatArray(IslandAbsorptionMesh.FLOATS)
-        val colors = IntArray((IslandAbsorptionMesh.ROWS + 1) * 2)
+        val colors = IntArray((IslandAbsorptionMesh.ROWS + 1) * 2) { -1 }
         val location = IntArray(2)
         val rect = RectF(); val destination = RectF(); val shellDestination = RectF()
         val path = Path()
         val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
-        var texture: Bitmap? = null
-        var progress = 0f; var radius = 0f
-        var atCommit = Float.NaN
-        var nativeAlpha = 1f
-        var installed = false; var queuedHide = false
-        @Volatile var presented = false
-        var committed: Runnable? = null
-        val timeout = Runnable { ModuleHelper.guarded { if (session === this) cancel() } }
-        override fun draw(canvas: Canvas) {
-            val bitmap = texture ?: return
-            if (session !== this || !canvas.isHardwareAccelerated || rect.isEmpty) return
+        var clipReady = false
+        var clipPresented = false
+
+        fun clip(presented: Boolean, radius: Float): Path {
+            if (clipReady && clipPresented == presented) return path
             path.rewind()
             if (!presented) {
                 path.addRoundRect(rect, minOf(radius, rect.width() * .5f), minOf(radius, rect.height() * .5f), Path.Direction.CW)
@@ -287,9 +280,37 @@ internal class LauncherWindowAbsorption private constructor(private val api: Acc
                 }
                 path.lineTo(topLeft, rect.top + corner); path.quadTo(topLeft, rect.top, topLeft + corner, rect.top); path.close()
             }
+            clipReady = true; clipPresented = presented
+            return path
+        }
+    }
+
+    private inner class Session(element: Any, val copy: Any, root: View, val surface: SurfaceControl?,
+        val target: RectF, val shellTarget: RectF?, mesh: Boolean) : Drawable(), View.OnAttachStateChangeListener {
+        val element = WeakReference(element)
+        val rootWidth = root.width
+        val rootHeight = root.height
+        val root = WeakReference(root)
+        val progressChannel = IslandReturnProgress.Producer()
+        val drawing = if (mesh) Mesh() else null
+        var texture: Bitmap? = null
+        var progress = 0f; var radius = 0f
+        var atCommit = Float.NaN
+        var nativeAlpha = 1f
+        var installed = false; var queuedHide = false
+        @Volatile var presented = false
+        var committed: Runnable? = null
+        val timeout = Runnable { ModuleHelper.guarded { if (session === this) cancel() } }
+        override fun draw(canvas: Canvas) {
+            val bitmap = texture ?: return
+            val drawing = drawing ?: return
+            if (session !== this || drawing.paint.alpha == 0 || !canvas.isHardwareAccelerated || drawing.rect.isEmpty) return
+            val clip = drawing.clip(presented, radius)
             val save = canvas.save()
-            try { canvas.clipPath(path); canvas.drawBitmapMesh(bitmap, 1, IslandAbsorptionMesh.ROWS, vertices, 0, colors, 0, paint) }
-            finally { canvas.restoreToCount(save) }
+            try {
+                canvas.clipPath(clip)
+                canvas.drawBitmapMesh(bitmap, 1, IslandAbsorptionMesh.ROWS, drawing.vertices, 0, drawing.colors, 0, drawing.paint)
+            } finally { canvas.restoreToCount(save) }
         }
         override fun setAlpha(alpha: Int) = Unit
         override fun setColorFilter(colorFilter: ColorFilter?) = Unit

@@ -58,6 +58,11 @@ tools/tests/__pycache__/
 
 # Local ROM samples and intelligence outputs (never commit real ROM copies)
 /local-rom-samples/
+*.dxc2
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-wal
+*.sqlite3-shm
 
 # Local runtime evidence, APK drops, and generated caches
 /.di-evidence/

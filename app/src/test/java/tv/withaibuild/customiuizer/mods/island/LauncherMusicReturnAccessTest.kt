@@ -280,6 +280,21 @@ class LauncherMusicReturnAccessTest {
         assertNull(access.retarget(source, Element(), Nav(), frame.copy(left = Float.NaN)))
     }
 
+    @Test fun defaultAndAbsorptionShareAdmissionAndOnlyChooseDifferentLandingGeometry() {
+        for (absorption in listOf(false, true)) {
+            val valid = access.retarget(params(), Element(), Nav(), frame, absorption) as Params
+            assertEquals(frame.landingRectangle(absorption), valid.targetRect)
+            for (invalid in listOf(frame.copy(left = Float.NaN), frame.copy(bottom = Float.POSITIVE_INFINITY),
+                frame.copy(right = frame.left), frame.copy(screenWidth = 0), frame.copy(screenWidth = 3000)))
+                assertNull(access.retarget(params(), Element(), Nav(), invalid, absorption))
+            for (nav in listOf(Nav().apply { mRunningTaskId = 99 }, Nav().apply { mRunningTaskUserId = 10 },
+                Nav().apply { mRunningTaskInfo!!.mode = 5 }))
+                assertNull(access.retarget(params(), Element(), nav, frame, absorption))
+            assertNull(access.retarget(params(type = Type.CLOSE_TO_RECENTS), Element(), Nav(), frame, absorption))
+            assertNull(access.retarget(params(targets = Targets(arrayOf(Remote(), Remote()))), Element(), Nav(), frame, absorption))
+        }
+    }
+
     @Test fun aRetainedNativeTargetSetIsAllowedOnlyWithTheSameIdentity() {
         val source = params(targets = null)
         assertNull(access.retarget(source, Element(), Nav(), frame))

@@ -15,6 +15,37 @@ import org.robolectric.annotation.GraphicsMode
 @Config(sdk = [34])
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class IslandContourTest {
+    @Test fun bothCapsUse64CubicsAndContactAddsOnlyItsTwoExistingCubics() {
+        class CountedPath : Path() {
+            var cubics = 0
+            override fun cubicTo(x1: Float, y1: Float, x2: Float, y2: Float, x3: Float, y3: Float) {
+                cubics++
+                super.cubicTo(x1, y1, x2, y2, x3, y3)
+            }
+        }
+        val plain = CountedPath()
+        IslandCapsuleGeometry.build(plain, 240f, 40f)
+        assertEquals(64, plain.cubics)
+        val contact = CountedPath()
+        IslandCapsuleGeometry.build(contact, 240f, 40f, 1f)
+        assertEquals(66, contact.cubics)
+    }
+    @Test fun directLocalControlsMatchThePreviousTransformAndReuseIneffectiveContact() {
+        val shape = IslandShape()
+        for (height in listOf(32, 40, 64, 128, 256)) for (width in listOf(48, 160, 240, 400))
+            for (sx in listOf(.5f, 1f, 1.025f)) for (sy in listOf(.6f, 1f)) for (contact in listOf(0f, .5f, 1f)) {
+                val reference = Path().also { IslandCapsuleGeometry.build(it, width * sx, height * sy, contact) }
+                reference.transform(Matrix().apply { setScale(1f / sx, 1f / sy) })
+                shape.resize(width, height, sx, sy, contact)
+                val expected = Region().apply { setPath(reference, Region(0, 0, width, height)) }
+                val actual = Region().apply { setPath(shape.path, Region(0, 0, width, height)) }
+                assertEquals("$width,$height,$sx,$sy,$contact", expected, actual)
+            }
+        shape.resize(48, 64, fusion = 0f)
+        val generation = shape.path.generationId
+        repeat(120) { assertFalse(shape.resize(48, 64, fusion = it / 119f)) }
+        assertEquals(generation, shape.path.generationId)
+    }
     @Test fun lengthMorphKeepsExactBoundsAndTheSameCapsuleAlgorithmAtBothEndpoints() {
         val shape=IslandShape()
         for (width in 184..280) {

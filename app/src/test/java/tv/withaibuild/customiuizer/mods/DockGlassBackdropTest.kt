@@ -63,6 +63,90 @@ class DockGlassBackdropTest {
     private fun controller(live: Boolean = false, source: DockWallpaperSampler = sampler) =
         DockGlassBackdrop(view, source, 90, live, Dispatchers.Unconfined).also { controllers.add(it) }
 
+    @Test fun staticMotionReusesCoveredPixelsAndCapturesOnceAfterSettling() {
+        val controller = controller()
+        controller.onFrame(true)
+        val first = lastBitmap!!
+        val node = RenderNode("dock-static-motion").apply { setPosition(0, 0, 300, 80) }
+        val canvas = node.beginRecording()
+        try {
+            repeat(120) { frame ->
+                view.translationY = -(frame % 60).toFloat()
+                controller.onFrame(true)
+                assertTrue(controller.prepare(canvas, Rect(0, 0, 300, 80), 20f, 1f))
+                assertFalse("Covered pixels survive motion frame $frame", first.isRecycled)
+                shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(16))
+            }
+            assertEquals("Motion changes mapping without requesting new wallpaper pixels", 1, captures)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(200))
+            controller.onFrame(true)
+            assertEquals("One settled compositor refresh", 2, captures)
+            assertTrue(first.isRecycled)
+            repeat(120) {
+                shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(40))
+                controller.onFrame(true)
+            }
+            assertEquals("Completion and unrelated native draws cannot restart static sampling", 2, captures)
+        } finally { node.endRecording(); node.discardDisplayList() }
+    }
+
+    @Test fun staticCatchUpSchedulesItsOwnFinalFrameWithoutNativeRedraws() {
+        val controller = controller()
+        controller.onFrame(true)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(250))
+        controller.onFrame(true) // only the bounded completion invalidation
+        assertEquals("The compositor gets one final refresh even if native animation has stopped", 2, captures)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2))
+        repeat(30) { controller.onFrame(true) }
+        assertEquals(2, captures)
+    }
+
+    @Test fun inFlightStaticCaptureCannotConsumeANewerMotionDeadline() {
+        val scheduler = kotlinx.coroutines.test.TestCoroutineScheduler()
+        val controller = DockGlassBackdrop(view, sampler, 90, false,
+            kotlinx.coroutines.test.StandardTestDispatcher(scheduler)).also(controllers::add)
+        controller.onFrame(true)
+        scheduler.runCurrent()
+        shadowOf(Looper.getMainLooper()).idle()
+        assertEquals(1, captures)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(250))
+        controller.onFrame(true) // settled capture is now pending on the worker
+        view.translationY = -120f
+        controller.onFrame(true) // newer motion must still receive its settled refresh
+        scheduler.runCurrent()
+        shadowOf(Looper.getMainLooper()).idle()
+        assertEquals(2, captures)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(250))
+        controller.onFrame(true)
+        scheduler.runCurrent()
+        shadowOf(Looper.getMainLooper()).idle()
+        assertEquals("A covered but older in-flight result cannot erase newer motion", 3, captures)
+    }
+
+    @Test fun staticSettledRefreshPausesAtZeroAlphaAndEndsOnHideOrPowerSave() {
+        for (hide in listOf(false, true)) {
+            val controller = controller()
+            val start = captures
+            controller.onFrame(true)
+            val first = lastBitmap!!
+            controller.onFrame(true, rendering = false)
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(250))
+            assertEquals(start + 1, captures)
+            assertFalse(first.isRecycled)
+            controller.onFrame(true)
+            assertEquals("Reappearing completes the pending static refresh", start + 2, captures)
+            view.translationY -= 1f
+            controller.onFrame(true)
+            if (hide) controller.onFrame(false) else controller.setPowerSave(true)
+            val ended = captures
+            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2))
+            repeat(20) { controller.onFrame(!hide) }
+            assertEquals(ended, captures)
+            assertTrue(lastBitmap!!.isRecycled)
+            controller.release()
+        }
+    }
+
     @Test fun wallpaperReplacementRefreshesStaticLivePolicyAndRetiresThePreviousClock() {
         val controller = controller()
         controller.onFrame(true)
@@ -81,7 +165,7 @@ class DockGlassBackdropTest {
         assertEquals(4, captures)
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(600))
         repeat(120) { controller.onFrame(true) }
-        assertEquals("Static wallpaper no longer inherits the live refresh clock", 4, captures)
+        assertEquals("Static wallpaper gets one settled refresh without inheriting the live clock", 5, captures)
     }
 
     @Test fun offscreenNativeFramesDoNotCaptureOrCreateTheirOwnRetryLoop() {
@@ -139,7 +223,7 @@ class DockGlassBackdropTest {
     }
 
     @Test
-    fun ownCompletionDrawCannotStartAStaticCaptureLoopAndNativeFramesStillRefresh() {
+    fun completionAndNativeDrawsWaitForOneStaticSettledRefresh() {
         val controller = controller()
         controller.onFrame(true)
         assertEquals(1, captures)
@@ -148,6 +232,9 @@ class DockGlassBackdropTest {
         controller.onFrame(true) // the accepted texture's own invalidation
         assertEquals(1, captures)
         controller.onFrame(true) // a later native frame
+        assertEquals("Unchanged native draws reuse the real viewport", 1, captures)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(100))
+        controller.onFrame(true)
         assertEquals(2, captures)
         val position = IntArray(2).also { view.getLocationOnScreen(it) }
         assertTrue("crop=$lastCrop position=${position.contentToString()}",
@@ -167,13 +254,16 @@ class DockGlassBackdropTest {
         controller.onFrame(true)
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(600))
         repeat(60) { controller.onFrame(true) }
-        assertEquals(1, captures)
+        assertEquals("Initial frame plus one compositor catch-up", 2, captures)
         controller.invalidateSource()
         controller.onFrame(true)
-        assertEquals(2, captures)
+        assertEquals("True replacement preserves the existing capture rate limit", 2, captures)
+        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(35))
+        controller.onFrame(true)
+        assertEquals("True replacement requests fresh pixels at the next allowed frame", 3, captures)
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(600))
         repeat(60) { controller.onFrame(true) }
-        assertEquals(2, captures)
+        assertEquals("Replacement also settles once and stops", 4, captures)
     }
 
     @Test

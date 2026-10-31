@@ -17,6 +17,33 @@ import org.robolectric.shadows.ShadowBinder
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = android.app.Application::class)
 class IslandRecorderMeterTest {
+    @Test fun occlusionStopsBinderReadsAndResumesTheSameEnvelopeWithoutClearingIt() {
+        val scheduler = TestCoroutineScheduler()
+        val dispatcher = StandardTestDispatcher(scheduler)
+        val scope = CoroutineScope(SupervisorJob() + dispatcher)
+        var reads = 0
+        val frames = mutableListOf<FloatArray?>()
+        val consumer = IslandRecorderMeter.Consumer(scope, dispatcher) { frames.add(it?.copyOf()) }
+        try {
+            ShadowBinder.setCallingUid(1000)
+            val producer = IslandRecorderMeter.producer(1000) { reads++; 32767 }
+            consumer.start(producer); scheduler.runCurrent()
+            scheduler.advanceTimeBy(335); scheduler.runCurrent()
+            val previous = frames.last()!!.copyOf()
+            val count = frames.size; val sampled = reads
+            repeat(120) { consumer.pauseKeepingFrame() }
+            scheduler.advanceTimeBy(3000); scheduler.runCurrent()
+            assertEquals(sampled, reads); assertEquals(count, frames.size)
+            consumer.start(producer); consumer.start(producer); scheduler.runCurrent()
+            assertEquals(sampled + 1, reads)
+            assertArrayEquals(previous, frames.last(), 0f)
+            assertEquals(count, frames.size)
+            val quietSuccessor = IslandRecorderMeter.producer(1000) { 0 }
+            consumer.start(quietSuccessor); scheduler.runCurrent()
+            assertArrayEquals("A quiet successor cannot inherit another recorder's levels", FloatArray(5), frames.last(), 0f)
+            consumer.stop(); assertNull(frames.last())
+        } finally { consumer.stop(); scope.cancel(); ShadowBinder.reset() }
+    }
     @Test fun peakMappingKeepsSilenceQuietAndLeavesHeadroomForOrdinarySpeechAndClipping() {
         assertEquals(0f, IslandRecorderMeter.level(256), 0f)
         assertTrue(IslandRecorderMeter.level(8192) in .24f.. .25f)

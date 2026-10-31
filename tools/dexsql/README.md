@@ -2,6 +2,7 @@
 
 用于开发期 APK / DEX 取证，不参与 Gradle、APK runtime 或默认 CI。
 安装、MCP 操作、证据边界及实测结果见 [DexSQL 指引](../../docs/rom-intelligence/DEXSQL.md)。
+已提取的 ROM 先用[离线知识库](../../docs/rom-intelligence/DEXSQL.md#离线-rom-知识库)定位组件、复用缓存；本目录继续维护复杂查询，避免在统一入口重写匹配条件。
 
 每个 `.sql` 文件是一组可直接传给官方 CLI 或 MCP `query.sql` 的只读语句：
 

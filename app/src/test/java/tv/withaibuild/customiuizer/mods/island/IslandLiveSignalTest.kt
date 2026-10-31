@@ -46,7 +46,7 @@ class IslandLiveSignalTest {
             override fun startActivity(intent: Intent) { error("no implicit dialing fallback") }
         }
         assertNull(IslandLiveCalls.state(context))
-        IslandLiveCalls.open(context)
+        assertFalse(IslandLiveCalls.open(context))
     }
     private val pkg = IslandLiveKind.CLOCK_PACKAGE
     private val now get() = SystemClock.uptimeMillis()

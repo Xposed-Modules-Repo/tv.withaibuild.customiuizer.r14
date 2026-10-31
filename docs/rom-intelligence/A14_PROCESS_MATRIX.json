@@ -3102,7 +3102,7 @@
       "target": "SYSTEM_SERVER",
       "phase": "SYSTEM_SERVER_STARTING",
       "installer": "SystemServerFeatures",
-      "installHook": "(default base install)",
+      "installHook": "{ SystemStatusBarInsetsHooks.StatusBarInsetsHeightHook(lpparam) lpparam.classLoader?.let(StatusBarHeightResources::install) }",
       "enableCondition": "StatusBarHeightConfig.isEnabled(prefs)",
       "allowedProcess": "system_server",
       "deniedProcess": ""
@@ -3115,7 +3115,7 @@
       "target": "SYSTEM_UI",
       "phase": "PACKAGE_READY",
       "installer": "SystemUiFeatures",
-      "installHook": "(default base install)",
+      "installHook": "{ val runtimeState = StrongToastRuntimeState.install(mPrefs) SystemUIStrongToastHooks.install(lpparam, runtimeState.snapshotRef) tv.withaibuild.customiuizer.mods.island.DynamicIslandActivities.install(lpparam, mPrefs) }",
       "enableCondition": "true",
       "allowedProcess": "com.android.systemui",
       "deniedProcess": "miui.systemui.plugin (ClassLoader extracted at runtime)"
@@ -3180,7 +3180,7 @@
       "target": "SYSTEM_SERVER",
       "phase": "SYSTEM_SERVER_STARTING",
       "installer": "SystemServerFeatures",
-      "installHook": "(default base install)",
+      "installHook": "{ val result = SystemUsbDefaultHooks.hook(lpparam) if (result != FeatureInstallResult.INSTALLED) { throw IllegalStateException(\"USB default function hooks could not be installed: $result\") } }",
       "enableCondition": "{ true }",
       "allowedProcess": "system_server",
       "deniedProcess": ""
@@ -3271,7 +3271,7 @@
       "target": "SYSTEM_SERVER",
       "phase": "SYSTEM_SERVER_STARTING",
       "installer": "SystemServerFeatures",
-      "installHook": "(default base install)",
+      "installHook": "{ lpparam.classLoader?.let(IslandApplicationOverlayHooks::install) }",
       "enableCondition": "{ prefs -> IslandApplicationOverlayFeature.evaluateEnabled(prefs) }",
       "allowedProcess": "system_server",
       "deniedProcess": ""
@@ -3310,10 +3310,23 @@
       "target": "ANY",
       "phase": "APPLICATION_ATTACHED",
       "installer": "GenericAppFeatures",
-      "installHook": "LauncherFolderIconBlur.install(lpparam.classLoader)",
+      "installHook": "LauncherFolderIconBlur.installPoco(lpparam.classLoader, attachedVersion(), checkNotNull(applicationContext))",
       "enableCondition": "packageName == \"com.mi.android.globallauncher\" && prefs.getBoolean(\"launcher_folder_icon_blur\")",
       "allowedProcess": "com.mi.android.globallauncher",
       "deniedProcess": "secondary processes; other Launcher features"
+    },
+    {
+      "featureIdInt": 262,
+      "featureIdName": "system_vpn_auto_switch",
+      "name": "VPN Auto Switch",
+      "preferenceKey": "system_vpnauto_enabled",
+      "target": "SYSTEM_SERVER",
+      "phase": "SYSTEM_SERVER_STARTING",
+      "installer": "SystemServerFeatures",
+      "installHook": "tv.withaibuild.customiuizer.mods.vpn.VpnAutoSwitchHooks.install(lpparam.classLoader)",
+      "enableCondition": "{ prefs -> prefs.getBoolean(\"system_vpnauto_enabled\") }",
+      "allowedProcess": "system_server",
+      "deniedProcess": ""
     }
   ],
   "scope": [

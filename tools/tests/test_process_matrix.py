@@ -18,6 +18,18 @@ MATRIX = ROOT / "docs/rom-intelligence/A14_PROCESS_MATRIX.json"
 
 
 class ProcessMatrixGenerationTest(unittest.TestCase):
+    def test_block_body_installation_keeps_all_dependent_owners(self):
+        source = '''internal class ExampleFeature(param: Any) : BaseFeature(param) {
+            override fun installHook() {
+                FirstOwner.install(param)
+                SecondOwner.install(param)
+            }
+        }'''
+        hook = extract_process_matrix.parse_install_hooks(source)["ExampleFeature"]
+        self.assertIn("FirstOwner.install(param)", hook)
+        self.assertIn("SecondOwner.install(param)", hook)
+        self.assertNotEqual(hook, "(default base install)")
+
     def test_machine_outputs_preserve_all_features_scope_and_routing(self):
         with tempfile.TemporaryDirectory() as temporary:
             output_root = Path(temporary)

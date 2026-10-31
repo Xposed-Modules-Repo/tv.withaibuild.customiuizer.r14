@@ -18,6 +18,7 @@ internal class IslandWindowPresentation(
     private val hidden: (Any) -> Unit = {},
     private val frameAllowed: () -> Boolean = { true },
     private val rejected: () -> Unit = {},
+    private val presented: () -> Unit = {},
 ) : ViewTreeObserver.OnPreDrawListener, View.OnAttachStateChangeListener {
     enum class Phase { IDLE, PREPARED, VISIBLE, EXITING }
     var phase = Phase.IDLE
@@ -75,6 +76,7 @@ internal class IslandWindowPresentation(
         if (!drawable) {
             release()
             if (phase != Phase.EXITING) phase = Phase.PREPARED
+            presented()
             return
         }
         if (visible !== event) {
@@ -97,6 +99,7 @@ internal class IslandWindowPresentation(
             DynamicIslandStatusBarFade.acquire(event, bounds)
         }
         if (phase != Phase.EXITING) phase = Phase.VISIBLE
+        presented()
     }
 
     private fun release() {

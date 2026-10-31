@@ -28,8 +28,8 @@ import java.lang.ref.WeakReference
 import kotlin.math.sqrt
 
 /** One decoration owns one texture, one shader and at most one pending wallpaper-only capture.
- * Static wallpaper follows native rendered frames, with the completion draw excluded to avoid
- * feedback. Live wallpaper alone needs a visible, 30 Hz maximum refresh; hidden/transparent
+ * Static wallpaper reuses its viewport during motion, then refreshes once after settling.
+ * Live wallpaper alone needs a visible, 30 Hz maximum refresh; hidden/transparent
  * owners stop it. No full-display screenshot, CPU pixel readback/blur, file decode or capture
  * of the Launcher tree. One bounded wallpaper-only viewport survives the whole native
  * pinch/unlock transform; changing the Dock's position cannot change material ownership.
@@ -85,7 +85,7 @@ internal class DockGlassBackdrop(
     private var completionDraw = false
     private var tickRequested = false
     private var lastRequest = Long.MIN_VALUE / 2
-    private var nativeMotionUntil = 0L
+    private var staticRefreshAt = 0L
     private var lastX = Float.NaN
     private var lastY = Float.NaN
     private var lastWidth = 0
@@ -116,7 +116,7 @@ internal class DockGlassBackdrop(
         this.liveWallpaper = liveWallpaper
         owner.get()?.removeCallbacks(tick)
         tickRequested = false
-        nativeMotionUntil = SystemClock.uptimeMillis() + 450L
+        staticRefreshAt = if (liveWallpaper) 0L else SystemClock.uptimeMillis() + STATIC_SETTLE_MS
         epoch++
         sourceDirty = true
         viewportDirty = true
@@ -142,23 +142,25 @@ internal class DockGlassBackdrop(
         // The ROM extension has no display selector. Never substitute default-display pixels on
         // a secondary display. Unknown/non-affine transforms also keep the native material.
         if (view.display?.displayId != Display.DEFAULT_DISPLAY || !prepareMatrix(view)) return
+        val now = SystemClock.uptimeMillis()
         if (!values.contentEquals(frameMatrix) || lastWidth != view.width || lastHeight != view.height) {
-            nativeMotionUntil = SystemClock.uptimeMillis() + 450L
+            // The texture contains the whole wallpaper viewport. Motion needs only a new
+            // mapping, followed by one compositor catch-up after the final native transform.
+            if (!liveWallpaper) staticRefreshAt = now + STATIC_SETTLE_MS
             values.copyInto(frameMatrix)
             lastWidth = view.width
             lastHeight = view.height
-            sourceDirty = true
+            sourceDirty = liveWallpaper || bitmap == null
             sourceUnavailable = false
             unavailableTries = 0
             view.invalidate() // follow a native transform, including RenderNode-only scaleX
         }
         val ownDraw = completionDraw
         completionDraw = false
-        val now = SystemClock.uptimeMillis()
         if (sourceUnavailable && !sourceDirty && !tickRequested) return
-        // Unrelated icon/clock draws do not invalidate a settled static wallpaper. Native
-        // transforms and wallpaper changes retain a short bounded compositor catch-up.
-        if (sourceDirty || tickRequested || !ownDraw && (liveWallpaper || now < nativeMotionUntil)) {
+        val staticDue = !liveWallpaper && staticRefreshAt != 0L && now >= staticRefreshAt
+        if (sourceDirty || tickRequested && (liveWallpaper || sourceUnavailable) ||
+            !ownDraw && liveWallpaper || staticDue) {
             if (!busy) {
                 if (now - lastRequest >= FRAME_MS) {
                     tickRequested = false
@@ -168,6 +170,8 @@ internal class DockGlassBackdrop(
             }
         }
         if (liveWallpaper && !busy && !sourceUnavailable) scheduleTick(view)
+        else if (!liveWallpaper && !busy && !sourceUnavailable && staticRefreshAt != 0L)
+            scheduleTick(view, (staticRefreshAt - now).coerceAtLeast(1L))
     }
 
     private fun prepareMatrix(view: View): Boolean {
@@ -216,6 +220,9 @@ internal class DockGlassBackdrop(
         val scale = minOf(1f, MAX_WIDTH.toFloat() / viewportWidth, MAX_HEIGHT.toFloat() / viewportHeight,
             sqrt((MAX_PIXELS - MAX_WIDTH - MAX_HEIGHT).toDouble() / (viewportWidth.toDouble() * viewportHeight)).toFloat())
         val requestEpoch = epoch
+        // Consume only the deadline this request actually reached. Motion arriving while
+        // the worker is busy installs a newer deadline which accept() must not erase.
+        if (!liveWallpaper && now >= staticRefreshAt) staticRefreshAt = 0L
         busy = true
         lastRequest = now
         val target = WeakReference(this)
@@ -310,6 +317,8 @@ internal class DockGlassBackdrop(
             owner.get()?.let { view ->
                 view.postInvalidateOnAnimation()
                 if (liveWallpaper) scheduleTick(view)
+                else if (staticRefreshAt != 0L)
+                    scheduleTick(view, (staticRefreshAt - SystemClock.uptimeMillis()).coerceAtLeast(1L))
             }
         } catch (error: Throwable) {
             frame.recycle()
@@ -328,6 +337,7 @@ internal class DockGlassBackdrop(
         busy = false
         sourceDirty = false
         sourceUnavailable = true
+        staticRefreshAt = 0L // recovery owns the same single callback and finite retry budget
         val delay = when (unavailableTries++) { 0 -> 64L; 1 -> 160L; 2 -> 400L; else -> return }
         owner.get()?.let { scheduleTick(it, delay) }
     }
@@ -449,6 +459,7 @@ internal class DockGlassBackdrop(
         released = true
         visible = false
         epoch++
+        staticRefreshAt = 0L
         owner.get()?.removeCallbacks(tick)
         scope.cancel()
         clearTexture()
@@ -457,6 +468,7 @@ internal class DockGlassBackdrop(
 
     companion object {
         private const val FRAME_MS = 34L
+        private const val STATIC_SETTLE_MS = 200L
         internal const val MAX_WIDTH = 1024
         internal const val MAX_HEIGHT = 1024
         internal const val MAX_PIXELS = 1024 * 384

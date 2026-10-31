@@ -271,8 +271,8 @@ class PreferenceBootstrap private constructor(
      * state is kept in sync.
      */
     private fun onPreferenceChanged(key: String?) {
-        if (key == null) return
-        doRefreshRemoteKey(key)
+        // A null key invalidates the whole snapshot (for example, SharedPreferences.clear()).
+        refreshRemoteKey(key)
     }
 
     /**

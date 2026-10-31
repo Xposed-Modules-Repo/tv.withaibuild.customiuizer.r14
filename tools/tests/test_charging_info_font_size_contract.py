@@ -195,7 +195,11 @@ class ChargingInfoFontSizeContractTest(unittest.TestCase):
         self.assertIn('"setNextIndication"', self.kt_text,
                       "ChargingInfoHook must hook setNextIndication")
         idx = self.kt_text.index('"setNextIndication"')
-        block = self.kt_text[idx:idx + 400]
+        binding = self.kt_text[idx:idx + 400]
+        self.assertIn("chargingInfoIndicationHook()", binding,
+                      "setNextIndication must install the tested callback factory")
+        factory_idx = self.kt_text.index("internal fun chargingInfoIndicationHook()")
+        block = self.kt_text[factory_idx:self.kt_text.index("\n    /**", factory_idx)]
         # Must use the native after callback, not a custom intercept state machine.
         self.assertIn("override fun after", block,
                       "setNextIndication hook must use override fun after")

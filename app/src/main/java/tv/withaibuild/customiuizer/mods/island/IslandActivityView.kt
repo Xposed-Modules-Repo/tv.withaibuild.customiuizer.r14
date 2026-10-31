@@ -156,6 +156,7 @@ internal class IslandActivityView(context: Context) : FrameLayout(context) {
     private var cameraDiameter = dp(16).toFloat()
     private var cameraHeight = cameraDiameter
     private var cameraAnchored = false
+    private var geometryDirty = true
     private var geometryWidth = 1
     private var geometryHeight = 1
     private var maximumWidth = 1f
@@ -169,13 +170,18 @@ internal class IslandActivityView(context: Context) : FrameLayout(context) {
     private var layerReveal = 1f
     private class Content(val label: String, val drawable: Drawable?, val media: Boolean,
         val waveform: Boolean, val avatar: Boolean, val status: Boolean, val expanded: Boolean, val photo: Boolean,
-        val clock: IslandLiveClock? = null, val clockLabel: String? = null) {
+        val clock: IslandLiveClock? = null, val clockLabel: String? = null, val clockKey: IslandLiveKey? = null) {
         fun sameCompactVisual(other: Content) = media && other.media && !expanded && !other.expanded &&
             drawable === other.drawable && waveform == other.waveform && avatar == other.avatar &&
             status == other.status && photo == other.photo
+        fun sameRunningClockVisual(other: Content) = !media && !other.media && clock != null && other.clock != null &&
+            clockKey != null && clockKey == other.clockKey &&
+            clock.pausedMillis == null && other.clock.pausedMillis == null && clock.countdown == other.clock.countdown &&
+            drawable === other.drawable && clockLabel == other.clockLabel && waveform == other.waveform &&
+            avatar == other.avatar && status == other.status && expanded == other.expanded && photo == other.photo
         fun matches(label: String, drawable: Drawable?, media: Boolean, waveform: Boolean,
-            avatar: Boolean, status: Boolean, expanded: Boolean, photo: Boolean, clock: IslandLiveClock?, detail: String?) = this.label == label && this.drawable === drawable &&
-            this.media == media && this.waveform == waveform && this.avatar == avatar && this.status == status && this.expanded == expanded && this.photo == photo && this.clock == clock && clockLabel == detail
+            avatar: Boolean, status: Boolean, expanded: Boolean, photo: Boolean, clock: IslandLiveClock?, detail: String?, clockKey: IslandLiveKey?) = this.label == label && this.drawable === drawable &&
+            this.media == media && this.waveform == waveform && this.avatar == avatar && this.status == status && this.expanded == expanded && this.photo == photo && this.clock == clock && clockLabel == detail && this.clockKey == clockKey
     }
     private var displayedContent: Content? = null
     private var pendingContent: Content? = null
@@ -209,6 +215,39 @@ internal class IslandActivityView(context: Context) : FrameLayout(context) {
     var expanded = false
     /** Target content owns capture; the old child may still be fading during a handoff. */
     val waveformRequested: Boolean get() = recording || isMedia && !expanded
+    val waveformSampling: Boolean get() = waveformRequested && wave.isShown && wave.visibility == VISIBLE &&
+        (wave.outputVisible || motion != null && !leaving)
+    var onWaveformVisibilityChanged: (() -> Unit)? = null
+    private val waveBounds = android.graphics.Rect()
+    private val waveClip = android.graphics.Rect()
+    private val waveVisibleBounds = android.graphics.RectF()
+    private val waveClipBounds = android.graphics.RectF()
+    private val waveClipMatrix = android.graphics.Matrix()
+    private var samplingWave = false
+
+    /** Reuses presentation's pre-draw; alpha/clip changes do not emit layout events. */
+    fun refreshWaveformVisibility() {
+        var visible = alpha > 0f && wave.alpha > 0f && wave.isShown && wave.windowVisibility == VISIBLE && wave.width > 0 && wave.height > 0 &&
+            wave.getGlobalVisibleRect(waveBounds) && !waveBounds.isEmpty
+        waveVisibleBounds.set(waveBounds)
+        var parent: View? = wave
+        while (visible && parent != null) {
+            if (parent.alpha <= 0f) { visible = false; break }
+            // getGlobalVisibleRect includes layout clipping, but not explicit clipBounds.
+            if (parent.getClipBounds(waveClip)) {
+                waveClipMatrix.reset(); parent.transformMatrixToGlobal(waveClipMatrix)
+                waveClipBounds.set(waveClip); waveClipMatrix.mapRect(waveClipBounds)
+                visible = waveVisibleBounds.intersect(waveClipBounds)
+            }
+            parent = parent.parent as? View
+        }
+        wave.outputVisible = visible
+        val sampling = waveformSampling
+        if (samplingWave != sampling) {
+            samplingWave = sampling
+            onWaveformVisibilityChanged?.invoke()
+        }
+    }
     var waveformGain: Int
         get() = wave.gainPercent
         set(value) { wave.gainPercent = value }
@@ -299,9 +338,10 @@ internal class IslandActivityView(context: Context) : FrameLayout(context) {
         media: Boolean, waveform: Boolean, actions: Long, showControls: Boolean,
         playbackState: Int = PlaybackState.STATE_NONE, avatar: Boolean = false, status: Boolean = false,
         expanded: Boolean = false, loading: Boolean = false, photo: Boolean = media || avatar,
-        clock: IslandLiveClock? = null, recording: Boolean = false): Boolean {
+        clock: IslandLiveClock? = null, recording: Boolean = false, clockKey: IslandLiveKey? = null): Boolean {
         val recordingChanged = this.recording != recording
         this.recording = recording
+        if (recordingChanged) geometryDirty = true
         if (recordingChanged && recording) wave.spectrum(quietRecording)
         if (isMedia != media) cancelInputs()
         isMedia = media
@@ -316,19 +356,38 @@ internal class IslandActivityView(context: Context) : FrameLayout(context) {
         // handoff is deferred, with one latest value and the shell's existing finite clock.
         val caption = label
         val previous = pendingContent ?: displayedContent
-        val changed = recordingChanged || previous?.matches(caption, drawable, media, waveform, avatar, status, expanded, photo, clock, detail) != true
+        val changed = recordingChanged || previous?.matches(caption, drawable, media, waveform, avatar, status, expanded, photo, clock, detail, clockKey) != true
         var visualChanged = changed
         if (changed && !recordingChanged && !albumFlip && pendingContent != null &&
-            displayedContent?.matches(caption, drawable, media, waveform, avatar, status, expanded, photo, clock, detail) == true) {
+            displayedContent?.matches(caption, drawable, media, waveform, avatar, status, expanded, photo, clock, detail, clockKey) == true) {
             // A -> B -> A before B becomes visible: keep A's prepared views and
             // recover from the current opacity instead of fading out/rebinding A.
             pendingContent = null; contentFadeRemaining = 0L; albumFlip = false
         } else if (changed) {
-            val content = Content(caption, drawable, media, waveform, avatar, status, expanded, photo, clock, detail)
-            if (previous != null && content.sameCompactVisual(previous)) {
+            val content = Content(caption, drawable, media, waveform, avatar, status, expanded, photo, clock, detail, clockKey)
+            if (previous != null && (content.sameCompactVisual(previous) || content.sameRunningClockVisual(previous))) {
                 // Compact media has no visible label. Metadata-only updates, including
                 // mirrored Binder copies of the same cover, must not fade its artwork/wave.
-                if (pendingContent != null) pendingContent = content else applyContent(content)
+                // A running clock's corrected base is also an in-place update:
+                // preserve its entry opacity and finite clock instead of fading
+                // the whole layer out when a second native snapshot arrives.
+                if (pendingContent != null) pendingContent = content
+                else if (content.sameRunningClockVisual(previous)) {
+                    // Native ticks own the text. Refresh only a genuinely corrected base;
+                    // do not stop/start the clock or rebind artwork/layout for snapshots.
+                    displayedContent = content
+                    if (title.base != content.clock!!.base) title.base = content.clock.base
+                    val now = SystemClock.elapsedRealtime()
+                    if (content.clock.countdown && previous.clock!!.base <= now && content.clock.base > now) title.start()
+                    val width = maxOf(title.paint.measureText(content.label),
+                        if (subtitle.visibility == VISIBLE) subtitle.paint.measureText(subtitle.text.toString()) else 0f)
+                    if (labelWidth != width) { labelWidth = width; updateContour() }
+                } else {
+                    displayedContent = content
+                    // Keep prepared hidden detail current for later expansion/accessibility.
+                    val detailLabel = content.clockLabel?.trim()?.takeIf { it.isNotEmpty() && it != content.label }.orEmpty()
+                    if (!TextUtils.equals(subtitle.text, detailLabel)) subtitle.text = detailLabel
+                }
                 visualChanged = false
             } else if (isAttachedToWindow && !leaving && !simplified && ValueAnimator.areAnimatorsEnabled() &&
                 displayedContent != null && alpha > .01f && layerReveal > .01f) {
@@ -361,6 +420,7 @@ internal class IslandActivityView(context: Context) : FrameLayout(context) {
     }
 
     private fun applyContent(content: Content) {
+        geometryDirty = true
         title.stop(); title.format = null
         displayedContent = content
         avatar = content.avatar
@@ -473,6 +533,14 @@ internal class IslandActivityView(context: Context) : FrameLayout(context) {
 
     fun geometry(width: Int, height: Int, cameraGap: Int, maximumWidth: Int = width, alignment: Int = 1,
         cameraOffset: Float = 0f) {
+        if (!geometryDirty && geometryWidth == width && geometryHeight == height && this.cameraGap == cameraGap &&
+            this.maximumWidth == maximumWidth.coerceAtLeast(width).toFloat() && this.alignment == alignment &&
+            this.cameraOffset == cameraOffset) {
+            // Layout is unchanged; a caller may still have advanced the current transform.
+            updateContour()
+            return
+        }
+        geometryDirty = false
         if (this.alignment != alignment) cancelInputs()
         this.alignment = alignment
         pivotX = horizontalPivot(width)
@@ -540,6 +608,7 @@ internal class IslandActivityView(context: Context) : FrameLayout(context) {
         .coerceAtMost(geometryWidth.toFloat())
 
     fun refreshConfiguration() {
+        geometryDirty = true
         slop = ViewConfiguration.get(context).scaledTouchSlop
         baseTextSize = -1f
         measuredToast = null
@@ -554,6 +623,7 @@ internal class IslandActivityView(context: Context) : FrameLayout(context) {
         val size = (13f + (height - 40) * .1f) * resources.displayMetrics.scaledDensity
         if (abs(baseTextSize - size) <= .001f) return
         baseTextSize = size
+        geometryDirty = true
         iconSize = iconSizeForHeight(dp(height))
         if (statusPaint.textSize != size) { statusPaint.textSize = size; statusFit = null }
         if (displayedContent == null) title.setTextSize(TypedValue.COMPLEX_UNIT_PX, size)
@@ -903,7 +973,9 @@ internal class IslandActivityView(context: Context) : FrameLayout(context) {
         val nativeDriven = returning && nativeArrival && returnProgress != null
         val milliseconds = if (nativeDriven) duration + if (absorption) IslandMotion.REBOUND else 0L
             else (duration * motionScale.coerceIn(.65f, 1f)).toLong()
-        val seconds = (if (nativeDriven && absorption) IslandMotion.ABSORPTION_BODY
+        val initialNativeProgress = if (nativeDriven) returnProgress?.read()?.takeIf { it >= 0f }?.coerceIn(0f, 1f) ?: 1f else 1f
+        val seconds = (if (nativeDriven && initialNativeProgress >= .9f) IslandMotion.CONTENT_ARRIVAL
+            else if (nativeDriven && absorption) IslandMotion.ABSORPTION_BODY
             else if (nativeDriven) IslandMotion.returnDuration(returnStrength, false) else milliseconds) / 1000f
         if (carry && !rigid) breadth.addVelocity(breadthExtraVelocity)
         breadthExtraVelocity = 0f
@@ -912,7 +984,6 @@ internal class IslandActivityView(context: Context) : FrameLayout(context) {
         // Side placements cap their target at its new width. Keep the already visible
         // breadth admissible while shrinking instead of clamping it on the first frame.
         val maximumBreadth = maxOf(maximumWidth, geometryWidth * scaleX)
-        val initialNativeProgress = if (nativeDriven) returnProgress?.read()?.takeIf { it >= 0f }?.coerceIn(0f, 1f) ?: 1f else 1f
         val absorptionResponse = if (nativeDriven && absorption) IslandMotion.AbsorptionResponse(
             geometryWidth * scaleX, geometryWidth * x, minOf(compactWidth(), geometryWidth * scaleX), maximumBreadth,
             geometryWidth * catchWeight * (.99f + .02f * returnStrength), breadth.velocity, seconds,
@@ -966,18 +1037,22 @@ internal class IslandActivityView(context: Context) : FrameLayout(context) {
                     } else {
                         val springBreadth = breadth.sample(time, compactWidth(), maximumBreadth)
                         val weight = catchWeight * if (returning && nativeArrival) .99f + .02f * returnStrength else 1f
-                        val catchValue = IslandMotion.mediaReturnCatch(progress, nativeArrival)
-                        val effectiveWeight = if (nativeDriven) minOf(weight,
+                        // Page speed confirms arrival; it must not compress or skip
+                        // the default shell's recoil on this existing finite clock.
+                        val catchProgress = if (nativeDriven) (time / seconds).coerceIn(0f, 1f) else progress
+                        val catchValue = if (nativeDriven && initialNativeProgress >= .9f) 0f
+                            else IslandMotion.mediaReturnCatch(catchProgress, nativeArrival)
+                        val effectiveWeight = if (catchValue < 0f) weight else if (nativeDriven) minOf(weight,
                             ((maximumBreadth - geometryWidth) / geometryWidth.coerceAtLeast(1)).coerceAtLeast(0f))
-                            else if (catchValue >= 0f)
-                                IslandMotion.boundedCatchWeight(geometryWidth.toFloat(), maximumBreadth, weight, nativeArrival) else weight
+                            else IslandMotion.boundedCatchWeight(geometryWidth.toFloat(), maximumBreadth, weight, nativeArrival)
                         val width = springBreadth + geometryWidth * effectiveWeight * catchValue
-                        val catchPixels = geometryWidth * effectiveWeight * catchValue
-                        breadthExtraVelocity = if (width > maximumBreadth) -breadth.velocity else if (nativeDriven)
+                        val boundedWidth = width.coerceIn(compactWidth(), maximumBreadth)
+                        val catchPixels = boundedWidth - springBreadth
+                        breadthExtraVelocity = if (width != boundedWidth) -breadth.velocity else if (nativeDriven)
                             if (time > lastCatchTime) (catchPixels - lastCatch) / (time - lastCatchTime) else 0f
                             else geometryWidth * effectiveWeight * IslandMotion.catchDerivative(progress, nativeArrival) / seconds
                         lastCatch = catchPixels; lastCatchTime = time
-                        width
+                        boundedWidth
                     }
                     scaleX = minOf(maximumBreadth, physicalBreadth) / geometryWidth.coerceAtLeast(1)
                     if (returning && mediaReturnProgress < 1f) {
@@ -1012,7 +1087,8 @@ internal class IslandActivityView(context: Context) : FrameLayout(context) {
                     } else { textAt = null; textReveal = 0f }
                     updateContour()
                     if (nativeDriven && progress >= 1f && pendingContent == null && layerReveal >= 1f &&
-                        (nativeProgress == null || nativeProgress < 0f || absorptionResponse?.settled(time) != false)) {
+                        (nativeProgress == null || nativeProgress < 0f ||
+                            (absorptionResponse?.settled(time) ?: (time >= seconds)))) {
                         // end() synchronously emits another frame on A14. Retire this
                         // clock's update listener before entering its terminal callbacks.
                         animation.removeUpdateListener(this)
@@ -1098,7 +1174,20 @@ internal class IslandActivityView(context: Context) : FrameLayout(context) {
         }
         val waveRoom = if (recording) iconRoom else if (cameraGap > 0) IslandContentLayout.trailing(geometryWidth * sx, cameraGap, cameraOffset, translationX) >= edge + iconSize else iconRoom
         wave.alpha = if (waveRoom && geometryHeight * sy >= waveHeight) reveal else 0f
-        if (shape.resize(geometryWidth, geometryHeight, sx, sy)) invalidateOutline()
+        val contact = if (nativeArrival && !simplified && motionScale > 0f && returnProgress != null) {
+            val requested = IslandMotion.returnFusion(mediaReturnProgress)
+            if (cameraGap > 0) {
+                // Removing a lower edge may use only half the symmetric camera
+                // height surplus. Keep the existing mask reservation intact.
+                val height = geometryHeight * sy
+                val room = ((height - cameraMinimumHeight()) * .5f).coerceAtLeast(0f)
+                minOf(requested, room / (height * IslandCapsuleGeometry.CONTACT_DEPTH_RATIO).coerceAtLeast(1f))
+            } else requested
+        } else 0f
+        if (shape.resize(geometryWidth, geometryHeight, sx, sy, contact)) invalidateOutline()
+        // Stop immediately when this frame removes the lane; pre-draw resolves actual
+        // clipping and activation once, after layout and all property updates settle.
+        if (wave.alpha <= 0f || wave.visibility != VISIBLE) wave.outputVisible = false
     }
 
     fun cancelNativeArrival() { if (nativeArrival) cancelMediaReturn() }
@@ -1140,6 +1229,7 @@ internal class IslandActivityView(context: Context) : FrameLayout(context) {
     override fun onDetachedFromWindow() {
         title.stop()
         disposed = true
+        samplingWave = false
         pendingContent = null; displayedContent = null; contentFadeRemaining = 0L
         cancelInputs()
         motion?.cancel(); motion = null
@@ -1198,12 +1288,15 @@ internal class IslandWaveView(context: Context) : View(context) {
     private var aggregatedVisible = false
     private var scheduled = false
     private var phase = 0f
+    private var phaseAt = 0L
     private val energies = FloatArray(5)
     private val targets = FloatArray(5)
     private val measured = FloatArray(5)
     private var settling = false
     private var lastFrame = 0L
     private var real = false
+    var outputVisible = false
+        set(value) { if (field != value) { field = value; updateRendering(); if (value) invalidate() } }
     var gainPercent = 200
         set(value) {
             val next = value.coerceIn(100, 800)
@@ -1214,6 +1307,7 @@ internal class IslandWaveView(context: Context) : View(context) {
     fun spectrum(values: FloatArray?) {
         if (values == null && !real) return
         val changedMode = real != (values != null)
+        if (changedMode) phaseAt = android.os.SystemClock.uptimeMillis()
         real = values != null
         for (index in 0..4) measured[index] = values?.get(index) ?: 0f
         applyLevels(changedMode)
@@ -1231,12 +1325,16 @@ internal class IslandWaveView(context: Context) : View(context) {
             if (abs(targets[index] - energies[index]) > .006f) settling = true
         }
         updateRendering()
-        if (changedMode) invalidate()
+        if (changedMode && outputVisible) invalidate()
     }
     var playing = false
-        set(value) { if (field != value) { field = value; updateRendering(); invalidate() } }
+        set(value) {
+            if (field == value) return
+            field = value; phaseAt = android.os.SystemClock.uptimeMillis()
+            updateRendering(); if (outputVisible) invalidate()
+        }
     var holding = false
-        set(value) { if (field != value) { field = value; invalidate() } }
+        set(value) { if (field != value) { field = value; if (outputVisible) invalidate() } }
     private val frame = object : Runnable {
         override fun run() = ModuleHelper.guarded {
             scheduled = false
@@ -1252,13 +1350,16 @@ internal class IslandWaveView(context: Context) : View(context) {
                     energies[index] = if (abs(difference) < .006f) targets[index] else energies[index] + difference * blend
                     if (abs(targets[index] - energies[index]) > .006f) settling = true
                 }
-            } else phase = (phase + dt * 4.35f) % 6.283185f
+            } else {
+                phase = (phase + (now - phaseAt) / 1000f * 4.35f) % 6.283185f
+                phaseAt = now
+            }
             invalidate()
             schedule()
         }
     }
 
-    private fun shouldRender() = (!real || settling) && playing && aggregatedVisible && isAttachedToWindow &&
+    private fun shouldRender() = outputVisible && alpha > 0f && (!real || settling) && playing && aggregatedVisible && isAttachedToWindow &&
         ValueAnimator.areAnimatorsEnabled()
     private fun schedule() {
         if (!shouldRender()) { lastFrame = 0L; return }
@@ -1274,6 +1375,7 @@ internal class IslandWaveView(context: Context) : View(context) {
     }
     override fun onAttachedToWindow() { super.onAttachedToWindow(); updateRendering() }
     override fun onDetachedFromWindow() {
+        outputVisible = false
         removeCallbacks(frame)
         scheduled = false
         lastFrame = 0L

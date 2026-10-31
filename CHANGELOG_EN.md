@@ -6,6 +6,24 @@ Changes for maintained releases. Valid changes from the retired r14.25.1 and r14
 
 ## Unreleased
 
+## r14.25.9 — 2026-10-29
+
+versionCode 258. Changes since r14.25.7:
+
+### User changes
+
+- Add “System → Advanced settings → VPN auto switching”: select multiple trigger apps and one VPN client or saved system IKEv2 profile. Automatic disconnect has its own switch and a 0–30 second delay, defaulting to 3 seconds. Preserve existing, manual, always-on and lockdown connections. Restart the device after first enabling; later rule changes apply live. Actual connection support depends on the chosen client.
+- Correct lock-screen artwork centering, content/options invalidation, stale screen-off requests, reference release and publication-size checks. Static Dock wallpaper reuses its image during movement and refreshes once after settling.
+- Validate the complete native keypad before scrambling lock-screen or app-lock PIN keys. Preserve native construction/layout failures, original digit clicks, fixed controls and authentication policy.
+- Stabilize Island activity handoffs, repeated taps and native returns; reuse valid content and drawing preparation to avoid duplicate submissions.
+- Prevent an immediate clock correction from fading the entire live-activity layer out again during Island entry. Running stopwatches, timers and similar clocks retain their entry progress and prepared icon; pauses and source/session changes keep their existing handoff.
+- Fix folder-icon blur installation on POCO Launcher 5.39.40.11641 / 11739, whose native interfaces differ from the older implementation. Connect the native background-sampling container for verified 4.39.14.7603 and the above 5.39 builds. Use the native 1×1 / 2×2 folder policy and a darker black blend layer with native opacity for closed folder icons. Preserve system-blur and default-folder restrictions and native interactions; the exact 7601 build and final appearance still require device testing.
+
+### Engineering notes
+
+- Integrate VPN, ROM retrieval tooling and cumulative refinement branches. Offline source/ROM lookup remains explicit and bounded, with A14 and reference-only samples separated; it is not part of module runtime. Branch integration does not establish public release or device-performance acceptance.
+- Add separate POCO ABI routing, rollback, native state-publication, size-specific theme and material-argument regressions, with bounded gate and native-render-request diagnostics. Handle inlining only for verified native callers during installation; open-folder desktop blur keeps its native behavior.
+
 ## r14.25.7 — 2026-10-28
 
 versionCode 256. Changes since r14.25.5:
@@ -41,7 +59,7 @@ versionCode 256. Changes since r14.25.5:
 
 - Native window events publish bounded current snapshots. Audio, notification and animation resources retain explicit owners and release paths; no new recording permission, polling service or animation library.
 - Power saver stops Island capture and optional motion. Static Dock capture stops after its bounded native-animation catch-up period.
-- r14.25.7 / 256 is a release candidate. Earlier locally signed trials do not identify the final candidate binary. Actual Hook hits, animation recordings, POCO appearance and sustained performance still require acceptance on the same final APK.
+- r14.25.7 / 256 is released; the APK and build metadata in both Releases identify the official binary. Earlier local trials retain their own identities. Unverified landscape, POCO appearance, other-ROM and sustained-performance coverage remains documented separately.
 
 ## r14.25.5 — 2026-10-25
 

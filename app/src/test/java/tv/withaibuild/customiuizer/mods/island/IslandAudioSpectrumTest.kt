@@ -25,6 +25,25 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class IslandAudioSpectrumTest {
+    @Test fun hiddenLeaseKeepsTheMeasuredFrameAndRejectsLateFftAcrossResume() {
+        val selected = player("occlusion")
+        source.start(selected, Process.myUserHandle()); drain()
+        backend.listener!!(ByteArray(512) { 80 }, 48_000_000); drain()
+        val old = backend.listener!!
+        val count = frames.size
+        val previous = frames.last()!!.copyOf()
+        repeat(120) { source.pauseKeepingFrame() }
+        old(ByteArray(512) { 127 }, 48_000_000); drain()
+        assertEquals(count, frames.size); assertEquals(0, backend.subscriptions)
+        source.start(selected, Process.myUserHandle()); drain()
+        assertEquals(count, frames.size)
+        assertArrayEquals(previous, frames.last(), 0f)
+        old(ByteArray(512) { 127 }, 48_000_000); drain()
+        assertEquals(count, frames.size)
+        backend.listener!!(ByteArray(512), 48_000_000); drain()
+        assertArrayEquals(FloatArray(5), frames.last(), 0f)
+        assertEquals(2, backend.opened.size); assertEquals(1, backend.subscriptions)
+    }
     @Test fun multipleTracksKeepTheCurrentSelectionAcrossOrderChangesAndChooseAgainOnlyWhenItStops() {
         fun track(session: Int, uid: Int = 10001) = IslandAudioSpectrum.Track(uid, session, true, AudioAttributes.USAGE_MEDIA)
         assertEquals(42, IslandAudioSpectrum.sessionFor(10001, listOf(track(99), track(42))))

@@ -66,6 +66,14 @@ internal object IslandMotion {
         val change = maxOf(dw / maxOf(width, fromWidth, 1f), dh / maxOf(height, fromHeight, 1f))
         return ((change - .08f) / .42f).coerceIn(0f, 1f) * .03f
     }
+    /** A bounded contact cue, shared by both native return styles and their existing clock. */
+    fun returnFusion(progress: Float): Float {
+        if (!progress.isFinite() || progress <= .12f || progress >= .88f) return 0f
+        val t = (progress - .12f) / .76f
+        val bell = 4f * t * (1f - t)
+        return bell * bell
+    }
+
     /** The native window arrives while the shell's one finite clock makes a small catch. */
     fun mediaReturnCatch(progress: Float, nativeWindow: Boolean = true): Float {
         if (!nativeWindow) {

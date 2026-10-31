@@ -3,12 +3,14 @@
 
 No filters means summary only. Filtered queries return at most 10 projected
 records by default; --offset/--limit page results and --full includes evidence.
-This tool reads existing files only: no index, cache, generation or ROM access.
+Existing data queries only read their canonical files. `context` incrementally
+reuses source facts in the existing external ROM Catalog; DEX access is explicit.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import sqlite3
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -51,6 +53,19 @@ def canonical_key(value: str) -> str:
 
 
 def query(args: argparse.Namespace) -> dict[str, Any]:
+    if args.dataset == "context":
+        if args.confidence:
+            raise ValueError("context keeps individual evidence levels; --confidence applies to semantics")
+        try:
+            from .agent_context import query as context_query
+            from .rom_catalog import CatalogError
+        except ImportError:
+            from agent_context import query as context_query
+            from rom_catalog import CatalogError
+        try:
+            return context_query(args)
+        except CatalogError as error:
+            raise ValueError(str(error)) from error
     spec = DATASETS[args.dataset]
     path = args.repo_root / spec["path"]
     data = json.loads(path.read_text(encoding="utf-8"))
@@ -116,8 +131,16 @@ def query(args: argparse.Namespace) -> dict[str, Any]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("dataset", choices=DATASETS)
+    parser.add_argument("dataset", choices=(*DATASETS, "context"))
     parser.add_argument("--repo-root", type=Path, default=ROOT)
+    parser.add_argument("--index-dir", type=Path, help="context: reuse the external ROM Catalog SQLite")
+    parser.add_argument("--device", help="context: explicit metadata device (e.g. munch); default fuxi CN")
+    parser.add_argument("--region", help="context: explicit metadata region (CN/TW/ID)")
+    parser.add_argument("--refresh", action="store_true", help="context: explicitly rebuild source facts; never scans ROM")
+    dex = parser.add_mutually_exclusive_group()
+    dex.add_argument("--dex-class", help="context: explicitly fetch this exact DEX class after selecting one ROM")
+    dex.add_argument("--dex-method", help="context: explicitly fetch this exact DEX method after selecting one ROM")
+    parser.add_argument("--dex-calls", choices=("callers", "callees"), help="context: add bounded direct invoke evidence for --dex-method")
     parser.add_argument("--key", help="exact storage or runtime preference key")
     parser.add_argument("--feature", help="exact semantics featureId or matrix featureIdName/featureIdInt")
     parser.add_argument("--target", help="exact targetPackage (semantics) or target (matrix/rom)")
@@ -129,15 +152,26 @@ def main(argv: list[str] | None = None) -> int:
     projection.add_argument("--fields", help="comma-separated original field names")
     projection.add_argument("--full", action="store_true", help="include all fields of the bounded result page")
     parser.add_argument("--offset", type=int, default=0)
-    parser.add_argument("--limit", type=int, default=10, help="page size, 1..100 (default: 10)")
+    parser.add_argument("--limit", type=int, help="page size, 1..100 (default: 10; context: 3)")
     args = parser.parse_args(argv)
+    if args.dex_calls and not args.dex_method:
+        parser.error("--dex-calls requires --dex-method")
+    if args.dataset != "context" and any((args.index_dir, args.device, args.region, args.refresh, args.dex_class, args.dex_method, args.dex_calls)):
+        parser.error("--index-dir/--device/--region/--dex-class/--dex-method apply only to context")
+    if args.dataset == "context":
+        try:
+            from .rom_catalog import default_index
+        except ImportError:
+            from rom_catalog import default_index
+        args.index_dir = args.index_dir or default_index()
+    args.limit = args.limit if args.limit is not None else (3 if args.dataset == "context" else 10)
     if args.offset < 0 or not 1 <= args.limit <= 100:
         parser.error("--offset must be non-negative and --limit must be 1..100")
     try:
         result = query(args)
-    except (OSError, ValueError, TypeError, KeyError) as error:
+    except (OSError, ValueError, TypeError, KeyError, sqlite3.Error) as error:
         parser.exit(2, f"query: {error}\n")
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    print(json.dumps(result, ensure_ascii=False, separators=(",", ":")) if args.dataset == "context" else json.dumps(result, ensure_ascii=False, indent=2))
     return 0
 
 

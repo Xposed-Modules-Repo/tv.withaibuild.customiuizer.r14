@@ -52,6 +52,7 @@ object GenericAppInstaller {
                         isNoOverscroll,
                         controlMedia,
                         pocoFolderIconBlur,
+                        param.getArg(0) as? Context,
                     )) {
                         registry.register(feature)
                     }

@@ -1,5 +1,6 @@
 package tv.withaibuild.customiuizer.mods
 
+import android.content.Context
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.view.View
@@ -11,12 +12,31 @@ import tv.withaibuild.customiuizer.mods.utils.HookerClassHelper.MethodHook
 import tv.withaibuild.customiuizer.mods.utils.ModuleHelper
 import tv.withaibuild.customiuizer.mods.utils.XposedHelpers
 import java.lang.reflect.Method
+import java.lang.reflect.Executable
 import java.lang.reflect.Modifier
 
 /** Opt in to the ROM's existing folder-only blur path. No launcher-identity spoof,
  * global property change, bitmap sampling, extra material or animation owner. */
 internal object LauncherFolderIconBlur {
-    fun install(loader: ClassLoader) {
+    fun installPoco(loader: ClassLoader, version: String?, context: Context) {
+        folderIconBlurLog("requested POCO version=$version")
+        try {
+            val blur = XposedHelpers.findClass("com.miui.home.launcher.common.BlurUtilities", loader)
+            if (hasPocoFolderBlurGate(blur)) {
+                PocoFolderIconBlur.install(loader, context)
+            } else {
+                install(loader, context)
+                folderIconBlurLog("installed profile=legacy-folder-scope process=POCO")
+            }
+            folderIconBlurLog("POCO version=$version")
+        } catch (error: Throwable) {
+            FatalErrors.unwrapAndRethrowIfFatal(error)
+            folderIconBlurLog("install-failed ${error.javaClass.name}: ${error.message}")
+            throw error
+        }
+    }
+
+    fun install(loader: ClassLoader, pocoContext: Context? = null) {
         val blur = XposedHelpers.findClass("com.miui.home.launcher.common.BlurUtilities", loader)
         val device = XposedHelpers.findClass("com.miui.home.launcher.DeviceConfig", loader)
         val folder = XposedHelpers.findClass("com.miui.home.launcher.FolderIcon", loader)
@@ -52,10 +72,16 @@ internal object LauncherFolderIconBlur {
             require(entry.returnType == returns[index] && Modifier.isStatic(entry.modifiers) ==
                 (index == 0 || index == 2 || (index == 5 && entry.declaringClass == small)))
         }
-        installFolderIconBlurHooks(gate, entries) {
+        val allowed = {
             // Keep hardware, system blur and theme restrictions. Only the native
             // isMiuiLauncher product-name restriction is omitted inside folder work.
             supported.getBoolean(null) && enabled.getBoolean(null) && defaultIcon.invoke(null) == true
+        }
+        val container = pocoContext?.let { preparePocoFolderBlurContainer(loader, it, false, allowed) }
+        val extras = container?.let { it.hooks() + (it.publish to it.controller.publicationHook()) }.orEmpty()
+        val deoptimize = if (container == null) emptyList() else entries + container.publicationCaller
+        installFolderIconBlurHooks(gate, entries, extras, deoptimize) {
+            (container?.controller?.usable != false) && allowed()
         }
     }
 }
@@ -82,12 +108,18 @@ internal class FolderIconBlurScope {
 
 /** Enable the gate last, after every native preparation/draw entry is scoped. A
  * partial installation must never hide the original background without its blur. */
-internal fun installFolderIconBlurHooks(gate: Method, entries: List<Method>, allowed: () -> Boolean) {
+internal fun installFolderIconBlurHooks(gate: Method, entries: List<Method>,
+    extraHooks: List<Pair<Method, MethodHook>> = emptyList(), deoptimize: List<Executable> = emptyList(),
+    allowed: () -> Boolean) {
     val scope = FolderIconBlurScope()
-    val hooks = ArrayList<CustomMethodUnhooker>(entries.size + 1)
+    val hooks = ArrayList<CustomMethodUnhooker>(entries.size + extraHooks.size + 1)
     var installed = false
     var failure: Throwable? = null
     try {
+        for (caller in deoptimize) check(checkNotNull(XposedHelpers.moduleInst).deoptimize(caller)) {
+            "Cannot deoptimize legacy folder blur caller: $caller"
+        }
+        for ((method, hook) in extraHooks) hooks.add(checkNotNull(ModuleHelper.hookMethod(method, hook)))
         val entryHook = object : MethodHook() {
             override fun intercept(chain: XposedInterface.Chain): Any? {
                 scope.enter()

@@ -36,11 +36,13 @@
 | 任务 | 权威入口 |
 | --- | --- |
 | 功能入口 / 文档治理 | [功能结构](docs/FEATURE_MAP_SIMPLE.md) / [设置键](docs/FEATURE_MAP.md) / [文档规范](docs/DOCS_STYLE.md) |
+| 需求 / 设置键 / Hook 反查 | 先用 `python tools/query_aux_data.py context --key <键>` 或 `--contains <名称/符号>` 获取源码、Owner、进程和 ROM 摘要；`--full` / `--fields` 再取所需证据，见 [检索关联](docs/TOOLS.md#辅助数据按需查询)。已知精确路径直接查源码，不重复初始化 |
 | 环境、生成与构建 | [开发与构建](docs/DEVELOPMENT.md) |
 | 分级、必要检查、复用与停止条件 | [测试与验证](docs/TESTING.md#执行分级) |
 | 大型辅助 JSON / 机读数据 | [摘要、筛选与分页](docs/TOOLS.md#辅助数据按需查询)，先查询再按需读原记录 |
 | 路由、API 与所有权 | [架构](ARCHITECTURE.md) |
 | 平台与 ROM 边界 | [兼容矩阵](COMPATIBILITY.md) |
-| ROM 目标 / 最终 DEX 需要取证时 | [DexSQL](docs/rom-intelligence/DEXSQL.md)，不因读取或普通文档任务启动 |
+| ROM 目标 / 最终 DEX 需要取证时 | 已确认的 Catalog 状态直接复用，再用 `locate / search`，见 [离线检索](docs/rom-intelligence/DEXSQL.md#离线-rom-知识库)；只在来源变更或缓存缺失时显式 `update / prepare`，不在 Agent 启动时扫描。默认仅 A14；HyperOS 3 / dada 为 `REFERENCE_ONLY`，只准显式动画 / 视觉 / 交互研究，必须重新映射并验证 A14，禁止作为生产签名 / API / 资源合同。最终 APK / Smali 走官方 DexSQL |
 | 测量与资源预算 | [优化门禁](docs/OPTIMIZATION_GATES.md) |
 | 安全实施 / 只读独立审查 | [.agents/skills](.agents/skills) 中的两个 SKILL.md |
+| 原生界面、动效、手势与窗口几何 | [A14 原生界面工艺](.agents/skills/a14-native-craft/SKILL.md) |
