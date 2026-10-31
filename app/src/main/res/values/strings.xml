@@ -831,6 +831,8 @@
     <string name="request_bt">Turn on Bluetooth first</string>
     <string name="request_wifi">Turn on Wi-Fi first</string>
     <string name="request_location">Cannot scan without Location access</string>
+    <string name="wifi_refresh">Refresh networks</string>
+    <string name="wifi_scan_unavailable">Scan unavailable. Showing cached networks; try again later.</string>
     <string name="force_closed">Force closed %s</string>
     <string name="credentials_ok">Credentials are already unlocked</string>
     <string name="credentials_unlock">Unlock credentials</string>
@@ -1339,4 +1341,5 @@
     <string name="a14_move_up">Move up</string>
     <string name="a14_move_down">Move down</string>
     <string name="a14_reorder_item">Reorder item</string>
+    <string name="screenshot_directory_invalid">Choose an available folder on local storage</string>
 </resources>
