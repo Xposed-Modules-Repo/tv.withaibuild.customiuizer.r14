@@ -33,6 +33,8 @@
 
 r14.26.5 整合此前 Compose 与 API 102 改进，并调整文本运动、选项可读性及页面按压反馈，移除 Dock 轻量玻璃，见[更新记录](CHANGELOG.md)。完整 CI、正式签名与双仓发布已通过；Develop 实机回归已通过，后续正式包安装复验按本轮范围不再执行，r14.26.3 有效变化已并入本版，旧独立发行已撤下。验证边界见[当前精修状态](docs/maintenance/A14_REFINEMENT_ROADMAP.md)。
 
+Git 历史已匿名整合；既有签名 APK 与原始构建 metadata 保持不变，来源关系见[发行说明](docs/RELEASE.md#历史匿名化与已签名版本)。
+
 ## 支持与许可
 
 可以通过下方赞赏码或[在线捐赠](https://paypal.me/Jinjitv)支持后续开发与维护。
