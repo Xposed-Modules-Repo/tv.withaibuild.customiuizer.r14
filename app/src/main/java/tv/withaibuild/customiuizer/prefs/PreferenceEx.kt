@@ -44,7 +44,11 @@ open class PreferenceEx(context: Context, attrs: AttributeSet?) : Preference(con
         val valSummary = finalView.findViewById<TextView>(android.R.id.hint)
         val res: Resources = context.resources
 
-        summary?.visibility = if (customSummary != null || countAsSummary || summary.text.isNullOrEmpty()) View.GONE else View.VISIBLE
+        // AndroidX can leave the previous row's text on a hidden recycled view.
+        // Bind from this preference, including clearing an absent summary.
+        val currentSummary = this.summary
+        summary?.text = currentSummary
+        summary?.visibility = if (customSummary != null || countAsSummary || currentSummary.isNullOrEmpty()) View.GONE else View.VISIBLE
         valSummary?.visibility = if (customSummary != null || countAsSummary) View.VISIBLE else View.GONE
         if (customSummary != null || countAsSummary) {
             val secondary = res.getColor(R.color.preference_secondary_text, context.theme)
@@ -63,7 +67,7 @@ open class PreferenceEx(context: Context, attrs: AttributeSet?) : Preference(con
         if (warning) {
             title?.setTextColor(Helpers.markColor)
         }
-        title?.text = Helpers.appendStatusMarker(title?.text, unsupported, dynamic)
+        Helpers.bindPreferenceTitle(title, this.title, unsupported, dynamic)
         if (newmod) title?.let { Helpers.applyNewMod(it) }
         if (highlight) {
             // One-shot: the row rebinds whenever its own state changes, and a flash

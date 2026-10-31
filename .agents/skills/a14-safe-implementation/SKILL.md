@@ -1,14 +1,15 @@
 ---
 name: a14-safe-implementation
-description: Implement one A14 change on thetvplus/customiuizer-a14. Read AGENTS.md first.
-argument-hint: <task>
-triggers: ["user"]
+description: Implement A14 code, tooling or engineering-policy changes with checks matched to the affected contracts. Excludes read-only review and formal release execution.
 ---
 
-# A14 Safe Implementation
+# 安全实施
 
-Follow root `AGENTS.md`. `main` is the stable line; work on a branch created from an exact SHA.
+Use [AGENTS](../../../AGENTS.md) for shared boundaries and the relevant row of [TESTING](../../../docs/TESTING.md#执行分级) for Quick / Standard / Deep routing. Do not reload unchanged instructions or all linked documents.
 
-Do not force-push, rewrite public history, or change PrefMap / ResourceHooks / Dynamic Island visuals unless the task explicitly requires it.
+1. Continue same-chat follow-ups from the established context, including after compaction; reuse base/head, branch, worktree, ownership, authorization scope and verification evidence. Follow [DEVELOPMENT](../../../docs/DEVELOPMENT.md#git-与协作) for discovery triggers; before shared / remote writes refresh only the live facts required by that operation, without restarting task discovery. Trace the changed input, caller, failure path and owner, then implement the authorized result without repeated confirmation.
+2. Choose a coherent rollback unit. For runtime changes use the affected [architecture contract](../../../ARCHITECTURE.md#运行时不变量); for ROM uncertainty load the [DexSQL workflow](../../../docs/rom-intelligence/DEXSQL.md). Documentation and leaf tools do not require ROM discovery.
+3. Implement the authorized result and meaningful regression coverage. Update affected imports, reflection / XML / R8 references and generated outputs together; avoid unrelated migration or cleanup.
+4. Review the complete task diff, select necessary checks by impact and reuse trustworthy results under [evidence reuse](../../../docs/TESTING.md#证据复用). Do not append Full, all Python tests or APK builds solely because the task is ending. New failures or risks require diagnosis and affected revalidation.
 
-Run `python tools/verify.py fast --changed` after production edits, and `python tools/verify.py full` before claiming the task is done.
+Report the chosen level, actual verification and remaining risks / device checks. Update the existing refinement page only when current decisions or evidence change; do not add a task ledger.

@@ -83,7 +83,7 @@ class GestureMachine(
         val config = configs[ownerId] ?: return
 
         if (dependencies[ownerId] == null) {
-            passThrough(event, config)
+            passThrough(event, config, context)
             return
         }
         val deps = dependencies[ownerId]!!
@@ -102,7 +102,7 @@ class GestureMachine(
             val validDown = candidate.state != GestureState.IDLE && GestureCommand.BeginTracking in commands
             if (!validDown) {
                 snapshots[ownerId] = GestureSnapshot()
-                passThrough(event, config)
+                passThrough(event, config, context)
                 return
             }
             if (arbiter != null && !arbiter.tryAcquireOnDown(ownerId, event)) {
@@ -111,7 +111,7 @@ class GestureMachine(
             }
             snapshots[ownerId] = candidate
             val allowed = gate.filter(event.entry, ownerId, event, commands)
-            effectExecutor.execute(allowed, deps, config, event)
+            effectExecutor.execute(allowed, deps, config, context)
             return
         }
 
@@ -128,10 +128,12 @@ class GestureMachine(
         snapshots[ownerId] = next
 
         val allowed = gate.filter(event.entry, ownerId, event, commands)
-        effectExecutor.execute(allowed, deps, config, event)
-
-        if (arbiter != null && (GestureCommand.Reset in allowed || event.actionMasked == GestureAction.UP || event.actionMasked == GestureAction.CANCEL)) {
-            arbiter.release(ownerId, event)
+        try {
+            effectExecutor.execute(allowed, deps, config, context)
+        } finally {
+            if (arbiter != null && (GestureCommand.Reset in allowed || event.actionMasked == GestureAction.UP || event.actionMasked == GestureAction.CANCEL)) {
+                arbiter.release(ownerId, event)
+            }
         }
     }
 
@@ -140,10 +142,10 @@ class GestureMachine(
         return invokePrepared(method, deps.displayManager, deps.displayId) as? Float ?: -1f
     }
 
-    private fun passThrough(event: GestureEvent, config: GestureConfig) {
+    private fun passThrough(event: GestureEvent, config: GestureConfig, context: Any) {
         val deps = dependencies[event.ownerId] ?: return
         val allowed = gate.filter(event.entry, event.ownerId, event, listOf(GestureCommand.PassThrough))
-        effectExecutor.execute(allowed, deps, config, event)
+        effectExecutor.execute(allowed, deps, config, context)
     }
 
     private fun ensureDependencies(ownerId: Int, context: Any): GestureDependencies? {
@@ -203,12 +205,16 @@ class GestureMachine(
         arbiter?.releaseOwner(ownerId)
     }
 
-    /** Reset the whole machine, e.g. when the ClassLoader is torn down. */
+    /** Reset this machine without cancelling gestures owned by another runtime. */
     fun clear() {
+        // Only prepared owners can acquire tokens. The arbiter is shared with the
+        // status bar, whose in-flight gestures must survive plugin replacement.
+        for (ownerId in dependencies.keys) {
+            arbiter?.releaseOwner(ownerId)
+        }
         snapshots.clear()
         dependencies.clear()
         configs.clear()
         gate.clear()
-        arbiter?.releaseAll()
     }
 }

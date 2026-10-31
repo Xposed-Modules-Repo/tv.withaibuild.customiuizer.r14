@@ -17,12 +17,12 @@
       "featureIdInt": 2,
       "featureIdName": "open_app_in_free_form",
       "name": "Open App In Free Form",
-      "preferenceKey": "system_notify_openinfw",
+      "preferenceKey": "system_fw_forcein_actionsend",
       "target": "SYSTEM_SERVER",
       "phase": "SYSTEM_SERVER_STARTING",
       "installer": "SystemServerFeatures",
       "installHook": "SystemWindowHooks.OpenAppInFreeFormHook(lpparam)",
-      "enableCondition": "prefs.getBoolean(\"system_notify_openinfw\") || prefs.getBoolean(\"system_fw_forcein_actionsend\") || prefs.getBoolean(\"system_betterpopups_allowfloat\") || prefs.getBoolean(\"system_cc_freeform_when_longclick\")",
+      "enableCondition": "prefs.getBoolean(\"system_fw_forcein_actionsend\") || prefs.getBoolean(\"system_cc_freeform_when_longclick\")",
       "allowedProcess": "system_server",
       "deniedProcess": ""
     },
@@ -478,19 +478,6 @@
       "installer": "SystemServerFeatures",
       "installHook": "Various.AppsDisableServiceHook(lpparam)",
       "enableCondition": "prefs.getBoolean(\"various_disableapp\")",
-      "allowedProcess": "system_server",
-      "deniedProcess": ""
-    },
-    {
-      "featureIdInt": 38,
-      "featureIdName": "disable_any_notification_block",
-      "name": "Disable Any Notification Block",
-      "preferenceKey": "system_disableanynotif",
-      "target": "SYSTEM_SERVER",
-      "phase": "SYSTEM_SERVER_STARTING",
-      "installer": "SystemServerFeatures",
-      "installHook": "SystemNotificationHooks.DisableAnyNotificationBlockHook(lpparam)",
-      "enableCondition": "prefs.getBoolean(\"system_disableanynotif\")",
       "allowedProcess": "system_server",
       "deniedProcess": ""
     },
@@ -3115,7 +3102,7 @@
       "target": "SYSTEM_SERVER",
       "phase": "SYSTEM_SERVER_STARTING",
       "installer": "SystemServerFeatures",
-      "installHook": "SystemStatusBarInsetsHooks.StatusBarInsetsHeightHook(lpparam)",
+      "installHook": "(default base install)",
       "enableCondition": "StatusBarHeightConfig.isEnabled(prefs)",
       "allowedProcess": "system_server",
       "deniedProcess": ""
@@ -3249,6 +3236,45 @@
       "enableCondition": "prefs.getBoolean(\"launcher_dock_background\")",
       "allowedProcess": "com.miui.home",
       "deniedProcess": "third-party launchers (unless selected app sets)"
+    },
+    {
+      "featureIdInt": 256,
+      "featureIdName": "systemui_toast_presentation",
+      "name": "Toast Presentation",
+      "preferenceKey": "system_toast_position",
+      "target": "SYSTEM_UI",
+      "phase": "PACKAGE_READY",
+      "installer": "SystemUiFeatures",
+      "installHook": "SystemUIToastPresentation.install(lpparam, ToastPresentationConfig.read(mPrefs))",
+      "enableCondition": "ToastPresentationConfig.read(prefs).enabled",
+      "allowedProcess": "com.android.systemui",
+      "deniedProcess": "miui.systemui.plugin (ClassLoader extracted at runtime)"
+    },
+    {
+      "featureIdInt": 257,
+      "featureIdName": "launcher_music_island_return",
+      "name": "Launcher Music Island Return",
+      "preferenceKey": "system_island_media_return",
+      "target": "LAUNCHER",
+      "phase": "APPLICATION_ATTACHED",
+      "installer": "LauncherPostAttachFeatures",
+      "installHook": "tv.withaibuild.customiuizer.mods.island.LauncherMusicReturnHooks.install(lpparam, mPrefs)",
+      "enableCondition": "{ prefs -> LauncherMusicReturnFeature.evaluateEnabled(prefs) }",
+      "allowedProcess": "com.miui.home",
+      "deniedProcess": "third-party launchers (unless selected app sets)"
+    },
+    {
+      "featureIdInt": 258,
+      "featureIdName": "system_island_application_overlays",
+      "name": "Island Application Overlays",
+      "preferenceKey": "system_island_hide_in_floating_window",
+      "target": "SYSTEM_SERVER",
+      "phase": "SYSTEM_SERVER_STARTING",
+      "installer": "SystemServerFeatures",
+      "installHook": "(default base install)",
+      "enableCondition": "{ prefs -> IslandApplicationOverlayFeature.evaluateEnabled(prefs) }",
+      "allowedProcess": "system_server",
+      "deniedProcess": ""
     }
   ],
   "scope": [

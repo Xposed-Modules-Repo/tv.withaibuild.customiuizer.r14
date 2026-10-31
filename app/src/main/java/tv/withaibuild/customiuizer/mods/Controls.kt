@@ -981,61 +981,55 @@ object Controls {
     @JvmStatic
     fun BackGestureAreaHeightHook(lpparam: PackageReadyParam) {
         installControlsSnapshot()
-        ModuleHelper.findAndHookMethod("com.miui.home.recents.GestureStubView", lpparam.classLoader, "getGestureStubWindowParam", object : MethodHook() {
-            override fun intercept(chain: XposedInterface.Chain): Any? {
-                var result: Any?
-                var throwable: Throwable? = null
-                try {
-                    result = chain.proceed()
-                } catch (t: Throwable) {
-                    throwable = t
-                    result = null
-                }
-                try {
-                    val lp = result as WindowManager.LayoutParams
-                    val pct = controlsConfig.fsgCoverage
-                    lp.height = Math.round(lp.height / 60.0f * pct)
-                    result = lp; throwable = null
-                } catch (t: Throwable) {
-                    XposedHelpers.log(t)
-                }
-                return XposedHelpers.throwOrReturn(throwable, result)
+        ModuleHelper.findAndHookMethod("com.miui.home.recents.GestureStubView", lpparam.classLoader, "getGestureStubWindowParam", backGestureHeightHook())
+    }
+
+    internal fun backGestureHeightHook() = object : MethodHook() {
+        override fun intercept(chain: XposedInterface.Chain): Any? {
+            val result = chain.proceed()
+            ModuleHelper.guarded {
+                val pct = controlsConfig.fsgCoverage
+                if (pct == 60) return@guarded
+                val lp = result as? WindowManager.LayoutParams ?: return@guarded
+                val owner = chain.thisObject
+                if (XposedHelpers.getIntField(owner, "mGestureStubPos") == 2) return@guarded
+                val rotation = XposedHelpers.getIntField(owner, "mRotation")
+                // Native portrait split screen uses 100%; other side windows use 60%.
+                val fullHeight = (rotation == 0 || rotation == 2) &&
+                    XposedHelpers.getBooleanField(owner, "mIsInMultiWindowMode") &&
+                    !XposedHelpers.getBooleanField(owner, "mIsInMinimizedMultiWindowMode")
+                val nativePercent = if (fullHeight) 100f else 60f
+                lp.height = Math.round(lp.height / nativePercent * pct)
             }
-        })
+            return result
+        }
     }
 
     @JvmStatic
     fun BackGestureAreaWidthHook(lpparam: PackageReadyParam) {
         installControlsSnapshot()
-        ModuleHelper.findAndHookMethod("com.miui.home.recents.GestureStubView", lpparam.classLoader, "initScreenSizeAndDensity", Int::class.javaPrimitiveType, object : MethodHook() {
-            override fun intercept(chain: XposedInterface.Chain): Any? {
-                var result: Any?
-                var throwable: Throwable? = null
-                try {
-                    result = chain.proceed()
-                } catch (t: Throwable) {
-                    throwable = t
-                    result = null
-                }
-                try {
-                    val thisObject = chain.thisObject
+        ModuleHelper.findAndHookMethod("com.miui.home.recents.GestureStubView", lpparam.classLoader, "initScreenSizeAndDensity", backGestureWidthInitHook())
 
-                    val pct = controlsConfig.fsgWidth
-                    if (pct == 100) { return XposedHelpers.throwOrReturn(throwable, result) }
-                    var mGestureStubDefaultSize = XposedHelpers.getIntField(thisObject, "mGestureStubDefaultSize")
-                    var mGestureStubSize = XposedHelpers.getIntField(thisObject, "mGestureStubSize")
-                    mGestureStubDefaultSize = Math.round(mGestureStubDefaultSize * pct / 100f)
-                    mGestureStubSize = Math.round(mGestureStubSize * pct / 100f)
-                    XposedHelpers.setIntField(thisObject, "mGestureStubDefaultSize", mGestureStubDefaultSize)
-                    XposedHelpers.setIntField(thisObject, "mGestureStubSize", mGestureStubSize)
-                } catch (t: Throwable) {
-                    XposedHelpers.log(t)
-                }
-                return XposedHelpers.throwOrReturn(throwable, result)
+        ModuleHelper.findAndHookMethod("com.miui.home.recents.GestureStubView", lpparam.classLoader, "setSize", Int::class.javaPrimitiveType, backGestureSetSizeHook())
+    }
+
+    internal fun backGestureWidthInitHook() = object : MethodHook() {
+        override fun intercept(chain: XposedInterface.Chain): Any? {
+            val result = chain.proceed()
+            ModuleHelper.guarded {
+                val pct = controlsConfig.fsgWidth
+                if (pct == 100) return@guarded
+                val owner = chain.thisObject
+                val defaultSize = XposedHelpers.getIntField(owner, "mGestureStubDefaultSize")
+                val size = XposedHelpers.getIntField(owner, "mGestureStubSize")
+                XposedHelpers.setIntField(owner, "mGestureStubDefaultSize", Math.round(defaultSize * pct / 100f))
+                XposedHelpers.setIntField(owner, "mGestureStubSize", Math.round(size * pct / 100f))
             }
-        })
+            return result
+        }
+    }
 
-        ModuleHelper.findAndHookMethod("com.miui.home.recents.GestureStubView", lpparam.classLoader, "setSize", Int::class.javaPrimitiveType, object : MethodHook() {
+    internal fun backGestureSetSizeHook() = object : MethodHook() {
             override fun intercept(chain: XposedInterface.Chain): Any? {
                 var result: Any? = null
                 var throwable: Throwable? = null
@@ -1052,13 +1046,13 @@ object Controls {
 
                     result = chain.proceed(args)
                 } catch (t: Throwable) {
+                    FatalErrors.rethrowIfFatal(t)
                     throwable = t
                     result = null
                 }
                 return XposedHelpers.throwOrReturn(throwable, result)
             }
-        })
-    }
+        }
 
     @JvmStatic
     fun HideNavBarHook(lpparam: PackageReadyParam) {

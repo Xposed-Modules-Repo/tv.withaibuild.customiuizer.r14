@@ -1,103 +1,44 @@
-# AGENTS.md — 米客 A14｜CustoMIUIzer A14
+# 共同工程规则
 
-共同工程规则，适用于 ChatGPT、Cursor、Devin、Codex 和其它 Agent。
-不要为每个 Agent 复制一份几乎相同的文档。
+所有 Agent 共用本文件。已注入且未变化的内容不重复读取；只打开任务涉及的入口和文件，不递归加载文档、全仓历史或 ROM 数据。
 
-## 1. 产品边界
+## 产品与取舍
 
-- HyperOS 1 / Android 14 / SDK 34。
-- `applicationId`：`tv.withaibuild.customiuizer.r14`
-- `minSdk=34`、`targetSdk=34`、ABI `arm64-v8a`
-- libxposed API 102 为最低运行基线；不维护 API 101 兼容路径。
-- 保留设置进程与 compileOnly Hook API 的 R8 类加载边界。
-- 不支持 Android 13、Android 15 或 Android 16。
-- A14 独立版本、签名、APK、发布和兼容策略。
+- 仅支持 HyperOS 1 / Android 14 / SDK 34、`arm64-v8a`、libxposed API 102。应用身份与 SDK 等确定值由构建配置及静态门禁维护，边界见 [COMPATIBILITY](COMPATIBILITY.md)。A14 版本、签名和发布独立。
+- 优先级：正确性 / 安全 / A14 兼容 > 宿主稳定与生命周期 > 功能与交互 / 动画 > CPU / GPU / 长期内存 > 可维护性 > 体积与形式简洁。
+- 优先复用既有机制，允许有证据的局部升级、成熟依赖和有界资源交换；说明收益、成本、所有者、失效 / 释放与回退，不以代码行数或最低内存作目标。无测量不宣称性能收益。
+- 保持 Hook 调用 / 异常语义、单次安装、生命周期及设置进程与 compileOnly API 的 R8 边界；运行时合同只维护在 [ARCHITECTURE](ARCHITECTURE.md#运行时不变量)。保留 Dynamic Island / Dock 视觉与布局契约。
 
-## 2. 优先级
+## Git 与协作
 
-```text
-correctness
-> compatibility
-> lifecycle
-> stability
-> maintainability
-> memory/performance
-> repository cleanliness
-> elegance
-```
+- `main` 是唯一长期稳定线；已授权开发任务完成必要验证后，默认 commit / push 到对应工作分支，无需重复确认，并读回远端完整 SHA。该授权不扩大到 merge main / tag / Release；当前任务的只读或停止点优先，仅在确有未授权风险或无法安全判断时询问。
+- 禁止 force push、破坏性 reset、改写公开历史、无差别 clean 或覆盖未知修改；Review 不建平行分支。
+- 同一聊天的后续消息默认延续当前任务，直接继承已确认的上下文、分支、Worktree、归属及验证状态。首次启动才检查任务归属、相关聊天、Issue / PR 及 Git 状态；仅创建新任务、实际写入冲突或上下文失效时重新发现。追加指令、状态询问及上下文压缩本身不重启流程。
+- 新聊天优先继续已有任务；独立任务原则上一个 Issue / 分支，从确认的 exact SHA 建分支。合并 main、推送、发布及破坏性操作只增量核对必要的实时 Git、安全和来源，不重做任务发现。认领、刷新与清理细则只见 [DEVELOPMENT](docs/DEVELOPMENT.md#git-与协作)。
+- 多 Agent 不得同时写同一 Worktree；冲突范围先停写协调。GitHub 不可访问时标明协作状态未知。Agent 自报不能代替 exact diff、实际门禁或远端读回。
 
-工程风格：高性能、高稳定、高兼容、低内存、低占用。
-少层、少状态、少框架、少重复、少魔法、少后台行为。直接、明确、有界、可验证。
+## 工具链与验证
 
-不为微优化增加框架。不重做 PrefMap、ResourceHooks、FeatureRegistry、ProcessRouter、PreferenceBootstrap。不重新设计 Dynamic Island 视觉。不把整个 Java 树 Kotlin 化。不用 Compose 或新 DI。
+- 普通任务默认 **Quick**；按实际影响自动升为 **Standard / Deep**，正式准备 / 签名 / 发布走 **Release**，不要求用户选择模式。分级、命令、证据复用和阶段预算唯一维护在 [TESTING](docs/TESTING.md#执行分级)，只查相应行与受影响的回归。
+- 必要检查由受影响契约决定，不能用模式、文件数或预算免除。相同源码、环境和验证范围已有可信通过结果就复用；提交或文字报告本身不触发重跑。失败、新改动或风险变化才补验。
+- 构建固定 JDK 25，不为环境错误降级；环境见 [DEVELOPMENT](docs/DEVELOPMENT.md#环境)。不删测试、降断言或吞异常制造通过。完成已授权结果和必要检查后收口，报告实际验证、未决风险及提交 / 推送状态；APK / R8、ROM 和设备证据分开，设备不可用保持待验。
 
-安全升级与能力试验可以出于新 API、兼容性探索、安全修复、可维护性或开发工具整合，不要求先证明性能提升或 APK 变小。允许在当前授权的试验分支分阶段升级、验证和回退；仍须遵守产品、生命周期、API 隔离和验证边界。没有测量证据时不得宣称性能收益。
+## 签名、发布与证据
 
-## 3. Git
+- Debug / Develop 不冒充正式版；正式签名与发布仅在任务授权内使用既有 [RELEASE](docs/RELEASE.md) 工作流。分级不放宽正式发行、原候选恢复、签名或双仓门禁，不重建稳定发布系统。
+- APK、密钥、密码、本地签名配置、ROM、DEX、trace、mapping、日志和 profiler 数据不得入库；保留忽略目录及仓库外证据。
+- 当前决定、未决问题和证据入口更新[原路线图](docs/maintenance/A14_REFINEMENT_ROADMAP.md)，不另建任务数据库或流水账。缺陷要有具体触发与可复核证据。
 
-- `main` 是唯一长期稳定生产线。
-- 从 exact SHA 建工作分支，例如 `cursor/...` 或 `devin/...`。
-- 禁止 force push、破坏性 reset、rebase 已公开历史、无差别 clean。
-- 不为 Review 建平行分支。不覆盖未知工作区修改。
-- 普通任务可以 commit；push / merge main / tag / release 必须由当前任务合同明确授权。
-- 不相信 Agent 自报 PASS。客观门禁和 diff 审查才算数。
+## 按需入口
 
-## 4. 运行时
-
-- 无关进程不初始化无关 Feature。
-- Feature 同一进程只安装一次。
-- preference 变化不得把已安装 Hook 重置为未安装。
-- 关闭功能不得创建业务 Hook、Receiver、Observer 或任务。
-- Hook 时序、参数改写和 `chain.proceed()` 次数必须保持。
-- 回调最外层使用项目既有安全边界；普通异常局部隔离。
-- `OutOfMemoryError`、`ThreadDeath`、`VirtualMachineError` 不得吞掉。
-- Receiver / Observer / listener / controller 必须绑定所有者，并有替换、失效、释放闭环。
-- 不静态强持有 Activity、View 或短生命周期 controller。
-- 反射、DexKit、磁盘 I/O 和同步 Binder 留在冷路径。
-- 热路径只读已准备好的不可变或原子状态。
-- 缓存有界、按 ClassLoader 隔离。
-
-## 5. JVM
-
-- 构建运行时为 JDK 25。`JAVA_HOME` 指向 JDK 根目录，不得指向 `bin`。
-- Android Java / Kotlin 输出目标同步为 25；通过 R8/D8 生成 SDK 34 可运行的 DEX。语言/API 级别与 JVM 输出目标分别验证。
-- 不得为了绕过环境错误降级到 JDK 17。
-- 默认保留 Java：`MainModule.java`、`XposedHelpers.java`、`MemberUtilsX.java`。
-- Java→Kotlin 必须小批量、行为等价，并与功能变化分开。
-
-## 6. 验证
-
-开发中：
-
-```powershell
-python tools/verify.py fast --changed
-```
-
-收口：
-
-```powershell
-python tools/verify.py full
-python -m unittest discover -s tools/tests -p "test_*.py"
-git diff --check
-```
-
-同批 PR 先审查 exact head 与已有 CI，整合后统一做一次上述收口验证及必要构建 / 实机检查。相同源码与范围已通过时复用结果；仅新修改、失败或未解决问题追加相关验证，不逐 PR 反复跑全套。纯文档变更只做对应静态检查。
-
-工具目录改动时再跑 Python 工具测试。失败在原任务内修复。不得通过删测试、降断言或吞异常制造通过。
-
-## 7. 构建与发布
-
-- Debug / develop 构建不得冒充正式版。
-- 正式 Release 仅在用户明确要求、仓库外签名配置有效时执行。
-- 禁止提交 APK、keystore、密码或本地签名配置。
-- GitHub Actions 不得硬编码本机路径，不得使用正式 keystore。
-- ROM 样本、trace、mapping、profiler 数据不得入库。
-- 版本名与 `CHANGELOG` 必须同步；`versionCode` 必须单调增加。
-
-## 8. ROM 证据
-
-- 静态扫描不能替代目标 HyperOS ROM 实机验证。
-- 无实机证据不得修改成熟热路径基础设施。
-- 候选缺陷必须可复现，并有内存 / 线程 / 日志 / CPU 证据。
-- “这里可以 cache” 不构成缺陷。
-- ROM 适配、Hook 定位、目标差异与最终 DEX 复核优先使用 [DexSQL 指引](docs/rom-intelligence/DEXSQL.md) 与 `tools/dexsql/`，复用官方 CLI / MCP；先核实已安装 schema、样本哈希、定义来源和同产物 R8 mapping。仅在相关开发任务调用，不加入 APK 或默认 CI，结果不能代替实机验收。
+| 任务 | 权威入口 |
+| --- | --- |
+| 功能入口 / 文档治理 | [功能结构](docs/FEATURE_MAP_SIMPLE.md) / [设置键](docs/FEATURE_MAP.md) / [文档规范](docs/DOCS_STYLE.md) |
+| 环境、生成与构建 | [开发与构建](docs/DEVELOPMENT.md) |
+| 分级、必要检查、复用与停止条件 | [测试与验证](docs/TESTING.md#执行分级) |
+| 大型辅助 JSON / 机读数据 | [摘要、筛选与分页](docs/TOOLS.md#辅助数据按需查询)，先查询再按需读原记录 |
+| 路由、API 与所有权 | [架构](ARCHITECTURE.md) |
+| 平台与 ROM 边界 | [兼容矩阵](COMPATIBILITY.md) |
+| ROM 目标 / 最终 DEX 需要取证时 | [DexSQL](docs/rom-intelligence/DEXSQL.md)，不因读取或普通文档任务启动 |
+| 测量与资源预算 | [优化门禁](docs/OPTIMIZATION_GATES.md) |
+| 安全实施 / 只读独立审查 | [.agents/skills](.agents/skills) 中的两个 SKILL.md |

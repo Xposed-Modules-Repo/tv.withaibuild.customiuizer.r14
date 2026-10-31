@@ -36,6 +36,13 @@ object BackupRestore {
 
     /** SharedPreferences storage keys removed in the A14/HyperOS 1 line. */
     val DROPPED_KEYS = setOf(
+        "pref_key_system_island_icons",
+        "pref_key_system_island_concise",
+        "pref_key_system_island_controls",
+        "pref_key_system_island_gestures",
+        "pref_key_system_island_gestures_horizontal",
+        "pref_key_system_island_gestures_vertical",
+        "pref_key_system_island_expanded_width",
         "pref_key_system_notif_disable_strong_toast",
         "pref_key_system_notif_disable_strong_toast_always",
         "pref_key_system_notif_disable_strong_toast_dnd",
@@ -563,13 +570,15 @@ object BackupRestore {
             )
         }
 
+        val migratedEntries = sanitizedEntries.toMutableMap()
+        IslandPreferenceDefaults.migrate(migratedEntries)
         restored = sanitizedEntries.size
 
         val snapshot = capturePreRestoreSnapshot(prefs)
 
         val primaryEditor = prefs.edit()
         primaryEditor.clear()
-        putSupportedPreferenceEntries(primaryEditor, sanitizedEntries)
+        putSupportedPreferenceEntries(primaryEditor, migratedEntries)
         AppLocaleController.stageReconcileMarker(primaryEditor)
         primaryEditor.putInt(
             CurrentPreferenceContract.CONTRACT_REVISION_KEY,

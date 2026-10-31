@@ -1,58 +1,90 @@
 # A14 架构
 
-## 入口与路由
+工程入口与优先级见 [AGENTS](AGENTS.md)，产品范围见 [COMPATIBILITY](COMPATIBILITY.md)。本页维护运行时合同、实际路由、API 边界和状态归属。
 
-```text
-libxposed → MainModule
-  → PreferenceBootstrap：远程偏好 → 进程内快照
-  → ProcessRouter：包名 / 进程名 → ProcessScope
-  → Installer → FeatureSpec / LazyFeatureSpec
-  → FeatureInstallRegistry → ROM resolver → Hook / Controller
-```
+## 运行时不变量
 
-`MainModule.onModuleLoaded` 初始化偏好来源，记录版本、versionCode 与 Git revision。`onSystemServerStarting` 和首个包的 `onPackageReady` 分别安装对应入口；SDK 不等于 34 时不进入业务安装路径。
+- 按进程路由；Feature 同进程只安装一次，偏好变化不重置安装状态。关闭功能不创建业务 Hook、Receiver、Observer 或任务；安装型选项保留重启语义。
+- 保持 Hook 时序、参数改写、返回 / 异常语义及 `chain.proceed()` 次数。回调最外层用既有安全边界，普通异常局部隔离，不吞 `OutOfMemoryError`、`ThreadDeath`、`VirtualMachineError`。
+- Receiver / Observer / listener / controller 绑定所有者，覆盖替换、迟到失效和释放；静态字段不强持有 Activity、View 或短生命周期 controller。
+- 反射、DexKit、磁盘 I/O 和同步 Binder 留在冷路径；热路径读准备好的不可变 / 原子状态。缓存有界且按 ClassLoader 隔离。资源增长说明容量、失效、释放、成本和验证，测量规则见 [优化门禁](docs/OPTIMIZATION_GATES.md)。
+- PrefMap、ResourceHooks、FeatureRegistry、ProcessRouter、PreferenceBootstrap 的变化须有具体问题、受影响契约和专项回归。保留 Dynamic Island / Dock 视觉与布局合同；不默认迁移 Compose、DI、StateFlow 或全量 Kotlin。语言迁移小批量、行为等价，与功能变化分开。
 
-Installer 按进程与开关选择 Feature。`FeatureInstallRegistry` 使用进程内稳定 Feature ID 和安装状态，偏好更新不会重置已安装 Hook。首次偏好未就绪时，system_server 延后决定受偏好控制的功能；首个已加载快照补装未安装项。SystemUI 的 Context 初始化由 `SystemUiBootstrapCoordinator` 协调，重启时间只作诊断，不跳过整个目录。
+## 产品职责
 
-基础初始化、资源准备和动作通信入口可常驻；可选业务 Hook、Receiver、Observer 与任务由对应开关控制。安装时读取的开关需要重启目标进程，支持运行期更新的功能通过快照或所有者注册更新状态，不能把所有设置都解释为即时生效。
+| 级别 | 范围 | 维护方向 |
+| --- | --- | --- |
+| CORE | 通知、动态岛、Dock、状态栏与手势 | 触摸、切换、动画、原生恢复与资源释放 |
+| MAINTAIN | 声音 / 振动、Toast、控制中心辅助、设置 / 搜索 / 备份、有限维护工具 | 安全安装、可靠恢复，不扩张停用范围 |
+| RETIRE_CANDIDATE | 有目标 ROM 失效、原生重复或所有权无法闭合证据的具体实现 | 在[退役页](docs/maintenance/A14_FEATURE_RETIREMENTS.md)逐项裁定；引用数不构成删除依据 |
 
-## ROM 与 API 边界
+当前精修状态与证据归[路线图](docs/maintenance/A14_REFINEMENT_ROADMAP.md)，性能口径归[优化门禁](docs/OPTIMIZATION_GATES.md)。
 
-- API 102 是最低基线；`HookInstallation` 统一原生安装策略，`XposedServiceManager` 管理 Service 与动态作用域。保留设置进程与 compileOnly Hook API 的类加载边界。
-- 宿主 SystemUI 与动态插件使用各自的 ClassLoader；安装时解析 ROM 类、方法、资源及签名，缺失时停止对应功能或保留原生行为。
-- 灵动额头使用 ROM StrongToast 原地调整，加上 `DynamicIslandStatusBarFade`，没有独立模块窗口 Host。
-- 反射缓存按 ClassLoader 隔离且有界；成熟 Hook 基础设施的修改需要目标 ROM 证据。
+## 入口与进程路由
+
+| 层 | 职责 |
+| --- | --- |
+| `MainModule` | libxposed 生命周期、偏好来源与进程入口 |
+| `PreferenceBootstrap` / `ProcessRouter` | 发布快照，按包名与进程选择 scope |
+| Installer / FeatureSpec | 按 scope、阶段与开关选择功能 |
+| `FeatureInstallRegistry` | 稳定 Feature ID、单次安装与所有权 |
+| resolver / Hook / Controller | 冷路径 ROM 解析、宿主调用与可释放状态 |
+
+`onModuleLoaded` 初始化偏好并记录版本 / revision；`onSystemServerStarting` 和首包 `onPackageReady` 安装对应入口。SDK 非 34、非首包或不可安装 scope 在业务初始化前返回。首次偏好未就绪时 system_server 延后决定受控功能，首个快照只补装未安装项；偏好更新不重置注册表。SystemUI Context 由 `SystemUiBootstrapCoordinator` 协调，重启时间仅作诊断，不跳过目录。
+
+基础初始化、资源准备和动作通信入口可常驻；可选业务由开关控制。安装条件与运行期快照分开，具体重启语义属于各功能合同。
+
+偏好启动、单键和批量刷新在同一发布锁下读取并更新快照，完整发布后才公开就绪状态；观察者在锁外分发。读取异常保留最后有效值，确认键已删除才移除。system_server 的已提交高度覆盖仍优先于框架缓存，并在同一次发布后通知观察者；不改变 Feature 单次安装或安装型选项的重启语义。
+
+进程矩阵只生成 [JSON](docs/rom-intelligence/A14_PROCESS_MATRIX.json) / [CSV](docs/rom-intelligence/A14_PROCESS_MATRIX.csv)，来源是 catalog、路由和 scope。以下非表格化边界由源码和回归维护：
+
+- SystemUI、Settings、PermissionController、SecurityCenter 只接受各自主进程，拒绝 secondary / bootaware；fused location 与 networkstack 进程拒绝。
+- `miui.systemui.plugin` 不单独加入 scope；SystemUI 从 `PluginFactory.createPlugin` 取得插件 ClassLoader，安装 / 释放由插件 runtime 持有。
+- 键盘包必须在静态 scope；`ProcessRouter` 交给 InputMethodInstaller，scope 外无回调。Launcher 还可按用户选择安装 GenericApp 的 post-attach 功能。
+- `StatusBarHeightFeature` 虽为 ANY，仍限资源包集合和高度开关；窗口几何归 system_server 的 Insets Feature。`AlarmCompatFeature` 另受应用名单控制。
+- SystemUI bootstrap 与 Launcher 在安装派发前维护 ReflectionCache 安全生命周期；GuardProvider / Media 按需加载并关闭 DexKit，目标始终用实际加载器解析。
 
 ## API 102 安装与 Service
 
-`minApiVersion=102`、`targetApiVersion=102`、`staticScope=true`。`HookInstallation` 直接调用原生 HookBuilder，统一方法、构造器及基础设施 ID 安装；优先级和 `PASSTHROUGH` 模式保持一致。`HookerClassHelper` 继续承担参数改写、提前返回、原方法异常及 after 恢复，致命错误必须传播。
+元数据固定 `minApiVersion=102`、`targetApiVersion=102`、`staticScope=true`。`HookInstallation` 统一原生 HookBuilder 安装、优先级与 PASSTHROUGH；`HookerClassHelper` 保持参数、提前返回、原方法异常和 after 恢复，fatal 传播。
 
-仅为三个既有基础设施安装点设置固定 ID：
+before / after 只读单参数统一使用 `getArg(index)`；尚未物化参数时直接读取当前 Chain，已有可变数组时读取该数组，after 因而能看到 before 的参数改写。只有实际改写参数或确实需要整组数组时才调用 `getArgs()`；只读 before 保留无参数数组的 `chain.proceed()`，after 不为读取单项复制整组参数。不改变原方法调用次数、回调顺序或异常恢复。
 
-| 安装点 | ID |
+| 基础设施安装点 | 固定 ID |
 | --- | --- |
-| SystemUIInitializer.init(boolean) | `systemui.init` |
-| PluginFactory.createPlugin 的所有声明重载 | `systemui.plugin.create` |
-| 已选择目标进程的 Application.attach(Context) | `application.attach` |
+| `SystemUIInitializer.init(boolean)` | `systemui.init` |
+| `PluginFactory.createPlugin` 全部声明重载 | `systemui.plugin.create` |
+| 已选进程的 `Application.attach(Context)` | `application.attach` |
 
-ID 由模块和 executable 隔离，同 ID 可用于不同重载，不能代替一次安装状态和所有者管理。设置 ID 失败时停止该次安装；`intercept` 永不重试。安装后回读 ID，相等才记录 `<id> (confirmed)`；普通回读失败只记诊断并保留 handle，致命错误传播。
+ID 按模块和 executable 隔离，可跨重载复用，不能代替单次安装状态。setId 失败停止本次安装，intercept 不重试；回读相等才记 `<id> (confirmed)`，普通回读失败仅诊断并保留 handle，fatal 传播。不启用自动热重载、replaceHook 或 detach；这需要独立的旧代任务、JNI、监听和 ClassLoader 交接设计。
 
-不启用自动热重载、显式 replaceHook 或 detach；这些能力需要独立的旧代任务、JNI、Receiver / Observer、系统持有对象和 ClassLoader 交接设计。API 契约可查 [官方源码](https://repo.maven.apache.org/maven2/io/github/libxposed/api/102.0.0/api-102.0.0-sources.jar)。
+`XposedServiceManager` 每次选择只读一次 scope Binder 快照，只请求未授权包；批准由框架决定。普通异常返回不可用，不自动重试；异步提示只持有 Application Context。Service 交付受签名权限保护，偏好镜像检查真实 commit，保留每连接一次重试。
 
-`XposedServiceManager` 每次选择只读一次 scope Binder 快照，仅请求尚未授权的包；批准由框架决定。读取或请求的普通异常返回不可用，不自动重试，致命错误传播。异步失败提示只持有 Application Context。Service Binder 交付入口受模块签名权限保护。偏好镜像核对真实提交结果，保留每个连接的一次重试预算。
+R8 保留入口、Hooker、JNI、ServiceLoader 及设置进程与 compileOnly API 的类加载边界。最终 APK 用[同产物 mapping / DexSQL](docs/rom-intelligence/DEXSQL.md)复核 setId / getId、禁用替换 / 热重载及入口调用；指令数量不能证明实际安装次数。框架确认仍需设备日志。
 
-R8 保留 Hooker、入口、JNI 与设置进程的 compileOnly 类加载边界。最终 APK 核查 setId/getId、禁用热重载与替换、ServiceLoader 和入口；[DexSQL](docs/rom-intelligence/DEXSQL.md) 产物检查不能代替框架安装日志与设备验收。
+## 功能所有权与源码位置
 
-## 设置与持久化
+| 位置 / owner | 责任 |
+| --- | --- |
+| `MainModule`、`installers`、`mods/utils/feature` | 入口、路由、稳定 ID 和安装目录 |
+| `mods/island` | `DynamicIslandActivities` ROM 接入；Controller 持有安全 / 会话 / 租约，View / Motion / Sizing 呈现；输入容器只管 touchableRegion |
+| `mods/duostatusbar`、`clock`、`battery` | 独立功能状态与 View |
+| Launcher Dock Hook / 装饰 / 采样 / 材质 | HotSeats 所有权及背景；共享模糊仍在公共层 |
+| `mods/utils` | 跨功能 Hook、安全、ClassLoader 缓存及生命周期机制 |
+| `utils`、`prefs`、`subs` | 设置界面、持久化、页面控制器 |
+| `app/src/test` | 按对应功能包组织 JVM / Android 模型回归 |
+| `tools`、`tools/tests`、`.github/workflows` | 生成器、契约工具及 CI / 发布，见[工具索引](docs/TOOLS.md) |
 
-`res/xml/prefs_*.xml` 是设置源。构建任务 `generatePreferenceArtifacts` 生成分页面资源、搜索索引和当前偏好目录，输出在 `app/build/generated/`，不要直接编辑或提交生成物。搜索保留页面控制器、目标键与导航元数据；设置恢复由当前偏好契约校准。
+动态岛的单窗口展示、状态栏占用及新旧事件隔离由上述 owner 负责；通用 StrongToast 快照与安全层不复制。完整布局、输入、租约、媒体返回及波形合同以[功能说明](docs/features/island/README.md)为准。
 
-备份使用有大小限制、严格解码及 CRC 校验的 V2 格式。受限旧格式解码器用于既有用户数据兼容，不能按“旧代码”直接删除。具体语义约束见 [遗留功能契约](docs/maintenance/LEGACY_SEMANTIC_CALIBRATION.md)。
+Dock 默认背景属于 HotSeats；全宽底栏是窗口根底层独立装饰，以弱 owner 跟随其布局、可见性、原生动画与解绑，不松开祖先裁切、不移动图标、不接受触摸。关闭选项回到原背景合同，见 [Dock](docs/features/dock/README.md)。
 
-## 生命周期与热路径
+状态栏几何 Binding 跟随实际 View / Window，保留最新原生基线，仅恢复自己仍持有的属性；配置和 detach 不改写其他 owner 的新值。变更不得扩大到通用 View setter 或全局窗口缓存。
 
-注册绑定进程或实例所有者，并提供替换、失效与释放路径。短生命周期 Activity、View 和控制器不能由静态字段强持有。Hook 参数改写、时序、返回值和 `chain.proceed()` 次数属于行为契约；普通异常局部隔离，致命 JVM 错误继续抛出。
+## 设置、生成与持久化
 
-热路径只读已准备好的状态，新增逻辑避免重复反射、DexKit、磁盘 I/O、同步 Binder、临时集合和日志洪泛。静态预算用于防止回归，不等于全项目实际分配量或性能验收，见 [优化门禁](docs/OPTIMIZATION_GATES.md)。
+`res/xml/prefs_*.xml` 是页面源；`generatePreferenceArtifacts` 生成分页、搜索和当前偏好目录到 `app/build/generated/`。搜索保留控制器、目标键和导航元数据；恢复按当前偏好契约校准，生成输入与 AGP 依赖见 [DEVELOPMENT](docs/DEVELOPMENT.md#构建与生成物)。当前页面与稳定键导航见[功能地图](docs/FEATURE_MAP.md)，其独立生成不改变运行时产物。
 
-`MainModule.java`、`XposedHelpers.java`、`MemberUtilsX.java` 保留 Java，Installer 的 Kotlin `object` 通过 `@JvmStatic` 保持入口 ABI，详见 [Java 边界清单](docs/JAVA_BOUNDARY_ALLOWLIST.md)。
+备份 V2 使用大小限制、严格解码与 CRC；受限旧格式解码保留既有用户兼容。维护恢复记录使用精确原状态和可恢复事务，不进入备份传输。语义约束见[遗留合同](docs/maintenance/LEGACY_SEMANTIC_CALIBRATION.md)。目录重排不能改变偏好键或稳定 Feature ID。
+
+`MainModule.java`、`XposedHelpers.java`、`MemberUtilsX.java` 保留 Java；Kotlin Installer 的 `@JvmStatic` 保持入口 ABI，见 [Java 边界](docs/JAVA_BOUNDARY_ALLOWLIST.md)。

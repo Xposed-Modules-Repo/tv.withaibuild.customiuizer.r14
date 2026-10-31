@@ -151,8 +151,8 @@ open class ControlCenterPluginRuntimeEngine(
     /**
      * Explicitly detach the current plugin.
      *
-     * Invalidates the current lease, clears the gesture runtime, releases all physical-gesture
-     * tokens and drops the active loader references so the old ClassLoader can be collected.
+     * Invalidates the current lease, clears the gesture runtime and its physical-gesture
+     * tokens, and drops the active loader references so the old ClassLoader can be collected.
      */
     fun clear() {
         activeLease?.invalidate()
@@ -170,7 +170,6 @@ open class ControlCenterPluginRuntimeEngine(
         }
         _runtimeHolder.unbind()
         activeLoader = null
-        arbiter.releaseAll()
     }
 
     /**
@@ -190,7 +189,8 @@ open class ControlCenterPluginRuntimeEngine(
                 object : MethodHook() {
                     override fun before(param: BeforeHookCallback) {
                         val lease = activeLease
-                        if (lease != null && !lease.active) return
+                        // A failed plugin lease must not disable discovery of its replacement loader.
+                        if (lease != null && !lease.active && installState != InstallState.FAILED_PARTIAL) return
                         val loader = SystemUIControlCenterHooks.extractPluginLoader(param.getThisObject()) ?: return
                         bind(loader)
                     }

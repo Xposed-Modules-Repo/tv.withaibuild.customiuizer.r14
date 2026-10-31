@@ -12,6 +12,7 @@ import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
 import android.os.Process
+import android.os.UserHandle
 import android.provider.Settings
 import android.widget.Toast
 import io.github.libxposed.api.XposedInterface
@@ -32,6 +33,7 @@ import tv.withaibuild.customiuizer.mods.utils.XposedHelpers
 import tv.withaibuild.customiuizer.mods.utils.hasConfiguredActionCode
 import tv.withaibuild.customiuizer.mods.utils.hasConfiguredToggle
 import tv.withaibuild.customiuizer.utils.Helpers
+import tv.withaibuild.customiuizer.utils.MaintenanceJournal
 
 object GlobalActionSystemServerHooks {
 
@@ -40,11 +42,11 @@ object GlobalActionSystemServerHooks {
     private const val MIUI_SECURITY_CENTER_PACKAGE = "com.miui.securitycenter"
 
     /**
-     * Exact component allowlist extracted from the connected fuxi HyperOS 1 system image.
+     * Exact component allowlist verified against the fuxi HyperOS 1 CN/TW system images.
      *
      * The bridge deliberately does not accept arbitrary privileged component requests. Daemon
-     * performance services (MiuiPerf, MemCompact, GcBooster and Sysopt) and Security Center
-     * protection services are absent from this set.
+     * performance services (MiuiPerf, MemCompact, GcBooster and Sysopt) are excluded. Security
+     * Center targets are limited to marketing/analytics and the explicit antivirus opt-out.
      */
     private val XIAOMI_TRIM_COMPONENTS = mapOf(
         MIUI_DAEMON_PACKAGE to setOf(
@@ -55,6 +57,7 @@ object GlobalActionSystemServerHooks {
             "com.miui.daemon.mqsas.jobs.HeartBeatUploadService"
         ),
         MIUI_SECURITY_CENTER_PACKAGE to setOf(
+            "com.miui.analytics.RemoteAnalyticsReceiver",
             "com.facebook.ads.AudienceNetworkContentProvider",
             "com.my.target.common.MyTargetContentProvider",
             "com.yandex.mobile.ads.core.initializer.MobileAdsInitializeProvider",
@@ -175,6 +178,9 @@ object GlobalActionSystemServerHooks {
                                             rejectionResultCode = GlobalActions.ACTION_FAILED
                                         )
                                     ) return@guarded
+                                    val scoped = maintenanceContext(context, getSentFromUid()) ?: return@guarded
+                                    if (intent.action != GlobalActions.CLEAR_UPDATER_STATE_ACTION &&
+                                        !MaintenanceJournal.matches(scoped, intent)) return@guarded
                                     handled = when (intent.action) {
                                         GlobalActions.SET_UPDATER_SERVICES_ACTION -> {
                                             val names = intent.getStringArrayExtra(
@@ -183,13 +189,13 @@ object GlobalActionSystemServerHooks {
                                             val states = intent.getIntArrayExtra(
                                                 GlobalActions.EXTRA_UPDATER_SERVICE_STATES
                                             ) ?: return@guarded
-                                            applyUpdaterServiceStates(context, names, states)
+                                            applyUpdaterServiceStates(scoped, names, states)
                                         }
                                         GlobalActions.CLEAR_UPDATER_STATE_ACTION ->
-                                            clearUpdaterState(context)
+                                            clearUpdaterState(scoped)
                                         GlobalActions.SET_MIUI_DAEMON_STATE_ACTION ->
                                             applyMiuiDaemonState(
-                                                context,
+                                                scoped,
                                                 intent.getIntExtra(
                                                     GlobalActions.EXTRA_APPLICATION_STATE,
                                                     -1
@@ -205,7 +211,7 @@ object GlobalActionSystemServerHooks {
                                             val states = intent.getIntArrayExtra(
                                                 GlobalActions.EXTRA_COMPONENT_STATES
                                             ) ?: return@guarded
-                                            applyXiaomiComponentStates(context, packages, names, states)
+                                            applyXiaomiComponentStates(scoped, packages, names, states)
                                         }
                                         GlobalActions.SET_XIAOMI_PACKAGES_ACTION -> {
                                             val packages = intent.getStringArrayExtra(
@@ -214,7 +220,7 @@ object GlobalActionSystemServerHooks {
                                             val states = intent.getIntArrayExtra(
                                                 GlobalActions.EXTRA_COMPONENT_STATES
                                             ) ?: return@guarded
-                                            applyXiaomiPackageStates(context, packages, states)
+                                            applyXiaomiPackageStates(scoped, packages, states)
                                         }
                                         else -> false
                                     }
@@ -289,7 +295,7 @@ object GlobalActionSystemServerHooks {
         return try {
             val activityManager = XposedHelpers.callStaticMethod(ActivityManager::class.java, "getService")
                 ?: return false
-            val userId = XposedHelpers.callStaticMethod(ActivityManager::class.java, "getCurrentUser") as? Int
+            val userId = XposedHelpers.callMethod(context, "getUserId") as? Int
                 ?: return false
             val accepted = XposedHelpers.callMethod(
                 activityManager,
@@ -324,7 +330,7 @@ object GlobalActionSystemServerHooks {
         return try {
             packageManager.setApplicationEnabledSetting(MIUI_DAEMON_PACKAGE, state, 0)
             if (packageManager.getApplicationEnabledSetting(MIUI_DAEMON_PACKAGE) != state) {
-                return false
+                error("Daemon package state was not applied")
             }
             if (state == PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER) {
                 stopMiuiDaemon(context)
@@ -341,6 +347,14 @@ object GlobalActionSystemServerHooks {
             }
             false
         }
+    }
+
+    private fun maintenanceContext(context: Context, callerUid: Int): Context? {
+        if (callerUid < 0) return null
+        val requested = UserHandle.getUserHandleForUid(callerUid)
+        val current = XposedHelpers.callStaticMethod(ActivityManager::class.java, "getCurrentUser") as? Int ?: return null
+        if (current < 0 || UserHandle.getUserHandleForUid(Math.multiplyExact(current, 100000)) != requested) return null
+        return XposedHelpers.callMethod(context, "createContextAsUser", requested, 0) as? Context
     }
 
     @Suppress("DEPRECATION")
@@ -411,8 +425,8 @@ object GlobalActionSystemServerHooks {
         var changed = 0
         return try {
             for (index in packageNames.indices) {
-                packageManager.setApplicationEnabledSetting(packageNames[index], states[index], 0)
                 changed++
+                packageManager.setApplicationEnabledSetting(packageNames[index], states[index], 0)
                 if (packageManager.getApplicationEnabledSetting(packageNames[index]) !=
                     states[index]
                 ) error("Package state was not applied")
@@ -421,13 +435,14 @@ object GlobalActionSystemServerHooks {
         } catch (t: Throwable) {
             tv.withaibuild.customiuizer.mods.utils.FatalErrors.unwrapAndRethrowIfFatal(t)
             XposedHelpers.log(t)
-            for (index in 0 until changed) {
+            for (index in changed - 1 downTo 0) {
                 try {
                     packageManager.setApplicationEnabledSetting(
                         packageNames[index],
                         original[index],
                         0
                     )
+                    check(packageManager.getApplicationEnabledSetting(packageNames[index]) == original[index])
                 } catch (rollback: Throwable) {
                     tv.withaibuild.customiuizer.mods.utils.FatalErrors.unwrapAndRethrowIfFatal(
                         rollback
@@ -444,7 +459,7 @@ object GlobalActionSystemServerHooks {
             ActivityManager::class.java,
             "getService"
         ) ?: return
-        val userId = XposedHelpers.callStaticMethod(ActivityManager::class.java, "getCurrentUser") as? Int
+        val userId = XposedHelpers.callMethod(context, "getUserId") as? Int
             ?: return
         XposedHelpers.callMethod(
             activityManagerService,
@@ -518,12 +533,12 @@ object GlobalActionSystemServerHooks {
         var changed = 0
         return try {
             for (index in components.indices) {
+                changed++ // A setter may mutate state before reporting a Binder failure.
                 packageManager.setComponentEnabledSetting(
                     components[index],
                     states[index],
                     PackageManager.DONT_KILL_APP
                 )
-                changed++
                 if (packageManager.getComponentEnabledSetting(components[index]) != states[index]) {
                     error("Component state was not applied")
                 }
@@ -532,13 +547,14 @@ object GlobalActionSystemServerHooks {
         } catch (t: Throwable) {
             tv.withaibuild.customiuizer.mods.utils.FatalErrors.unwrapAndRethrowIfFatal(t)
             XposedHelpers.log(t)
-            for (index in 0 until changed) {
+            for (index in changed - 1 downTo 0) {
                 try {
                     packageManager.setComponentEnabledSetting(
                         components[index],
                         original[index],
                         PackageManager.DONT_KILL_APP
                     )
+                    check(packageManager.getComponentEnabledSetting(components[index]) == original[index])
                 } catch (rollback: Throwable) {
                     tv.withaibuild.customiuizer.mods.utils.FatalErrors.unwrapAndRethrowIfFatal(rollback)
                     XposedHelpers.log(rollback)
@@ -753,6 +769,7 @@ object GlobalActionSystemServerHooks {
 
     @JvmStatic
     fun setupStatusBar(lpparam: PackageReadyParam) {
+        SystemPipActions.install(lpparam.classLoader, MainModule.mPrefs)
         val statusBarClass = XposedHelpers.findClassIfExists("com.android.systemui.statusbar.phone.CentralSurfacesImpl", lpparam.classLoader)
         if (statusBarClass == null) return
         ModuleHelper.findAndHookMethod(statusBarClass, "start", object : MethodHook() {
@@ -766,6 +783,8 @@ object GlobalActionSystemServerHooks {
                 intentfilter.addAction(GlobalActions.ACTION_PREFIX + "ExpandSettings")
                 intentfilter.addAction(GlobalActions.ACTION_PREFIX + "OpenRecents")
                 intentfilter.addAction(GlobalActions.ACTION_PREFIX + "OpenVolumeDialog")
+                intentfilter.addAction(GlobalActions.ACTION_PREFIX + "TogglePipVisibility")
+                intentfilter.addAction(GlobalActions.ACTION_PREFIX + "TogglePipStash")
 
                 intentfilter.addAction(GlobalActions.ACTION_PREFIX + "ToggleGPS")
                 intentfilter.addAction(GlobalActions.ACTION_PREFIX + "ToggleHotspot")

@@ -163,10 +163,7 @@ data object AppsDisableServiceFeatureId : FeatureId {
     override val id = 37
     override val name = "apps_disable_service"
 }
-data object DisableAnyNotificationBlockFeatureId : FeatureId {
-    override val id = 38
-    override val name = "disable_any_notification_block"
-}
+// 38 retired: global NotificationChannel policy overrides. Do not reuse this identity.
 data object AllRotationsFeatureId : FeatureId {
     override val id = 39
     override val name = "all_rotations"
@@ -1054,4 +1051,19 @@ data object DuoStatusBarFeatureId : FeatureId {
 data object LauncherDockBackgroundFeatureId : FeatureId {
     override val id = 255
     override val name = "launcher_dock_background"
+}
+
+data object ToastPresentationFeatureId : FeatureId {
+    override val id = 256
+    override val name = "systemui_toast_presentation"
+}
+
+data object LauncherMusicReturnFeatureId : FeatureId {
+    override val id = 257
+    override val name = "launcher_music_island_return"
+}
+
+data object IslandApplicationOverlayFeatureId : FeatureId {
+    override val id = 258
+    override val name = "system_island_application_overlays"
 }

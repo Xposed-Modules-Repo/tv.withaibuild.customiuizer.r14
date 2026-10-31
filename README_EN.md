@@ -1,61 +1,40 @@
-# 米客 A14｜CustoMIUIzer A14
+# CustoMIUIzer A14
 
 [简体中文](README.md) | English
 
-A system UI and interaction customization module maintained for **HyperOS 1 / Android 14**, derived from CustoMIUIzer. It supports **arm64-v8a / libxposed API 102** and has an independent package, signing identity and release line.
+A system UI and interaction customization module maintained for **HyperOS 1 / Android 14**, derived from CustoMIUIzer. Supports **arm64-v8a** and requires **libxposed API 102 or later**.
 
-- Current official release: `r14.24.1` (versionCode 245), requiring libxposed API 102.
-- Development and maintenance: `thetvplus`
-- Application ID: `tv.withaibuild.customiuizer.r14`
-- [Download the official release](https://github.com/thetvplus/customiuizer-a14/releases/latest) · [Release history](https://github.com/thetvplus/customiuizer-a14/releases) · [Changelog](CHANGELOG.md)
+[Download the official release](https://github.com/thetvplus/customiuizer-a14/releases/latest) · [Changelog](CHANGELOG_EN.md) · [Report an issue](https://github.com/thetvplus/customiuizer-a14/issues)
 
-This release adds a native Dock background, corrects Duo data-SIM selection and spacing, and improves weather, steps, screenshot and registration-cleanup lifecycles. Updates retain the existing signing identity and app data. Confirm framework API 102 support before upgrading.
+## Main Features
 
-The full repository, source and About-page name is 米客 A14｜CustoMIUIzer A14; short app labels retain 米客 A14.
+- **System**: status bar, Duo icon, Dynamic Island, notifications, Control Center, lock screen, audio and vibration.
+- **Home screen**: Dock backgrounds and materials, layout, folders, app titles and gestures.
+- **Buttons and gestures**: power, volume and fingerprint keys, navigation bar and custom actions.
+- **Apps and maintenance**: installer, app management, permission prompts, and recoverable maintenance and privacy operations.
 
-## Features
+See the [compact feature map](docs/FEATURE_MAP_SIMPLE.md) for all pages. Detailed behavior is documented in the [Dynamic Island](docs/features/island/README.md), [Duo](docs/features/duo-status-bar.md) and [Dock](docs/features/dock/README.md) guides.
 
-- Status bar icons, battery, signal, network speed, date and temperature;
-- Optional Duo status icon: battery ring, Wi-Fi / cellular glyph, default data SIM signal, network type text and brief headphone hints;
-- Status capsule / Dynamic Island, USB default purpose, volume and brightness panels;
-- Control center, notifications, lock screen, charging and media UI;
-- Launcher, recents, folders, icons and home-screen gestures;
-- Navigation bar, buttons, custom actions, power menu and system animations;
-- App, permission, installer, sharing, privacy-app and app-lock behavior.
+## Installation
 
-## Installation and Compatibility
+1. Download and install the official APK. Updates signed with the same certificate preserve app data.
+2. Enable the module in your Xposed framework and grant the required scopes.
+3. Restart the affected process or device, then enable the features you need. Hooks selected at installation time require restarting their target process after changing the switch.
 
-| Item | Supported range |
-| --- | --- |
-| System | HyperOS 1 / Android 14, SDK 34 |
-| ABI | `arm64-v8a` |
-| Xposed framework | libxposed API 102 minimum |
-| Module metadata | `minApiVersion=102`, `targetApiVersion=102`, `staticScope=true` |
+Availability depends on the ROM and system-app versions. Do not enable this module together with upstream or another CustoMIUIzer-derived module. Other major Android or HyperOS versions are unsupported; see the [compatibility matrix](COMPATIBILITY.md).
 
-Install the official APK, enable the module and required scopes in your framework, then restart the affected process or device. Settings indicate which changes require a restart. Hooks selected at installation time require restarting their target process after changing the switch.
+## Documentation and Development
 
-Duo is disabled by default. Open System → Status bar → Duo, then restart System UI after changes. See [Duo notes](docs/DUO_STATUS_BAR.md) for sizing, signal and hint behavior.
+The [documentation index](docs/README.md) covers development, testing, releases and feature contracts. Start with the [shared engineering rules](AGENTS.md) before contributing.
 
-Dock background is disabled by default. Open Launcher → Dock, then restart the launcher after changes. Background shrink adjusts all four edges: positive values contract, negative values expand, with a +1 dp default. Icon space and host clipping bound the effective adjustment; icons retain their native positions and sizes.
+Current source version: `r14.25.5` (versionCode 254). Maintainer: `thetvplus`. Application ID: `tv.withaibuild.customiuizer.r14`.
 
-Availability depends on the ROM and system-app versions. Dynamic app-scope requests still require framework approval. Do not enable this module together with upstream or another CustoMIUIzer-derived module. Android 13 / 15 / 16 and other major MIUI / HyperOS versions are unsupported. See [COMPATIBILITY.md](COMPATIBILITY.md).
-
-## Development and Maintenance
-
-Builds use JDK 25, Java/Kotlin output target 25 and Kotlin language/API 2.4. See the [development guide](docs/DEVELOPMENT.md#环境) for the Android 14 runtime boundary. Full local verification:
-
-```powershell
-python tools/verify.py full
-python -m unittest discover -s tools/tests -p "test_*.py"
-git diff --check
-```
-
-Read [AGENTS.md](AGENTS.md) and the [documentation index](docs/README.md) first. Environment setup, builds, tests and releases are documented in [DEVELOPMENT.md](docs/DEVELOPMENT.md), [TESTING.md](docs/TESTING.md) and [RELEASE.md](docs/RELEASE.md). See [ARCHITECTURE.md](ARCHITECTURE.md) for runtime structure.
+Later source-branch changes may be absent from the official APK with the same version name. See the [current refinement state](docs/maintenance/A14_REFINEMENT_ROADMAP.md) for unreleased changes and pending device checks.
 
 ## Support and License
 
-Support continued maintenance via WeChat or [PayPal](https://paypal.me/Jinjitv).
+Support continued maintenance through the code below or [online donations](https://paypal.me/Jinjitv).
 
-<img src="app/src/main/res/drawable-nodpi/wechat_donation_code.webp" alt="WeChat donation code" width="320">
+<img src="app/src/main/res/drawable-nodpi/wechat_donation_code.webp" alt="Project donation code" width="320">
 
-Distributed under [GPL-3.0](LICENSE). Derived from [Mikanoshi/CustoMIUIzer](https://github.com/Mikanoshi/CustoMIUIzer), with Android 14 work referenced from [MonwF/customiuizer](https://github.com/MonwF/customiuizer). Duo references and bundled licenses are listed in the [Duo notes](docs/DUO_STATUS_BAR.md).
+Distributed under [GPL-3.0](LICENSE). Derived from [Mikanoshi/CustoMIUIzer](https://github.com/Mikanoshi/CustoMIUIzer), with Android 14 work referenced from [MonwF/customiuizer](https://github.com/MonwF/customiuizer). Duo references and bundled licenses are listed in the [Duo notes](docs/features/duo-status-bar.md).

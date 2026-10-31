@@ -37,7 +37,7 @@ object SystemServerFirstEnableContract {
         infra("animation_scale_bridge", null, "GlobalActionSystemServerHooks.setupAnimationScaleBridge", "n/a"),
         infra("updater_services_bridge", null, "GlobalActionSystemServerHooks.setupUpdaterServicesBridge", "n/a"),
         lazyB("temp_hide_overlay_app", "system_screenshot_overlay", "SystemWindowHooks.TempHideOverlayAppHook", "prefs_system_screenshot", "NONE"),
-        lazyB("open_app_in_free_form", "system_notify_openinfw", "SystemWindowHooks.OpenAppInFreeFormHook", "prefs_system_floatingwindows", "LAUNCHER|SYSTEMUI"),
+        lazyB("open_app_in_free_form", "system_fw_forcein_actionsend", "SystemWindowHooks.OpenAppInFreeFormHook", "prefs_system_floatingwindows", "LAUNCHER|SYSTEMUI"),
         SystemServerFirstEnableRow(
             featureIdName = "nav_bar_actions",
             preferenceKey = "controls_backlong_action",
@@ -69,7 +69,7 @@ object SystemServerFirstEnableContract {
         lazyB("app_lock", "system_applock", "SystemLockScreenHooks.AppLockHook", "prefs_system_applock", "SECURITY_CENTER"),
         lazyB("skip_app_lock", "system_applock_skip", "SystemLockScreenHooks.SkipAppLockHook", "prefs_system_applock", "SECURITY_CENTER"),
         lazyB("alarm_compat_service", "various_alarmcompat", "SystemLockScreenHooks.AlarmCompatServiceHook", "prefs_system_alarmonlock", "SYSTEMUI"),
-        lazyB("no_call_interruption", "system_ignorecalls", "SystemAudioHooks.NoCallInterruptionHook", "prefs_various_calls", "SYSTEMUI"),
+        lazyB("no_call_interruption", "system_ignorecalls", "SystemAudioHooks.NoCallInterruptionHook", "prefs_system_audio", "SYSTEMUI"),
         lazyB("force_close", "system_forceclose", "SystemWindowHooks.ForceCloseHook", "prefs_system_other", "SYSTEMUI|SECURITY_CENTER"),
         lazyB("hide_proximity_warning", "system_hideproxywarn", "SystemDisplayHooks.HideProximityWarningHook", "prefs_system_screen", "SYSTEMUI"),
         lazyB("first_volume_press", "system_firstpress", "SystemAudioHooks.FirstVolumePressHook", "prefs_system_audio", "SYSTEMUI"),
@@ -84,7 +84,6 @@ object SystemServerFirstEnableContract {
         lazyB("fingerprint_screen_on", "controls_fingerprintscreen", "Controls.FingerprintScreenOnHook", "prefs_controls_fingerprint", "NONE"),
         lazyB("no_fingerprint_wake", "controls_fingerprintwake", "Controls.NoFingerprintWakeHook", "prefs_controls_fingerprint", "NONE"),
         lazyB("apps_disable_service", "various_disableapp", "Various.AppsDisableServiceHook", "prefs_various_general", "NONE"),
-        lazyB("disable_any_notification_block", "system_disableanynotif", "SystemNotificationHooks.DisableAnyNotificationBlockHook", "prefs_system_notifications", "SYSTEMUI"),
         lazyB("all_rotations", "system_allrotations2", "SystemDisplayHooks.AllRotationsHook", "prefs_system_screen", "SYSTEMUI"),
         lazyB("no_light_up_on_charge", "system_nolightuponcharges", "SystemDisplayHooks.NoLightUpOnChargeHook", "prefs_system_other", "SYSTEMUI|SECURITY_CENTER"),
         lazyB("selective_vibration", "system_vibration", "SystemAudioHooks.SelectiveVibrationHook", "prefs_system_vibration", "SYSTEMUI"),
@@ -96,13 +95,21 @@ object SystemServerFirstEnableContract {
         lazyB("no_access_device_logs_request", "various_disable_access_devicelogs", "SystemSecurityHooks.NoAccessDeviceLogsRequestHook", "prefs_various_exclusive", "NONE"),
         lazyB("wallpaper_scale_level", "system_other_wallpaper_scale", "SystemDisplayHooks.WallpaperScaleLevelHook", "prefs_system_other", "SYSTEMUI|SECURITY_CENTER"),
         lazyB("allow_untrusted_touch", "various_allow_untrusted_touch", "SystemWindowHooks.AllowUntrustedTouchHook", "prefs_various_exclusive", "NONE"),
-        lazyB("status_bar_height_insets", "system_statusbarheight", "SystemStatusBarInsetsHooks.StatusBarHeightInsetsHook", "prefs_system_statusbar", "SYSTEMUI"),
+        rebootRequired("status_bar_height_insets", "system_statusbarheight", "SystemStatusBarInsetsHooks.StatusBarInsetsHeightHook / StatusBarHeightResources.install", "prefs_system_statusbar"),
+        rebootRequired("system_island_application_overlays", "system_island_hide_in_floating_window", "IslandApplicationOverlayHooks.install", "prefs_system_island"),
         infra("disable_window_blurs", "system_disable_window_blurs", "SystemDisplayHooks.DisableWindowBlursHook", "prefs_system_other"),
         infra("system_usb_default_function", "system_usb_default_function", "SystemUsbDefaultHooks.hook", "prefs_system_other"),
     )
 
     fun row(featureIdName: String): SystemServerFirstEnableRow? =
         rows.firstOrNull { it.featureIdName == featureIdName }
+
+    private fun rebootRequired(name: String, key: String, hook: String, page: String) = SystemServerFirstEnableRow(
+        featureIdName = name, preferenceKey = key, triggerHook = hook, uiPage = page,
+        uiDynamic = true, restartMask = "REBOOT", installMode = TriggerHookInstallMode.PREF_GATED_AT_START,
+        canEnableAfterBoot = false, firstEnableWorksWithoutReboot = false,
+        classification = FirstEnableClassification.C_REBOOT_REQUIRED,
+    )
 
     fun names(): Set<String> = rows.map { it.featureIdName }.toSet()
 

@@ -1,13 +1,38 @@
 """Compare documented process eligibility with the current production source."""
+import csv
+import io
 import json
 import re
+import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
+from unittest.mock import patch
 
+from tools import extract_process_matrix
 from tools.extract_process_matrix import FEATURE_DIR, extract_class_body
+from tools.catalog_contract_probe import balanced_blocks, parse_feature_ids, parse_lazy_spec
 
 ROOT = Path(__file__).resolve().parents[2]
 MATRIX = ROOT / "docs/rom-intelligence/A14_PROCESS_MATRIX.json"
+
+
+class ProcessMatrixGenerationTest(unittest.TestCase):
+    def test_machine_outputs_preserve_all_features_scope_and_routing(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            output_root = Path(temporary)
+            with patch.object(extract_process_matrix, "REPO_ROOT", output_root), redirect_stdout(io.StringIO()):
+                self.assertEqual(0, extract_process_matrix.main())
+            output = output_root / "docs" / "rom-intelligence"
+            self.assertEqual({"A14_PROCESS_MATRIX.json", "A14_PROCESS_MATRIX.csv"},
+                             {path.name for path in output.iterdir()})
+            generated = json.loads((output / "A14_PROCESS_MATRIX.json").read_text(encoding="utf-8"))
+            self.assertEqual(json.loads(MATRIX.read_text(encoding="utf-8")), generated)
+            with (output / "A14_PROCESS_MATRIX.csv").open(encoding="utf-8", newline="") as handle:
+                rows = list(csv.DictReader(handle))
+            for row in rows:
+                row["featureIdInt"] = int(row["featureIdInt"])
+            self.assertEqual(generated["features"], rows)
 
 
 class ProcessMatrixEligibilityTest(unittest.TestCase):
@@ -21,6 +46,16 @@ class ProcessMatrixEligibilityTest(unittest.TestCase):
         package_set = re.search(r"RESOURCE_PACKAGES\s*=\s*setOf\((.*?)\)", source, re.S).group(1)
         actual = set(re.findall(r'"([^"]+)"', package_set))
         self.assertEqual(actual, set(self.rows["status_bar_height"]["allowedProcess"].split("; ")))
+
+    def test_every_registered_feature_is_present_in_the_current_matrix(self):
+        identities = parse_feature_ids(FEATURE_DIR / "FeatureIds.kt")
+        registered = set()
+        for path in FEATURE_DIR.glob("*Features.kt"):
+            for block in balanced_blocks(path.read_text(encoding="utf-8"), "LazyFeatureSpec"):
+                spec = parse_lazy_spec(block)
+                if spec is not None:
+                    registered.add(identities[spec["id"]])
+        self.assertEqual(registered, set(self.rows))
 
     def test_media_rows_match_their_package_enable_conditions(self):
         source = (FEATURE_DIR / "MediaFeatures.kt").read_text(encoding="utf-8")

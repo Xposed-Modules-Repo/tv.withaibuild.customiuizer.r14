@@ -220,6 +220,41 @@ class BackupRestoreTest {
         assertNull(prefs.getString("pref_key_removed_old_feature", null))
     }
 
+    @Test fun musicReturnBackupKeepsItsExplicitAppSetAndOffSwitch() {
+        val input = ByteArrayInputStream(serialize(hashMapOf<String, Any?>(
+            "pref_key_system_island_media_return" to false,
+            "pref_key_system_island_media_return_apps" to hashSetOf("chosen.music"))))
+        val prefs = FakeSharedPreferences()
+        assertTrue(BackupRestore.performRestore(input, prefs, emptySet(), { true }).commitSucceeded)
+        assertFalse(prefs.getBoolean("pref_key_system_island_media_return", true))
+        assertEquals(setOf("chosen.music"), prefs.getStringSet("pref_key_system_island_media_return_apps", emptySet()))
+    }
+
+    @Test fun numericModeImportsAndStartupAreCanonicalBeforeTheStringPreferenceIsRead() {
+        val input = ByteArrayInputStream(serialize(hashMapOf<String, Any?>(
+            "pref_key_system_island_waveform_mode" to 2, "pref_key_system_island_waveform" to false)))
+        val prefs = FakeSharedPreferences()
+        assertTrue(BackupRestore.performRestore(input, prefs, emptySet(), { true }).commitSucceeded)
+        assertEquals("2", prefs.getString(IslandPreferenceDefaults.waveformModeKey, null))
+        assertFalse(prefs.getBoolean("pref_key_system_island_waveform", true))
+        prefs.put(IslandPreferenceDefaults.waveformModeKey, 0)
+        IslandPreferenceDefaults.initialize(prefs)
+        assertEquals("0", prefs.getString(IslandPreferenceDefaults.waveformModeKey, null))
+    }
+
+    @Test fun restoringOldIslandBackupsMigratesBeforeTheSettingsActivityCanPersistDefaults() {
+        for (mode in listOf("3", "4")) {
+            val input = ByteArrayInputStream(serialize(hashMapOf<String, Any?>(
+                "pref_key_system_strong_toast_mode" to mode, "pref_key_system_island_waveform" to false)))
+            val prefs = FakeSharedPreferences()
+            val result = BackupRestore.performRestore(input, prefs, emptySet(), { true })
+            assertTrue(result.commitSucceeded)
+            assertTrue(IslandPreferenceDefaults.feedbackKeys.all { prefs.getBoolean(it, false) })
+            assertEquals("0", prefs.getString(IslandPreferenceDefaults.waveformModeKey, null))
+            assertFalse(prefs.getBoolean("pref_key_system_island_waveform", true))
+        }
+    }
+
     @Test
     fun performRestorePrimaryCommitFalseAndRollbackTrueUpdatesAndRestoresVisibleState() {
         val map = HashMap<String, Any?>()
@@ -1294,6 +1329,32 @@ class BackupRestoreTest {
         assertFalse(CurrentPreferenceContract.pruneOrphanPreferences(prefs))
         assertEquals(0, prefs.getAllCount)
         assertEquals(0, prefs.commitSnapshotCount())
+    }
+
+    @Test fun revisionTwoRetiresOnlyIslandPanelWidthWithoutGeneralCleanup() {
+        val prefs = FakeSharedPreferences().apply {
+            put(CurrentPreferenceContract.CONTRACT_REVISION_KEY, 2)
+            put("pref_key_system_island_expanded_width", 364)
+            for (key in listOf("system_island_icons", "system_island_concise", "system_island_controls",
+                "system_island_gestures", "system_island_gestures_horizontal", "system_island_gestures_vertical")) {
+                put(key, false); put("pref_key_$key", false)
+            }
+            put("system_island_expanded_width", 600)
+            put("pref_key_system_island_width_medium", 260)
+            put("unrelated_preserved_value", "unchanged")
+        }
+        assertTrue(CurrentPreferenceContract.pruneOrphanPreferences(prefs))
+        assertFalse(prefs.contains("pref_key_system_island_expanded_width"))
+        assertFalse(prefs.contains("system_island_expanded_width"))
+        for (key in listOf("system_island_icons", "system_island_concise", "system_island_controls",
+            "system_island_gestures", "system_island_gestures_horizontal", "system_island_gestures_vertical")) {
+            assertFalse(prefs.contains(key)); assertFalse(prefs.contains("pref_key_$key"))
+        }
+        assertEquals(260, prefs.getInt("pref_key_system_island_width_medium", 0))
+        assertEquals("unchanged", prefs.getString("unrelated_preserved_value", null))
+        assertEquals(0, prefs.getAllCount)
+        assertFalse(CurrentPreferenceContract.pruneOrphanPreferences(prefs))
+        assertEquals(1, prefs.commitSnapshotCount())
     }
 
     @Test

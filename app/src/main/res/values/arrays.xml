@@ -22,6 +22,8 @@
 		<item>@string/array_global_actions_sleep</item>
 		<item>@string/array_global_actions_screenshot</item>
 		<item>@string/array_global_actions_recents</item>
+		<item>@string/array_global_actions_pip_hide</item>
+		<item>@string/array_global_actions_pip_stash</item>
 		<item>@string/array_global_actions_volume</item>
 		<item>@string/array_global_actions_powermenu</item>
 		<item>@string/array_global_actions_expandsidebar</item>
@@ -42,6 +44,8 @@
 		<item>5</item>
 		<item>6</item>
 		<item>7</item>
+		<item>33</item>
+		<item>34</item>
 		<item>17</item>
 		<item>12</item>
 		<item>26</item>
@@ -67,6 +71,8 @@
 		<item>@string/array_global_actions_floatingwindow</item>
 		<item>@string/array_global_actions_pinningwindow</item>
 		<item>@string/array_global_actions_splitscreen</item>
+		<item>@string/array_global_actions_pip_hide</item>
+		<item>@string/array_global_actions_pip_stash</item>
 		<item>@string/array_global_actions_volume</item>
 		<item>@string/array_global_actions_volume_up</item>
 		<item>@string/array_global_actions_volume_down</item>
@@ -99,6 +105,8 @@
 		<item>27</item>
 		<item>28</item>
 		<item>29</item>
+		<item>33</item>
+		<item>34</item>
 		<item>17</item>
 		<item>18</item>
 		<item>19</item>
@@ -128,6 +136,8 @@
 		<item>@string/array_global_actions_sleep</item>
 		<item>@string/array_global_actions_screenshot</item>
 		<item>@string/array_global_actions_recents</item>
+		<item>@string/array_global_actions_pip_hide</item>
+		<item>@string/array_global_actions_pip_stash</item>
 		<item>@string/array_global_actions_volume</item>
 		<item>@string/array_global_actions_menu</item>
 		<item>@string/array_global_actions_goback</item>
@@ -151,6 +161,8 @@
 		<item>5</item>
 		<item>6</item>
 		<item>7</item>
+		<item>33</item>
+		<item>34</item>
 		<item>17</item>
 		<item>16</item>
 		<item>15</item>
@@ -173,6 +185,8 @@
 		<item>@string/array_global_actions_sleep</item>
 		<item>@string/array_global_actions_screenshot</item>
 		<item>@string/array_global_actions_recents</item>
+		<item>@string/array_global_actions_pip_hide</item>
+		<item>@string/array_global_actions_pip_stash</item>
 		<item>@string/array_global_actions_volume</item>
 		<item>@string/array_global_actions_volume_up</item>
 		<item>@string/array_global_actions_volume_down</item>
@@ -200,6 +214,8 @@
 		<item>5</item>
 		<item>6</item>
 		<item>7</item>
+		<item>33</item>
+		<item>34</item>
 		<item>17</item>
 		<item>18</item>
 		<item>19</item>
@@ -716,6 +732,14 @@
 		<item>2</item>
 		<item>3</item>
 	</string-array>
+	<string-array name="island_entrance_styles">
+		<item>@string/system_island_entrance_style_top</item>
+		<item>@string/system_island_entrance_style_center</item>
+	</string-array>
+	<string-array name="island_entrance_styles_val">
+		<item>1</item>
+		<item>0</item>
+	</string-array>
 	<string-array name="usb_default_functions">
 		<item>@string/usb_default_function_follow_system</item>
 		<item>@string/usb_default_function_charge_only</item>
@@ -732,9 +756,76 @@
     <string-array name="launcher_dock_background_material">
         <item>@string/launcher_dock_background_auto_glass</item>
         <item>@string/launcher_dock_background_gaussian</item>
+        <item>@string/launcher_dock_background_liquid</item>
     </string-array>
     <string-array name="launcher_dock_background_material_values" translatable="false">
         <item>0</item>
         <item>2</item>
+        <item>3</item>
+    </string-array>
+    <string-array name="system_toast_position">
+        <item>@string/array_default</item>
+        <item>@string/system_toast_position_top</item>
+        <item>@string/system_toast_position_center</item>
+        <item>@string/system_toast_position_bottom</item>
+    </string-array>
+    <string-array name="system_toast_position_values" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
+
+    <string-array name="global_actions_island_music">
+        <item>@string/array_global_actions_none</item>
+        <item>@string/array_media_playpause</item>
+        <item>@string/system_island_action_play</item>
+        <item>@string/system_island_action_pause</item>
+        <item>@string/array_media_prev</item>
+        <item>@string/array_media_next</item>
+        <item>@string/array_global_actions_volume_up</item>
+        <item>@string/array_global_actions_volume_down</item>
+        <item>@string/array_global_actions_volume</item>
+        <item>@string/system_island_action_player</item>
+        <item>@string/array_global_actions_pip_hide</item>
+        <item>@string/array_global_actions_pip_stash</item>
+        <item>@string/array_global_actions_launch</item>
+        <item>@string/array_global_actions_shortcut</item>
+        <item>@string/array_global_actions_activity</item>
+        <item>@string/array_global_actions_notif</item>
+        <item>@string/array_global_actions_eqs</item>
+    </string-array>
+    <integer-array name="global_actions_island_music_val">
+        <item>1</item>
+        <item>85</item>
+        <item>30</item>
+        <item>31</item>
+        <item>88</item>
+        <item>87</item>
+        <item>18</item>
+        <item>19</item>
+        <item>17</item>
+        <item>32</item>
+        <item>33</item>
+        <item>34</item>
+        <item>8</item>
+        <item>9</item>
+        <item>20</item>
+        <item>2</item>
+        <item>3</item>
+    </integer-array>
+    <string-array name="island_positions">
+        <item>@string/system_island_position_left</item>
+        <item>@string/system_island_position_center</item>
+        <item>@string/system_island_position_right</item>
+    </string-array>
+    <string-array name="island_positions_val"><item>0</item><item>1</item><item>2</item></string-array>
+    <string-array name="island_waveform_modes">
+        <item>@string/system_island_waveform_off</item>
+        <item>@string/system_island_waveform_light</item>
+        <item>@string/system_island_waveform_real</item>
+    </string-array>
+    <string-array name="island_waveform_modes_val" translatable="false">
+        <item>0</item><item>1</item><item>2</item>
     </string-array>
 </resources>

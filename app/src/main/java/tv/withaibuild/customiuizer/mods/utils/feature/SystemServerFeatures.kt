@@ -14,6 +14,9 @@ import tv.withaibuild.customiuizer.mods.SystemShareMenuHooks
 import tv.withaibuild.customiuizer.mods.SystemStatusBarInsetsHooks
 import tv.withaibuild.customiuizer.mods.SystemWindowHooks
 import tv.withaibuild.customiuizer.mods.utils.StatusBarHeightConfig
+import tv.withaibuild.customiuizer.mods.utils.StrongToastPresentationMode
+import tv.withaibuild.customiuizer.mods.statusbarheight.StatusBarHeightResources
+import tv.withaibuild.customiuizer.mods.island.IslandApplicationOverlayHooks
 import tv.withaibuild.customiuizer.mods.Various
 import tv.withaibuild.customiuizer.mods.utils.FeatureDefinition
 import tv.withaibuild.customiuizer.mods.utils.FeatureId
@@ -71,11 +74,11 @@ internal class OpenAppInFreeFormFeature(
     lpparam,
     OpenAppInFreeFormFeatureId,
     "Open App In Free Form",
-    "system_notify_openinfw"
+    "system_fw_forcein_actionsend"
 ) {
     companion object {
         @JvmStatic
-        fun evaluateEnabled(prefs: PrefMap): Boolean = prefs.getBoolean("system_notify_openinfw") || prefs.getBoolean("system_fw_forcein_actionsend") || prefs.getBoolean("system_betterpopups_allowfloat") || prefs.getBoolean("system_cc_freeform_when_longclick")
+        fun evaluateEnabled(prefs: PrefMap): Boolean = prefs.getBoolean("system_fw_forcein_actionsend") || prefs.getBoolean("system_cc_freeform_when_longclick")
     }
 
     override fun isEnabledCondition(prefs: PrefMap) = Companion.evaluateEnabled(prefs)
@@ -680,23 +683,6 @@ internal class AppsDisableServiceFeature(
     override fun installHook() = Various.AppsDisableServiceHook(lpparam)
 }
 
-internal class DisableAnyNotificationBlockFeature(
-    lpparam: XposedModuleInterface.SystemServerStartingParam
-) : BaseSystemServerFeature(
-    lpparam,
-    DisableAnyNotificationBlockFeatureId,
-    "Disable Any Notification Block",
-    "system_disableanynotif"
-) {
-    companion object {
-        @JvmStatic
-        fun evaluateEnabled(prefs: PrefMap): Boolean = prefs.getBoolean("system_disableanynotif")
-    }
-
-    override fun isEnabledCondition(prefs: PrefMap) = Companion.evaluateEnabled(prefs)
-    override fun installHook() = SystemNotificationHooks.DisableAnyNotificationBlockHook(lpparam)
-}
-
 internal class AllRotationsFeature(
     lpparam: XposedModuleInterface.SystemServerStartingParam
 ) : BaseSystemServerFeature(
@@ -899,7 +885,22 @@ internal class StatusBarHeightInsetsFeature(
     }
 
     override fun isEnabledCondition(prefs: PrefMap) = Companion.evaluateEnabled(prefs)
-    override fun installHook() = SystemStatusBarInsetsHooks.StatusBarInsetsHeightHook(lpparam)
+    override fun installHook() {
+        SystemStatusBarInsetsHooks.StatusBarInsetsHeightHook(lpparam)
+        lpparam.classLoader?.let(StatusBarHeightResources::install)
+    }
+}
+
+internal class IslandApplicationOverlayFeature(lpparam: XposedModuleInterface.SystemServerStartingParam) :
+    BaseSystemServerFeature(lpparam, IslandApplicationOverlayFeatureId, "Island Application Overlays",
+        "system_island_hide_in_floating_window") {
+    companion object {
+        fun evaluateEnabled(prefs: PrefMap) = StrongToastPresentationMode.fromPreference(
+            prefs.getStringAsInt("system_strong_toast_mode", 0)) == StrongToastPresentationMode.DYNAMIC_ISLAND &&
+            prefs.getBoolean("system_island_hide_in_floating_window")
+    }
+    override fun isEnabledCondition(prefs: PrefMap) = evaluateEnabled(prefs)
+    override fun installHook() { lpparam.classLoader?.let(IslandApplicationOverlayHooks::install) }
 }
 
 /** Always installed because the default-off switch must still be available after a restart. */
@@ -961,7 +962,7 @@ object SystemServerFeatures {
         LazyFeatureSpec(
             id = OpenAppInFreeFormFeatureId,
             name = "Open App In Free Form",
-            preferenceKey = "system_notify_openinfw",
+            preferenceKey = "system_fw_forcein_actionsend",
             target = FeatureTarget.SYSTEM_SERVER,
             phase = InstallPhase.SYSTEM_SERVER_STARTING,
             enabled = { prefs -> OpenAppInFreeFormFeature.evaluateEnabled(prefs) },
@@ -1283,15 +1284,6 @@ object SystemServerFeatures {
             factory = { AppsDisableServiceFeature(lpparam) },
         ),
         LazyFeatureSpec(
-            id = DisableAnyNotificationBlockFeatureId,
-            name = "Disable Any Notification Block",
-            preferenceKey = "system_disableanynotif",
-            target = FeatureTarget.SYSTEM_SERVER,
-            phase = InstallPhase.SYSTEM_SERVER_STARTING,
-            enabled = { prefs -> DisableAnyNotificationBlockFeature.evaluateEnabled(prefs) },
-            factory = { DisableAnyNotificationBlockFeature(lpparam) },
-        ),
-        LazyFeatureSpec(
             id = AllRotationsFeatureId,
             name = "All Rotations",
             preferenceKey = "system_allrotations2",
@@ -1398,6 +1390,15 @@ object SystemServerFeatures {
             phase = InstallPhase.SYSTEM_SERVER_STARTING,
             enabled = { prefs -> StatusBarHeightInsetsFeature.evaluateEnabled(prefs) },
             factory = { StatusBarHeightInsetsFeature(lpparam) },
+        ),
+        LazyFeatureSpec(
+            id = IslandApplicationOverlayFeatureId,
+            name = "Island Application Overlays",
+            preferenceKey = "system_island_hide_in_floating_window",
+            target = FeatureTarget.SYSTEM_SERVER,
+            phase = InstallPhase.SYSTEM_SERVER_STARTING,
+            enabled = { prefs -> IslandApplicationOverlayFeature.evaluateEnabled(prefs) },
+            factory = { IslandApplicationOverlayFeature(lpparam) },
         ),
         LazyFeatureSpec(
             id = DisableWindowBlursFeatureId,

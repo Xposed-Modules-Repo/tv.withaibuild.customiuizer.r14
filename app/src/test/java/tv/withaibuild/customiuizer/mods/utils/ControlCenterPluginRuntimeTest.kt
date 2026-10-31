@@ -1,6 +1,7 @@
 package tv.withaibuild.customiuizer.mods.utils
 
 import android.view.View
+import android.content.pm.ApplicationInfo
 import io.github.libxposed.api.XposedInterface
 import org.junit.After
 import org.junit.Before
@@ -79,6 +80,34 @@ class ControlCenterPluginRuntimeTest {
         engine.bind(loader2)
 
         assertSame(loader2, engine.activeLoader())
+    }
+
+    @Test
+    fun pluginLifecycleDoesNotCancelStatusBarGesture() {
+        val statusBar = newPreparedGestureMachine(engine.arbiter())
+        val event = down(1, 1000L).copy(entry = GestureEntry.STATUS_BAR_TOUCH)
+        statusBar.prepare(1, Any())
+        statusBar.dispatch(event, Any())
+        val before = statusBar.snapshot(1)
+
+        fun assertStatusBarStillOwnsGesture() {
+            assertEquals(1, engine.arbiter().tokensForOwner(1))
+            assertEquals(before, statusBar.snapshot(1))
+        }
+
+        engine.bind(newIsolatedClassLoader())
+        assertStatusBarStillOwnsGesture()
+        engine.bind(newIsolatedClassLoader())
+        assertStatusBarStillOwnsGesture()
+        engine.installPluginHooksFailure = IllegalStateException("partial replacement")
+        assertTrue(engine.bind(newIsolatedClassLoader()) is ControlCenterBindResult.Failed)
+        assertStatusBarStillOwnsGesture()
+        engine.clear()
+        assertStatusBarStillOwnsGesture()
+
+        statusBar.dispatch(event.copy(actionMasked = GestureAction.UP, eventTime = 1100L), Any())
+        assertEquals(GestureState.IDLE, statusBar.snapshot(1).state)
+        assertEquals(0, engine.arbiter().heldTokenCount())
     }
 
     @Test
@@ -178,6 +207,27 @@ class ControlCenterPluginRuntimeTest {
         assertTrue(second is ControlCenterBindResult.Installed)
         assertSame(loader2, engine.activeLoader())
         assertEquals(InstallState.INSTALLED, engine.installState())
+    }
+
+    @Test
+    fun createPluginCallbackRecoversWithANewLoaderAfterPartialFailure() {
+        var installed: MethodHook? = null
+        engine.installCreatePluginHookCapture = { _, hook -> installed = hook }
+        engine.hookIfNeeded(testLoader)
+        val loader1 = newIsolatedClassLoader()
+        val loader2 = newIsolatedClassLoader()
+        engine.installPluginHooksFailure = IllegalStateException("partial install")
+        val hook = requireNotNull(installed)
+        hook.beforeHook(fakeBeforeHookCallback(thisObject = PluginFactory(loader1)))
+        assertEquals(InstallState.FAILED_PARTIAL, engine.installState())
+
+        engine.installPluginHooksFailure = null
+        hook.beforeHook(fakeBeforeHookCallback(thisObject = PluginFactory(loader1)))
+        assertEquals("partially installed hooks must not be installed twice", 1, engine.installPluginCalls)
+        hook.beforeHook(fakeBeforeHookCallback(thisObject = PluginFactory(loader2)))
+        assertSame(loader2, engine.activeLoader())
+        assertEquals(InstallState.INSTALLED, engine.installState())
+        assertEquals(2, engine.installPluginCalls)
     }
 
     @Test
@@ -440,6 +490,15 @@ class ControlCenterPluginRuntimeTest {
             override fun proceedWith(p0: Any, p1: Array<Any>): Any? = error("not used in test")
         }
         return BeforeHookCallback(chain)
+    }
+
+    private class PluginFactory(loader: ClassLoader) {
+        @JvmField val mAppInfo = ApplicationInfo().apply { packageName = "miui.systemui.plugin" }
+        @JvmField val mClassLoaderFactory = LoaderFactory(loader)
+    }
+
+    private class LoaderFactory(private val loader: ClassLoader) {
+        fun get(): ClassLoader = loader
     }
 
     private open class TestableEngine : ControlCenterPluginRuntimeEngine() {
