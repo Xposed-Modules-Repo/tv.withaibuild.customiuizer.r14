@@ -92,7 +92,11 @@ class GestureMachine(
 
         if (event.actionMasked == GestureAction.DOWN) {
             arbiter?.releaseOwner(ownerId)
-            val currentBrightness = readBrightness(deps)
+            // Pointer count can change during tracking, so either action may need the
+            // DOWN value. Volume/tap-only configurations and rejected starts never do.
+            val canStart = event.entry != GestureEntry.CONTROL_CENTER_TOUCH || event.y <= deps.statusBarHeight
+            val needsBrightness = config.singleAction == 2 || config.dualAction == 2
+            val currentBrightness = if (canStart && needsBrightness) readBrightness(deps) else -1f
             val (candidate, commands) = GestureStateMachine.process(
                 current,
                 event,

@@ -1,17 +1,28 @@
 package tv.withaibuild.customiuizer
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.WindowManager
+import androidx.core.content.ContextCompat
 import android.view.KeyEvent
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.appcompat.widget.Toolbar
+import androidx.core.view.WindowCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.compose.foundation.layout.consumeWindowInsets
+import android.widget.LinearLayout
+import androidx.fragment.app.FragmentContainerView
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import tv.withaibuild.customiuizer.ui.SettingsActionBar
+import tv.withaibuild.customiuizer.ui.SettingsTheme
+import tv.withaibuild.customiuizer.ui.SettingsToolbar
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.PredictiveBackControl
@@ -20,6 +31,7 @@ import tv.withaibuild.customiuizer.utils.Helpers
 
 class MainActivity : AppCompatActivity() {
 
+    val settingsBar = SettingsActionBar(this)
     private var mainFrag: MainFragment? = null
     private var windowInsetsController: WindowInsetsControllerCompat? = null
 
@@ -29,12 +41,27 @@ class MainActivity : AppCompatActivity() {
         // cancellation can leave our custom page translation at its partial value.
         FragmentManager.enablePredictiveBack(false)
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            insets
+        }
+        val toolbar = ComposeView(this).apply {
+            id = R.id.mainActionBar
+            consumeWindowInsets = false
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent { SettingsTheme { SettingsToolbar(settingsBar,
+                onBack = { onBackPressedDispatcher.onBackPressed() }, onAction = ::dispatchSettingsAction) } }
+        }
+        val content = FragmentContainerView(this).apply { id = R.id.fragment_container }
+        root.addView(toolbar, LinearLayout.LayoutParams(-1, -2))
+        root.addView(content, LinearLayout.LayoutParams(-1, 0, 1f))
+        setContentView(root)
         windowInsetsController = WindowInsetsControllerCompat(window, window.decorView)
         applySystemBarsAppearance()
 
-        val myToolbar = findViewById<Toolbar>(R.id.mainActionBar)
-        setSupportActionBar(myToolbar)
         if (savedInstanceState != null) {
             mainFrag = supportFragmentManager.getFragment(savedInstanceState, "mainFrag") as? MainFragment
         } else if (mainFrag == null) {
@@ -52,7 +79,14 @@ class MainActivity : AppCompatActivity() {
         applySystemBarsAppearance()
     }
 
+    @Suppress("DEPRECATION") // The supported runtime is Android 14.
     private fun applySystemBarsAppearance() {
+        val background = ContextCompat.getColor(this, R.color.color_window_background)
+        window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS or
+            WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION)
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+        window.statusBarColor = background
+        window.navigationBarColor = background
         val isNightMode = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
         (windowInsetsController ?: WindowInsetsControllerCompat(window, window.decorView).also {
             windowInsetsController = it
@@ -92,8 +126,11 @@ class MainActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    private fun dispatchSettingsAction(item: MenuItem) {
+        val fragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
+        if (fragment?.onOptionsItemSelected(item) != true) onOptionsItemSelected(item)
+        if (fragment != null && fragment === supportFragmentManager.findFragmentById(R.id.fragment_container) && fragment.isAdded)
+            settingsBar.bind(fragment)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

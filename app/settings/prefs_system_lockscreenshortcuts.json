@@ -1,0 +1,58 @@
+{
+  "type": "screen",
+  "attributes": {},
+  "children": [
+    {
+      "type": "toggle",
+      "attributes": {
+        "android:key": "pref_key_system_lockscreenshortcuts",
+        "android:title": "@string/enable_mod",
+        "android:defaultValue": "false"
+      }
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/prefs_group_actions",
+        "app:dynamic": "true"
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_lockscreenshortcuts_right_off",
+            "android:title": "@string/system_lockscreenshortcuts_right_off_title",
+            "android:dependency": "pref_key_system_lockscreenshortcuts",
+            "android:defaultValue": "false"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_lockscreenshortcuts_right",
+            "android:title": "@string/system_lockscreenshortcuts_right_title",
+            "android:defaultValue": "false"
+          }
+        },
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_lockscreenshortcuts_left_off",
+            "android:title": "@string/system_lockscreenshortcuts_left_off_title",
+            "android:dependency": "pref_key_system_lockscreenshortcuts",
+            "android:defaultValue": "false"
+          }
+        },
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_lockscreenshortcuts_left_tapaction",
+            "android:title": "@string/system_lockscreenshortcuts_left_tapaction_title",
+            "android:dependency": "pref_key_system_lockscreenshortcuts",
+            "android:defaultValue": "false"
+          }
+        }
+      ]
+    }
+  ]
+}

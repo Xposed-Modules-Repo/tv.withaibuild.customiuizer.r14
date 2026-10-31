@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import shutil
+import json
 import re
 import subprocess
 import sys
@@ -21,13 +22,14 @@ class FeatureMapTest(unittest.TestCase):
     def test_about_links_and_groups_follow_the_native_layout_in_both_maps(self):
         strings = feature_map.load_strings(self.repo)
         entries = list(feature_map.about_entries(self.repo, strings))
-        self.assertIn(("about_community_row", ("项目", "Telegram 交流群"), True), entries)
+        self.assertIn(("about_community", ("项目", "Telegram 交流群"), True), entries)
         detailed, simple = feature_map.render(self.repo), feature_map.render_simple(self.repo)
         self.assertIn("项目 → Telegram 交流群", detailed)
-        self.assertIn("`R.id.about_community_row`", detailed)
+        self.assertIn("`tag:about_community`", detailed)
         self.assertIn("└─ Telegram 交流群", simple)
-        layout = self.repo / feature_map.RES / "layout/fragment_about.xml"
-        layout.write_text(layout.read_text(encoding="utf-8").replace("@string/about_community_title", "交流群测试"), encoding="utf-8")
+        source = self.repo / feature_map.RES / "values-zh-rCN/strings.xml"
+        source.write_text(source.read_text(encoding="utf-8").replace(
+            'name="about_community_title">Telegram 交流群<', 'name="about_community_title">交流群测试<'), encoding="utf-8")
         self.assertIn("项目 → 交流群测试", feature_map.render(self.repo))
         self.assertIn("└─ 交流群测试", feature_map.render_simple(self.repo))
 
@@ -46,7 +48,7 @@ class FeatureMapTest(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.repo = Path(self.temp.name)
-        for directory in (feature_map.RES / "xml", feature_map.RES / "values", feature_map.RES / "values-zh-rCN", feature_map.RES / "layout", feature_map.RES / "menu", feature_map.JAVA):
+        for directory in (feature_map.RES / "xml", feature_map.RES / "values", feature_map.RES / "values-zh-rCN", Path("app/settings"), feature_map.JAVA):
             shutil.copytree(ROOT / directory, self.repo / directory)
         matrix = Path("docs/rom-intelligence/A14_PROCESS_MATRIX.json")
         (self.repo / matrix).parent.mkdir(parents=True)
@@ -55,11 +57,11 @@ class FeatureMapTest(unittest.TestCase):
     def test_every_page_and_visible_key_in_real_inputs_is_mapped(self):
         strings = feature_map.load_strings(self.repo)
         pages = feature_map.collect_pages(self.repo, strings)
-        self.assertEqual(34, sum(not p.standalone for p in pages))
+        self.assertEqual(35, sum(not p.standalone for p in pages))
         self.assertEqual({p[0] for p in prefs.STANDALONE_PAGES}, {p.key for p in pages if p.standalone})
         rendered = feature_map.render(self.repo)
-        for path in (self.repo / feature_map.RES / "xml").glob("prefs_*.xml"):
-            for element in ET.parse(path).getroot().iter():
+        for path in (self.repo / "app/settings").glob("prefs_*.json"):
+            for element in feature_map.read_element(path).iter():
                 key = element.get(prefs.ANDROID_KEY)
                 if key and element.tag not in ("PreferenceScreen", prefs.PREFERENCE_CATEGORY) and element.get(prefs.AUTO_VISIBLE) != "false":
                     with self.subTest(path=path.name, key=key):
@@ -132,11 +134,13 @@ class FeatureMapTest(unittest.TestCase):
         self.assertEqual(original, output.read_bytes())
 
     def test_new_literal_title_dependencies_hidden_rows_and_controller_drift(self):
-        source = self.repo / feature_map.RES / "xml/prefs_system_autobrightness.xml"
-        root = ET.parse(source).getroot()
-        ET.SubElement(root, prefs.PREFERENCE_ITEM, {prefs.ANDROID_KEY: "pref_key_map_fixture", prefs.ANDROID_TITLE: "边界|选项", feature_map.ANDROID + "dependency": "pref_key_system_autobrightness"})
-        ET.SubElement(root, prefs.PREFERENCE_ITEM, {prefs.ANDROID_KEY: "pref_key_map_hidden", prefs.ANDROID_TITLE: "不可见", prefs.AUTO_VISIBLE: "false"})
-        ET.ElementTree(root).write(source, encoding="utf-8")
+        source = self.repo / "app/settings/prefs_system_autobrightness.json"
+        definition = json.loads(source.read_text(encoding="utf-8"))
+        definition.setdefault("children", []).extend([
+            {"type": "action", "attributes": {"android:key": "pref_key_map_fixture", "android:title": "边界|选项", "android:dependency": "pref_key_system_autobrightness"}},
+            {"type": "action", "attributes": {"android:key": "pref_key_map_hidden", "android:title": "不可见", "app:isPreferenceVisible": "false"}},
+        ])
+        source.write_text(json.dumps(definition, ensure_ascii=False), encoding="utf-8")
         rendered = feature_map.render(self.repo)
         self.assertIn("边界\\|选项", rendered)
         self.assertIn("`pref_key_map_fixture` | 条件启用：`pref_key_system_autobrightness`", rendered)
@@ -151,19 +155,17 @@ class FeatureMapTest(unittest.TestCase):
             feature_map.resolve("@string/not_present", strings)
         resolver = self.repo / feature_map.JAVA / "utils/PreferenceResourceResolver.kt"
         old = resolver.read_text(encoding="utf-8")
-        resolver.write_text(old.replace("R.xml.prefs_system_screen", "R.xml.prefs_missing"), encoding="utf-8")
+        resolver.write_text(old.replace("R.id.prefs_system_screen", "R.id.prefs_missing"), encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "Resolver routes"):
             feature_map.collect_pages(self.repo, strings)
         resolver.write_text(old, encoding="utf-8")
-        (self.repo / feature_map.RES / "xml/prefs_orphan.xml").write_text("<PreferenceScreen/>")
+        (self.repo / "app/settings/prefs_orphan.json").write_text('{"type":"screen"}')
         with self.assertRaisesRegex(ValueError, "Unmapped preference XML"):
             feature_map.collect_pages(self.repo, strings)
 
     def test_home_menu_shared_pages_and_runtime_only_features(self):
         rendered = feature_map.render(self.repo)
-        menu = ET.parse(self.repo / feature_map.RES / "menu/menu_mods.xml").getroot()
-        for item in menu.iter("item"):
-            key = item.attrib[feature_map.ANDROID + "id"].split("/")[-1]
+        for key, _ in feature_map.menu_entries(self.repo, feature_map.load_strings(self.repo)):
             self.assertIn(f"`R.id.{key}`", rendered)
         for owner in ("MultiAction", "AppSelector", "ActivitySelector", "ShortcutSelector", "SortableList", "WiFiList", "BTList", "ColorSelector"):
             self.assertIn(f"{owner}.kt", rendered)

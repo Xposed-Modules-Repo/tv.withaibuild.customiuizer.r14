@@ -1,8 +1,9 @@
 package tv.withaibuild.customiuizer.mods.utils
 
+import tv.withaibuild.customiuizer.testsupport.repositorySource as source
+
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
 
 class LockScreenAlbumArtLifecycleContractTest {
 
@@ -32,13 +33,4 @@ class LockScreenAlbumArtLifecycleContractTest {
         assertTrue(radiusCheck >= 0 && bitmapCopy > radiusCheck)
     }
 
-    private fun source(relativePath: String): String {
-        var directory = File(System.getProperty("user.dir").orEmpty()).absoluteFile
-        while (true) {
-            val candidate = File(directory, relativePath)
-            if (candidate.isFile) return candidate.readText()
-            directory = directory.parentFile
-                ?: error("Repository root not found while locating $relativePath")
-        }
-    }
 }

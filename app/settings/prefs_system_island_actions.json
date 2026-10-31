@@ -1,0 +1,144 @@
+{
+  "type": "screen",
+  "attributes": {
+    "android:key": "pref_key_system_island_actions_cat"
+  },
+  "children": [
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/system_island_return_group"
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_island_media_return",
+            "android:title": "@string/system_island_media_return_title",
+            "android:defaultValue": "false",
+            "android:summary": "@string/system_island_media_return_summ"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_island_media_return_apps",
+            "android:title": "@string/system_island_media_return_apps_title",
+            "android:summary": "@string/system_island_media_return_apps_summ",
+            "android:dependency": "pref_key_system_island_media_return",
+            "app:countAsSummary": "true"
+          }
+        },
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_island_live_return",
+            "android:title": "@string/system_island_live_return",
+            "android:summary": "@string/system_island_live_return_summary",
+            "android:defaultValue": "true"
+          }
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/system_island_music_group"
+      },
+      "children": [
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_island_music_left",
+            "android:title": "@string/system_island_gesture_left"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_island_music_right",
+            "android:title": "@string/system_island_gesture_right"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_island_music_down",
+            "android:title": "@string/system_island_gesture_down"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_island_music_double",
+            "android:title": "@string/system_island_gesture_double"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_island_music_long",
+            "android:title": "@string/system_island_gesture_long"
+          }
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/system_island_idle_title"
+      },
+      "children": [
+        {
+          "type": "action",
+          "attributes": {
+            "android:summary": "@string/system_island_idle_gestures_summ",
+            "android:selectable": "false"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_island_idle_tap",
+            "android:title": "@string/system_island_gesture_tap"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_island_idle_left",
+            "android:title": "@string/system_island_gesture_left"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_island_idle_right",
+            "android:title": "@string/system_island_gesture_right"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_island_idle_down",
+            "android:title": "@string/system_island_gesture_down"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_island_idle_double",
+            "android:title": "@string/system_island_gesture_double"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_island_idle_long",
+            "android:title": "@string/system_island_gesture_long"
+          }
+        }
+      ]
+    }
+  ]
+}

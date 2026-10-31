@@ -28,6 +28,8 @@ class IslandMediaCaptureFormatTest {
         FormatVisualizer.captureEnabled = false
         FormatVisualizer.maximumSize = 1024
         FormatVisualizer.readback = null
+        FormatVisualizer.requestedRate = 0
+        FormatVisualizer.maximumRate = 30_000
     }
 
     private fun backend() = IslandAudioSpectrum.NativeBackend(RuntimeEnvironment.getApplication(), Handler(Looper.getMainLooper()))
@@ -79,8 +81,25 @@ class IslandMediaCaptureFormatTest {
         capture.close()
     }
 
+    @Test fun decorativeFftRequestsThirtyHzAndStillRespectsALowerNativeLimit() {
+        for (limit in listOf(30_000, 20_000, 5_000)) {
+            FormatVisualizer.maximumRate = limit
+            val capture = backend().capture(42) { _, _ -> }
+            assertEquals(minOf(30_000, limit), FormatVisualizer.requestedRate)
+            capture.close()
+        }
+    }
+
     @Implements(Visualizer::class)
     class FormatVisualizer : ShadowVisualizer() {
+        @Implementation override fun setDataCaptureListener(listener: Visualizer.OnDataCaptureListener?,
+            rate: Int, waveform: Boolean, fft: Boolean): Int {
+            assertNotNull(listener)
+            assertFalse(waveform)
+            assertTrue(fft)
+            requestedRate = rate
+            return Visualizer.SUCCESS
+        }
         @Implementation override fun native_getSamplingRate() = rate
         @Implementation override fun native_setCaptureSize(value: Int): Int {
             if (sizeStatus == Visualizer.SUCCESS) size = value
@@ -108,7 +127,9 @@ class IslandMediaCaptureFormatTest {
             var maximumSize = 1024
             var readback: Int? = null
             @JvmStatic @Implementation fun getCaptureSizeRange() = intArrayOf(128, maximumSize)
-            @JvmStatic @Implementation fun getMaxCaptureRate() = 30_000
+            var requestedRate = 0
+            var maximumRate = 30_000
+            @JvmStatic @Implementation fun getMaxCaptureRate() = maximumRate
         }
     }
 }

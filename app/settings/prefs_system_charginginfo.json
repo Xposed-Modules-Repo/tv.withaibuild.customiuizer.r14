@@ -1,0 +1,82 @@
+{
+  "type": "screen",
+  "attributes": {},
+  "children": [
+    {
+      "type": "toggle",
+      "attributes": {
+        "android:key": "pref_key_system_charginginfo",
+        "android:title": "@string/enable_mod",
+        "android:defaultValue": "false"
+      }
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/prefs_group_content",
+        "android:dependency": "pref_key_system_charginginfo",
+        "app:dynamic": "true"
+      },
+      "children": [
+        {
+          "type": "choice",
+          "attributes": {
+            "android:key": "pref_key_system_charginginfo_view",
+            "android:title": "@string/system_charginginfo_view_title",
+            "android:entries": "@array/charginginfo",
+            "android:entryValues": "@array/charginginfo_val",
+            "app:valueAsSummary": "true",
+            "android:defaultValue": "1"
+          }
+        },
+        {
+          "type": "slider",
+          "attributes": {
+            "android:key": "pref_key_system_charginginfo_fontsize",
+            "android:title": "@string/system_charginginfo_fontsize_title",
+            "android:summary": "@string/system_charginginfo_fontsize_summary",
+            "android:defaultValue": "16",
+            "app:minValue": "16",
+            "app:maxValue": "40",
+            "app:stepValue": "1",
+            "app:displayDividerValue": "2",
+            "app:offtext": "@string/array_default",
+            "app:format": "%s sp"
+          }
+        },
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_charginginfo_current",
+            "android:title": "@string/system_charginginfo_current_title",
+            "android:defaultValue": "false"
+          }
+        },
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_charginginfo_voltage",
+            "android:title": "@string/system_charginginfo_voltage_title",
+            "android:defaultValue": "false"
+          }
+        },
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_charginginfo_wattage",
+            "android:title": "@string/system_charginginfo_wattage_title",
+            "android:defaultValue": "false"
+          }
+        },
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_charginginfo_temp",
+            "android:title": "@string/system_charginginfo_temp_title",
+            "android:defaultValue": "false"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,496 @@
+{
+  "type": "screen",
+  "attributes": {
+    "android:key": "pref_key_various"
+  },
+  "children": [
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/prefs_group_apps"
+      },
+      "children": [
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/various_package_installer_cat_title",
+            "android:key": "pref_key_various_cat_package_installer"
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_various_miuiinstaller",
+                "android:title": "@string/various_miuiinstaller_summ",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_various_installappinfo",
+                "android:title": "@string/various_installappinfo_title",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_various_installer_purify",
+                "android:title": "@string/various_installer_purify_title",
+                "android:defaultValue": "false"
+              }
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/various_securitycenter_unlock_title",
+            "android:key": "pref_key_various_cat_security_center"
+          },
+          "children": [
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_apps"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_skip_interceptperm",
+                    "android:title": "@string/various_skip_interceptperm_title",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_replace_defaultopen_with_openbydefault",
+                    "android:title": "@string/various_open_by_default_title",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_skip_securityscan",
+                    "android:title": "@string/various_skip_securityscan_title",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_show_battery_temperature",
+                    "android:title": "@string/various_show_battery_temperature_title",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_disable_reset_recents_privacy_blur",
+                    "android:title": "@string/various_disable_reset_recents_privacy_blur_title"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_sidebar"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_disable_freeform_suggest_blacklist",
+                    "android:title": "@string/various_disable_freeform_suggest_blacklist_title",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_disable_dock_suggest",
+                    "android:title": "@string/various_disable_dock_suggest_title",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_enable_expand_sidebar",
+                    "android:title": "@string/various_enable_expand_sidebar_title",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_swipe_expand_sidebar",
+                    "android:title": "@string/various_swipe_expand_sidebar_title",
+                    "android:dependency": "pref_key_various_enable_expand_sidebar",
+                    "app:indentLevel": "1",
+                    "android:defaultValue": "false"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/various_app_management_cat_title",
+            "android:key": "pref_key_various_cat_settings"
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_various_restrictapp",
+                "android:summary": "@string/various_restrictapp_summ",
+                "android:title": "@string/various_restrictapp_title",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_various_disableapp",
+                "android:summary": "@string/various_disableapp_summ",
+                "android:title": "@string/various_disableapp_title",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_various_hide_report_ondetails",
+                "android:title": "@string/various_hide_report_ondetails_title",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_various_appdetails",
+                "android:summary": "@string/various_apps_summ",
+                "android:title": "@string/various_apps_title",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "choice",
+              "attributes": {
+                "android:key": "pref_key_various_appsort",
+                "android:summary": "",
+                "android:title": "@string/various_appsort_title",
+                "android:entries": "@array/appsort",
+                "android:entryValues": "@array/appsort_val",
+                "android:defaultValue": "1",
+                "app:valueAsSummary": "true",
+                "app:dynamic": "true"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/prefs_group_daily"
+      },
+      "children": [
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/calls",
+            "android:key": "pref_key_various_cat_calls"
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_various_answerinheadup",
+                "android:title": "@string/various_answerinheadup_title",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "choice",
+              "attributes": {
+                "android:key": "pref_key_various_showcallui",
+                "android:title": "@string/various_showcallui_title",
+                "android:entries": "@array/incallui",
+                "android:entryValues": "@array/incallui_val",
+                "android:defaultValue": "0"
+              }
+            },
+            {
+              "type": "action",
+              "attributes": {
+                "android:key": "pref_key_various_calluibright_cat",
+                "android:title": "@string/various_calluibright_title"
+              }
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/gboard",
+            "android:key": "pref_key_various_cat_gboard"
+          },
+          "children": [
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_various_gboardpadding_port",
+                "android:title": "@string/various_gboardpadding_port_title",
+                "android:summary": "@string/various_gboardpadding_summ",
+                "android:defaultValue": "0",
+                "app:minValue": "0",
+                "app:maxValue": "100",
+                "app:stepValue": "1",
+                "app:format": "%d dp",
+                "app:offtext": "@string/array_default"
+              }
+            },
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_various_gboardpadding_land",
+                "android:title": "@string/various_gboardpadding_land_title",
+                "android:summary": "@string/various_gboardpadding_summ",
+                "android:defaultValue": "0",
+                "app:minValue": "0",
+                "app:maxValue": "100",
+                "app:stepValue": "1",
+                "app:format": "%d dp",
+                "app:offtext": "@string/array_default"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/prefs_group_system_tools"
+      },
+      "children": [
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/various_general_cat_title",
+            "android:key": "pref_key_various_cat_general"
+          },
+          "children": [
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_system_tools"
+              },
+              "children": [
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_various_hiddenfeatures_cat",
+                    "android:title": "@string/various_hiddenfeatures_title"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_disable_access_devicelogs",
+                    "android:title": "@string/various_disable_access_devicelogs_title",
+                    "android:defaultValue": "false"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_compatibility"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_allow_untrusted_touch",
+                    "android:title": "@string/various_allow_untrusted_touch_title",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_persist_batteryoptimization",
+                    "android:title": "@string/various_persist_batteryoptimization_settings_title",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_disable_defraud_apps_detect",
+                    "android:title": "@string/various_disable_defraud_apps_detect_title",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_alarmcompat",
+                    "android:title": "@string/various_alarmcompat_title",
+                    "android:summary": "@string/various_alarmcompat_summ",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:title": "@string/system_popupnotif_apps_title",
+                    "android:key": "pref_key_various_alarmcompat_apps",
+                    "android:dependency": "pref_key_various_alarmcompat",
+                    "app:indentLevel": "1",
+                    "app:countAsSummary": "true"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/various_exclusive_features_cat_title",
+            "android:key": "pref_key_various_cat_exclusive"
+          },
+          "children": [
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_updates"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_disable_update_services",
+                    "android:title": "@string/various_disable_update_services_title",
+                    "android:summary": "@string/various_disable_update_services_summ",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_various_clear_update_state",
+                    "android:title": "@string/various_clear_update_state_title",
+                    "android:summary": "@string/various_clear_update_state_summ",
+                    "android:persistent": "false"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_telemetry"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_disable_miui_daemon",
+                    "android:title": "@string/various_disable_miui_daemon_title",
+                    "android:summary": "@string/various_disable_miui_daemon_summ",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_trim_miui_daemon_network",
+                    "android:title": "@string/various_trim_miui_daemon_network_title",
+                    "android:summary": "@string/various_trim_miui_daemon_network_summ",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_disable_xiaomi_analytics",
+                    "android:title": "@string/various_disable_xiaomi_analytics_title",
+                    "android:summary": "@string/various_disable_xiaomi_analytics_summ",
+                    "android:defaultValue": "false"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_securitycenter"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_trim_security_center_marketing",
+                    "android:title": "@string/various_trim_security_center_marketing_title",
+                    "android:summary": "@string/various_trim_security_center_marketing_summ",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_remove_security_center_antivirus",
+                    "android:title": "@string/various_remove_security_center_antivirus_title",
+                    "android:summary": "@string/various_remove_security_center_antivirus_summ",
+                    "android:defaultValue": "false"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_permission_prompts"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_block_notification_permission_prompts",
+                    "android:title": "@string/various_block_notification_permission_prompts_title",
+                    "android:summary": "@string/various_block_notification_permission_prompts_summ",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_various_block_location_permission_prompts",
+                    "android:title": "@string/various_block_location_permission_prompts_title",
+                    "android:summary": "@string/various_block_location_permission_prompts_summ",
+                    "android:defaultValue": "false"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

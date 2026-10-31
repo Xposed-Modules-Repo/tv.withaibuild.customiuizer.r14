@@ -18,6 +18,34 @@ MATRIX = ROOT / "docs/rom-intelligence/A14_PROCESS_MATRIX.json"
 
 
 class ProcessMatrixGenerationTest(unittest.TestCase):
+    def test_explicit_install_block_records_the_real_entry(self):
+        source = """internal class ExampleFeature() : ExampleBase() {
+            override fun install(): FeatureInstallResult {
+                return Various.FixInputMethodBottomMarginHook(lpparam)
+            }
+        }"""
+        hook = extract_process_matrix.parse_install_hooks(source)["ExampleFeature"]
+        self.assertIn("Various.FixInputMethodBottomMarginHook(lpparam)", hook)
+        self.assertNotEqual("(default base install)", hook)
+
+    def test_explicit_install_expression_records_the_real_entry(self):
+        source = """internal class ExampleFeature() : ExampleBase() {
+            override fun install(): FeatureInstallResult = Owner.install(lpparam)
+        }"""
+        self.assertEqual("Owner.install(lpparam)",
+                         extract_process_matrix.parse_install_hooks(source)["ExampleFeature"])
+
+    def test_explicit_install_takes_precedence_over_the_base_hook(self):
+        source = """internal class ExampleFeature() : ExampleBase() {
+            override fun installHook() = Legacy.install(lpparam)
+            override fun install(): FeatureInstallResult {
+                return Actual.install(lpparam)
+            }
+        }"""
+        hook = extract_process_matrix.parse_install_hooks(source)["ExampleFeature"]
+        self.assertIn("Actual.install(lpparam)", hook)
+        self.assertNotIn("Legacy.install", hook)
+
     def test_block_body_installation_keeps_all_dependent_owners(self):
         source = '''internal class ExampleFeature(param: Any) : BaseFeature(param) {
             override fun installHook() {

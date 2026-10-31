@@ -597,8 +597,10 @@ object GlobalActionSystemServerHooks {
                     bootstrap.bootstrap()
                     SystemServerInstaller.installPendingIfPrefsLoaded()
                 }
+                ModuleHelper.guarded { SystemServerInstaller.onContextReady(mContext) }
                 val intentfilter = IntentFilter()
                 intentfilter.addAction(GlobalActions.ACTION_PREFIX + "SimulateMenu")
+                intentfilter.addAction(tv.withaibuild.customiuizer.utils.WifiAutomaticSettings.REFRESH)
                 intentfilter.addAction(GlobalActions.ACTION_PREFIX + "ForceClose")
                 intentfilter.addAction(GlobalActions.ACTION_PREFIX + "ToggleColorInversion")
                 intentfilter.addAction(GlobalActions.ACTION_PREFIX + "SwitchToPrevApp")
@@ -621,6 +623,12 @@ object GlobalActionSystemServerHooks {
                             }
 
                             when (action) {
+                                tv.withaibuild.customiuizer.utils.WifiAutomaticSettings.REFRESH -> {
+                                    if (ModuleHelper.isTrustedBroadcast(this, Helpers.modulePkg)) {
+                                        tv.withaibuild.customiuizer.mods.wifiauto.WifiAutomationHooks.refreshFromSettings()
+                                        completed = true
+                                    }
+                                }
                                 GlobalActions.ACTION_PREFIX + "SimulateMenu" -> {
                                     try {
                                         val superClass = thisObject.javaClass.superclass!!

@@ -1,0 +1,122 @@
+{
+  "type": "screen",
+  "attributes": {
+    "android:key": "pref_key_system_vpnauto"
+  },
+  "children": [
+    {
+      "type": "toggle",
+      "attributes": {
+        "android:key": "pref_key_system_vpnauto_enabled",
+        "android:title": "@string/system_vpnauto_title",
+        "android:summary": "@string/system_vpnauto_enable_summary",
+        "android:defaultValue": "false"
+      }
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/system_vpnauto_target"
+      },
+      "children": [
+        {
+          "type": "choice",
+          "attributes": {
+            "android:key": "pref_key_system_vpnauto_kind",
+            "android:title": "@string/system_vpnauto_source",
+            "android:entries": "@array/system_vpnauto_kinds",
+            "android:entryValues": "@array/system_vpnauto_kind_values",
+            "android:defaultValue": "app",
+            "app:valueAsSummary": "true",
+            "app:dynamic": "true"
+          }
+        },
+        {
+          "type": "choice",
+          "attributes": {
+            "android:key": "pref_key_system_vpnauto_client",
+            "android:title": "@string/system_vpnauto_client",
+            "android:summary": "@string/system_vpnauto_client_summary",
+            "android:defaultValue": "",
+            "app:valueAsSummary": "true",
+            "app:dynamic": "true"
+          }
+        },
+        {
+          "type": "choice",
+          "attributes": {
+            "android:key": "pref_key_system_vpnauto_profile",
+            "android:title": "@string/system_vpnauto_profile",
+            "android:summary": "@string/system_vpnauto_profile_summary",
+            "android:defaultValue": "",
+            "app:valueAsSummary": "true",
+            "app:dynamic": "true"
+          }
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/system_vpnauto_rules"
+      },
+      "children": [
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_vpnauto_apps",
+            "android:title": "@string/system_vpnauto_apps",
+            "android:summary": "@string/system_vpnauto_apps_summary",
+            "app:countAsSummary": "true",
+            "app:dynamic": "true"
+          }
+        },
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_vpnauto_close",
+            "android:title": "@string/system_vpnauto_close",
+            "android:summary": "@string/system_vpnauto_close_summary",
+            "android:defaultValue": "true",
+            "app:dynamic": "true"
+          }
+        },
+        {
+          "type": "slider",
+          "attributes": {
+            "android:key": "pref_key_system_vpnauto_delay",
+            "android:title": "@string/system_vpnauto_delay",
+            "android:summary": "@string/system_vpnauto_delay_summary",
+            "android:dependency": "pref_key_system_vpnauto_close",
+            "android:defaultValue": "3",
+            "app:minValue": "0",
+            "app:maxValue": "30",
+            "app:stepValue": "1",
+            "app:format": "@string/format_d_s",
+            "app:indentLevel": "1",
+            "app:dynamic": "true"
+          }
+        }
+      ]
+    },
+    {
+      "type": "action",
+      "attributes": {
+        "android:key": "pref_key_system_vpnauto_status",
+        "android:title": "@string/system_vpnauto_status",
+        "android:summary": "@string/system_vpnauto_loading",
+        "android:selectable": "false",
+        "android:persistent": "false"
+      }
+    },
+    {
+      "type": "action",
+      "attributes": {
+        "android:title": "@string/system_vpnauto_protection",
+        "android:summary": "@string/system_vpnauto_protection_summary",
+        "android:selectable": "false",
+        "android:persistent": "false"
+      }
+    }
+  ]
+}

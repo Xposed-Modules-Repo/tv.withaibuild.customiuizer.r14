@@ -188,6 +188,7 @@ internal class IslandAudioSpectrum(
     }
 
     companion object {
+        internal const val REQUESTED_CAPTURE_RATE = 30_000
         fun sessionFor(uid: Int, tracks: List<Track>, retained: Int? = null): Int? {
             var selected: Int? = null
             for (track in tracks) if (track.active && track.uid == uid &&
@@ -256,7 +257,7 @@ internal class IslandAudioSpectrum(
                 val status = visualizer.setDataCaptureListener(object : Visualizer.OnDataCaptureListener {
                     override fun onWaveFormDataCapture(v: Visualizer, data: ByteArray, rate: Int) = Unit
                     override fun onFftDataCapture(v: Visualizer, data: ByteArray, rate: Int) { fft(data, rate) }
-                }, minOf(30_000, Visualizer.getMaxCaptureRate()), false, true)
+                }, minOf(REQUESTED_CAPTURE_RATE, Visualizer.getMaxCaptureRate()), false, true)
                 check(status == Visualizer.SUCCESS)
                 visualizer.enabled = true
                 check(visualizer.enabled)

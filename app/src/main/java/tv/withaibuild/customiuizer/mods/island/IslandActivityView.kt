@@ -1295,6 +1295,15 @@ internal class IslandWaveView(context: Context) : View(context) {
     private var settling = false
     private var lastFrame = 0L
     private var real = false
+    private var durationScaleListening = false
+    // Native main-thread notification: a stopped synthetic clock has no audio event to wake it.
+    private val durationScaleListener = ValueAnimator.DurationScaleChangeListener {
+        if (durationScaleListening) {
+            phaseAt = android.os.SystemClock.uptimeMillis()
+            updateRendering()
+            invalidate()
+        }
+    }
     var outputVisible = false
         set(value) { if (field != value) { field = value; updateRendering(); if (value) invalidate() } }
     var gainPercent = 200
@@ -1314,6 +1323,8 @@ internal class IslandWaveView(context: Context) : View(context) {
     }
     private fun applyLevels(changedMode: Boolean) {
         settling = false
+        val immediate = real && !ValueAnimator.areAnimatorsEnabled()
+        var snapped = false
         for (index in 0..4) {
             val raw = measured[index]
             // Gate quantisation before applying user gain. Silence never gains a fake beat.
@@ -1321,11 +1332,14 @@ internal class IslandWaveView(context: Context) : View(context) {
             val next = if (!raw.isFinite() || raw <= 0f) 0f
                 else amplified / kotlin.math.sqrt(1f + amplified * amplified)
             if (changedMode || abs(next - targets[index]) >= .006f || next == 0f) targets[index] = next
-            if (changedMode) energies[index] = targets[index]
+            if (changedMode || immediate) {
+                if (energies[index] != targets[index]) snapped = true
+                energies[index] = targets[index]
+            }
             if (abs(targets[index] - energies[index]) > .006f) settling = true
         }
         updateRendering()
-        if (changedMode && outputVisible) invalidate()
+        if ((changedMode || snapped) && outputVisible) invalidate()
     }
     var playing = false
         set(value) {
@@ -1338,9 +1352,14 @@ internal class IslandWaveView(context: Context) : View(context) {
     private val frame = object : Runnable {
         override fun run() = ModuleHelper.guarded {
             scheduled = false
-            if (!shouldRender()) return@guarded
+            if (!shouldRender()) {
+                // Disabling animation stops interpolation, not the latest measured state.
+                if (real && !ValueAnimator.areAnimatorsEnabled()) applyLevels(false)
+                else updateRendering()
+                return@guarded
+            }
             val now = android.os.SystemClock.uptimeMillis()
-            val dt = if (lastFrame == 0L) .033f else ((now - lastFrame) / 1000f).coerceIn(.001f, .1f)
+            val dt = ((now - lastFrame) / 1000f).coerceIn(.001f, .1f)
             lastFrame = now
             if (real) {
                 val blend = (1.0 - kotlin.math.exp(-dt / .025)).toFloat()
@@ -1363,9 +1382,19 @@ internal class IslandWaveView(context: Context) : View(context) {
         ValueAnimator.areAnimatorsEnabled()
     private fun schedule() {
         if (!shouldRender()) { lastFrame = 0L; return }
-        if (!scheduled) { scheduled = true; postDelayed(frame, 33) }
+        if (!scheduled) {
+            if (lastFrame == 0L) lastFrame = android.os.SystemClock.uptimeMillis()
+            scheduled = true
+            postOnAnimation(frame)
+        }
     }
     private fun updateRendering() {
+        val listen = !real && outputVisible && alpha > 0f && playing && aggregatedVisible && isAttachedToWindow
+        if (listen != durationScaleListening) {
+            if (listen) ValueAnimator.registerDurationScaleChangeListener(durationScaleListener)
+            else ValueAnimator.unregisterDurationScaleChangeListener(durationScaleListener)
+            durationScaleListening = listen
+        }
         if (shouldRender()) schedule() else { removeCallbacks(frame); scheduled = false; lastFrame = 0L }
     }
     override fun onVisibilityAggregated(isVisible: Boolean) {

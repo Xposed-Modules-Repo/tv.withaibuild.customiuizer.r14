@@ -29,9 +29,9 @@ Availability depends on the ROM and system-app versions. Do not enable this modu
 
 The [documentation index](docs/README.md) covers development, testing, releases and feature contracts. Start with the [shared engineering rules](AGENTS.md) before contributing.
 
-Current source version: `r14.25.9` (versionCode 258). Maintainer: `thetvplus`. Application ID: `tv.withaibuild.customiuizer.r14`.
+Current source version: `r14.26.5` (versionCode 265). Maintainer: `thetvplus`. Application ID: `tv.withaibuild.customiuizer.r14`.
 
-r14.25.9 consolidates VPN auto switching, POCO folder-icon blur, Island and lock-screen refinements and is authorized for automated public release; see the [changelog](CHANGELOG_EN.md). The preceding public release is r14.25.7, with [concise release notes](docs/releases/r14.25.7.md#english). ROM coverage and pending device checks remain in the [current refinement state](docs/maintenance/A14_REFINEMENT_ROADMAP.md#poco-文件夹模糊完整性).
+r14.26.5 combines the Compose and API 102 refinements with motion-aware text, clearer choices and page feedback cleanup, and removes Dock light glass; see the [changelog](CHANGELOG_EN.md). Formal release validation is pending and r14.26.3 is retained until acceptance. See the [current refinement state](docs/maintenance/A14_REFINEMENT_ROADMAP.md) for validation boundaries.
 
 ## Support and License
 

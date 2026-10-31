@@ -365,6 +365,12 @@ class MetadataAndTransportTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             c.manifest_attributes(axml(True)[:-2])
 
+    def test_manifest_sdk_attributes_and_absent_optional_element(self):
+        data = b'<manifest package="fixture" xmlns:android="http://schemas.android.com/apk/res/android"><uses-sdk android:minSdkVersion="34" android:targetSdkVersion="34"/></manifest>'
+        self.assertEqual(c.manifest_attributes(data), {"package": "fixture"})
+        self.assertEqual(c.manifest_attributes(data, "uses-sdk"), {"minSdkVersion": "34", "targetSdkVersion": "34"})
+        self.assertEqual(c.manifest_attributes(axml(True), "uses-sdk"), {})
+
     def test_mutf8_roundtrip_preserves_delimiters_null_and_supplementary_text(self):
         text = "甲|\n\0😀"
         encoded = text.encode("utf-16le")

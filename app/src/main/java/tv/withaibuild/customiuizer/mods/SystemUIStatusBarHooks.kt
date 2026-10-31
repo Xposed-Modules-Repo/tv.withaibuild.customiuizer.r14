@@ -12,7 +12,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
-import android.provider.Settings
 import android.telephony.CellInfo
 import android.telephony.SubscriptionInfo
 import android.telephony.SubscriptionManager
@@ -558,13 +557,27 @@ object SystemUIStatusBarHooks {
 
     @JvmStatic
     fun createStatusbarTextIcon(mContext: Context, lp: LinearLayout.LayoutParams, iconType: Int, fromController: Boolean): View {
-        val iconView = try {
-            LayoutInflater.from(mContext).inflate(tv.withaibuild.customiuizer.mods.utils.statusbarTextIconLayoutResId, null)
-                ?: throw IllegalStateException("LayoutInflater returned null for statusbar_text_icon")
-        } catch (t: Throwable) {
-            FatalErrors.unwrapAndRethrowIfFatal(t)
-            throw IllegalStateException("Failed to inflate statusbar_text_icon for type $iconType", t)
+        // The host owns this native view. Compose remains confined to the settings process.
+        val type = XposedHelpers.findClass("com.android.systemui.statusbar.views.NetworkSpeedView", mContext.classLoader)
+        val iconView = XposedHelpers.newInstance(type, mContext) as LinearLayout
+        iconView.tag = "slot_text_icon"
+        val number = TextView(mContext).apply {
+            tag = "network_speed_number"
+            gravity = android.view.Gravity.CENTER_VERTICAL
+            textDirection = View.TEXT_DIRECTION_LOCALE
+            setSingleLine(false)
+            layoutParams = LinearLayout.LayoutParams(-2, -2).apply {
+                gravity = android.view.Gravity.START or android.view.Gravity.CENTER_VERTICAL
+            }
         }
+        val unit = TextView(mContext).apply {
+            tag = "network_speed_unit"
+            visibility = View.GONE
+            setSingleLine(true)
+            layoutParams = LinearLayout.LayoutParams(-2, 0).apply { gravity = android.view.Gravity.START }
+        }
+        iconView.addView(number)
+        iconView.addView(unit)
         iconView.setTag(textIconTagId, iconType)
         if (lp.height == ViewGroup.LayoutParams.WRAP_CONTENT) {
             lp.height = ViewGroup.LayoutParams.MATCH_PARENT
@@ -675,6 +688,19 @@ object SystemUIStatusBarHooks {
     private val netSpeedMainHandler = Handler(Looper.getMainLooper())
     private val netSpeedSequence = AtomicLong(0)
     private val netSpeedLastAppliedSequence = AtomicLong(0)
+    private val netSpeedDelivery by lazy {
+        StatusBarNetworkSpeedDispatcher.LatestDelivery(
+            post = { netSpeedMainHandler.post(it) },
+            deliver = { payload, sequence ->
+                ModuleHelper.guarded {
+                    StatusBarNetworkSpeedDispatcher.dispatch(
+                        payload, sequence, netSpeedLastAppliedSequence,
+                        statusBarDisplayRegistry, ::applyNetworkSpeedToRow,
+                    )
+                }
+            },
+        )
+    }
 
     private fun installNetSpeedSecondRowHook(lpparam: PackageReadyParam) {
         netSpeedSecondRowClassLoader = lpparam.classLoader
@@ -720,28 +746,22 @@ object SystemUIStatusBarHooks {
      *
      * The hook may run on the NetworkSpeedController background handler. It therefore does not
      * read the registry or touch any View directly. It only copies the payload, assigns a
-     * monotonic sequence, and posts a single runnable to the main looper. The posted runnable
-     * captures only the immutable payload and the sequence; it does not capture any View, owner
-     * or registry state.
+     * monotonic sequence, and submits to the process-owned latest-value slot. The main task
+     * reads the current registry only when delivering; no View, owner or snapshot is captured.
      */
-    private val netSpeedSecondRowHookCallback = object : MethodHook() {
+    private val netSpeedSecondRowHookCallback by lazy { createNetSpeedSecondRowHook(netSpeedDelivery) }
+
+    internal fun createNetSpeedSecondRowHook(
+        delivery: StatusBarNetworkSpeedDispatcher.LatestDelivery,
+    ) = object : MethodHook() {
         override fun after(param: AfterHookCallback) {
+            if (param.getThrowable() != null) return
             val networkSpeedState = param.getArg(0)
             val number = XposedHelpers.getObjectField(networkSpeedState, "networkSpeedNumber")
             val unit = XposedHelpers.getObjectField(networkSpeedState, "networkSpeedUnit")
             val visible = XposedHelpers.getObjectField(networkSpeedState, "visible")
-
             val payload = StatusBarNetworkSpeedDispatcher.NetworkSpeedPayload(number, unit, visible)
-            val seq = netSpeedSequence.incrementAndGet()
-            netSpeedMainHandler.post {
-                StatusBarNetworkSpeedDispatcher.dispatch(
-                    payload,
-                    seq,
-                    netSpeedLastAppliedSequence,
-                    statusBarDisplayRegistry,
-                    ::applyNetworkSpeedToRow,
-                )
-            }
+            delivery.submit(payload, netSpeedSequence.incrementAndGet())
         }
     }
 

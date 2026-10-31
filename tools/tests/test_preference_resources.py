@@ -3,6 +3,7 @@
 import collections
 import unittest
 import xml.etree.ElementTree as ET
+from tools.settings_schema import read_element, preference_sources
 from pathlib import Path
 
 
@@ -60,7 +61,7 @@ class PreferenceResourceContractTest(unittest.TestCase):
         cls.base_strings = {locale: _load_strings(locale) for locale in LOCALES}
 
     def test_dock_page_preserves_geometry_keys_and_gates_only_background_options(self):
-        root = ET.parse(XML_DIR / "prefs_launcher.xml").getroot()
+        root = read_element(XML_DIR / "prefs_launcher.xml")
         category = next(el for el in root.iter() if el.get(ATTR_KEY) == "pref_key_launcher_cat_dock")
         order = [el.get(ATTR_KEY) for el in root.iter() if el.tag == CATEGORY_CLASS and el.get(ATTR_KEY)]
         dock = order.index("pref_key_launcher_cat_dock")
@@ -82,12 +83,12 @@ class PreferenceResourceContractTest(unittest.TestCase):
         arrays = ET.parse(RES_ROOT / "values" / "arrays.xml").getroot()
         material_entries = arrays.find("string-array[@name='launcher_dock_background_material']")
         material_values = arrays.find("string-array[@name='launcher_dock_background_material_values']")
-        self.assertEqual(["0", "2", "3"], [el.text for el in material_values])
+        self.assertEqual(["0", "2"], [el.text for el in material_values])
         self.assertEqual("@string/launcher_dock_background_gaussian", material_entries[1].text)
         required = {"launcher_dock_category", "launcher_dock_background_title", "launcher_dock_background_summ",
                     "launcher_dock_background_material_title", "launcher_dock_background_auto_glass",
                     "launcher_dock_background_opacity_title",
-                    "launcher_dock_background_gaussian", "launcher_dock_background_liquid", "launcher_dock_background_material_summ",
+                    "launcher_dock_background_gaussian", "launcher_dock_background_material_summ",
                     "launcher_dock_background_radius_title", "launcher_dock_background_inset_title",
                     "launcher_dock_background_auto", "launcher_dock_background_geometry",
                     "launcher_dock_background_shrink_title", "launcher_dock_background_shrink_summ"}
@@ -96,7 +97,7 @@ class PreferenceResourceContractTest(unittest.TestCase):
                 self.assertTrue(required <= strings, required - strings)
 
     def test_toast_position_has_independent_offsets_and_complete_translations(self):
-        root = ET.parse(XML_DIR / "prefs_system.xml").getroot()
+        root = read_element(XML_DIR / "prefs_system.xml")
         controls = {el.get(ATTR_KEY): el for el in root.iter()}
         position = controls['pref_key_system_toast_position']
         self.assertEqual('0', position.get(f'{{{ANDROID_NS}}}defaultValue'))
@@ -117,7 +118,7 @@ class PreferenceResourceContractTest(unittest.TestCase):
                 self.assertTrue(required <= strings, required - strings)
 
     def test_duo_charging_bolt_keeps_independent_exact_attributes(self):
-        root = ET.parse(XML_DIR / "prefs_system_statusbar_duo.xml").getroot()
+        root = read_element(XML_DIR / "prefs_system_statusbar_duo.xml")
         key = "pref_key_system_statusbar_duo_chargingbolt"
         matches = [el for el in root.iter() if el.get(ATTR_KEY) == key]
         self.assertEqual(1, len(matches), f"missing or duplicate charging bolt control: {key}")
@@ -131,7 +132,7 @@ class PreferenceResourceContractTest(unittest.TestCase):
         }, dict(matches[0].attrib))
 
     def test_tile_background_color_depends_on_enabled_color_exactly(self):
-        root = ET.parse(XML_DIR / "prefs_system_controlcenter_themestyle.xml").getroot()
+        root = read_element(XML_DIR / "prefs_system_controlcenter_themestyle.xml")
         key = "pref_key_system_cc_tile_enabled_color_custom"
         matches = [el for el in root.iter() if el.get(ATTR_KEY) == key]
         self.assertEqual(1, len(matches), f"missing or duplicate tile background color: {key}")
@@ -144,7 +145,7 @@ class PreferenceResourceContractTest(unittest.TestCase):
         }, dict(matches[0].attrib))
 
     def test_released_left_icon_controls_keep_exact_attributes(self):
-        root = ET.parse(XML_DIR / "prefs_system_statusbar_righticons.xml").getroot()
+        root = read_element(XML_DIR / "prefs_system_statusbar_righticons.xml")
         expected = {
             "pref_key_system_statusbar_lefticons_scale": {
                 f"{{{ANDROID_NS}}}title": "@string/system_statusbar_lefticons_scale_title",
@@ -181,7 +182,7 @@ class PreferenceResourceContractTest(unittest.TestCase):
 
     def test_new_category_titles_localized_in_all_locales(self):
         required = {
-            "system_mods_connectivity",
+            "prefs_group_connectivity",
             "system_lsalarm_title",
             "system_albumartonlock_title",
             "system_autobrightness_title",
@@ -208,8 +209,8 @@ class PreferenceResourceContractTest(unittest.TestCase):
 
     def test_all_category_title_references_resolve_in_default(self):
         unresolved = set()
-        for path in sorted(XML_DIR.glob("prefs_*.xml")):
-            root = ET.parse(path).getroot()
+        for path in preference_sources(XML_DIR):
+            root = read_element(path)
             for el in _collect_elements(root):
                 if _is_category(el):
                     title_ref = el.get(ATTR_TITLE, "")
@@ -225,8 +226,8 @@ class PreferenceResourceContractTest(unittest.TestCase):
     def test_shared_section_headings_are_translated_in_every_supported_locale(self):
         headings = {
             el.get(ATTR_TITLE)[8:]
-            for path in XML_DIR.glob("prefs_*.xml")
-            for el in ET.parse(path).getroot().iter()
+            for path in preference_sources(XML_DIR)
+            for el in read_element(path).iter()
             if _is_category(el) and el.get(ATTR_TITLE, "").startswith("@string/prefs_group_")
         }
         self.assertGreater(len(headings), 30)
@@ -236,8 +237,8 @@ class PreferenceResourceContractTest(unittest.TestCase):
 
     def test_no_duplicate_preference_keys(self):
         seen: dict[str, str] = {}
-        for path in sorted(XML_DIR.glob("prefs_*.xml")):
-            root = ET.parse(path).getroot()
+        for path in preference_sources(XML_DIR):
+            root = read_element(path)
             for el in _collect_elements(root):
                 if _is_category(el):
                     continue
@@ -252,7 +253,7 @@ class PreferenceResourceContractTest(unittest.TestCase):
                 seen[key] = path.name
 
     def test_usb_preference_contract(self):
-        root = ET.parse(XML_DIR / "prefs_system.xml").getroot()
+        root = read_element(XML_DIR / "prefs_system.xml")
         usb = None
         for el in _collect_elements(root):
             if el.get(ATTR_KEY) == "pref_key_system_usb_default_function":
@@ -266,7 +267,7 @@ class PreferenceResourceContractTest(unittest.TestCase):
         self.assertEqual(usb.get(f"{{{ANDROID_NS}}}defaultValue"), "0")
 
     def test_recents_hide_app_name_contract(self):
-        root = ET.parse(XML_DIR / "prefs_system.xml").getroot()
+        root = read_element(XML_DIR / "prefs_system.xml")
         recents = None
         for el in _collect_elements(root):
             if el.get(ATTR_KEY) == "pref_key_system_recents_card_style":

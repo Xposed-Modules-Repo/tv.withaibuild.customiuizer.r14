@@ -112,6 +112,16 @@ class MainSourceCleanlinessTest(unittest.TestCase):
         )
         self.assertEqual(gate._scan_file(path), [])
 
+    def test_test_runtimes_and_guarded_profiling_are_rejected(self) -> None:
+        for text in (
+            "import org.robolectric.Robolectric\n",
+            "import kotlinx.coroutines.test.runTest\n",
+            'if (BuildConfig.BUILD_TYPE == "develop") android.os.Debug.getRuntimeStat("art.gc.bytes-allocated")',
+        ):
+            with self.subTest(text=text):
+                path = self.write_main("java/tv/foo/Sampler.kt", text)
+                self.assertTrue(gate._scan_file(path))
+
     def test_real_production_tree_has_no_issues(self) -> None:
         gate.REPO_ROOT = self._orig_repo_root
         gate.MAIN_ROOT = self._orig_main_root

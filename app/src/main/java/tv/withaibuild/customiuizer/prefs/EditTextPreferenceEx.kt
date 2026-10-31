@@ -1,61 +1,13 @@
 package tv.withaibuild.customiuizer.prefs
 
 import android.content.Context
-import android.content.res.TypedArray
 import android.util.AttributeSet
-import android.view.View
-import android.widget.TextView
 import androidx.preference.EditTextPreference
-import androidx.preference.PreferenceViewHolder
-import tv.withaibuild.customiuizer.R
-import tv.withaibuild.customiuizer.utils.Helpers
 
+/** Persistence/dependency model; Compose owns its presentation and input lifetime. */
 class EditTextPreferenceEx(context: Context, attrs: AttributeSet?) : EditTextPreference(context, attrs), PreferenceState {
-
-    private val indentLevel: Int
-    private val dynamic: Boolean
-    private var newmod = false
-    private var highlight = false
-    private var unsupported = false
-
-    init {
-        val xmlAttrs: TypedArray = context.obtainStyledAttributes(attrs, R.styleable.CheckBoxPreferenceEx)
-        dynamic = xmlAttrs.getBoolean(R.styleable.CheckBoxPreferenceEx_dynamic, false)
-        indentLevel = xmlAttrs.getInt(R.styleable.CheckBoxPreferenceEx_indentLevel, 0)
-        xmlAttrs.recycle()
-        isIconSpaceReserved = false
-    }
-
-    fun getView(finalView: View) {
-        val title = finalView.findViewById<TextView>(android.R.id.title)
-        Helpers.bindPreferenceTitle(title, this.title, unsupported, dynamic)
-        if (newmod) title?.let { Helpers.applyNewMod(it) }
-        if (highlight) {
-            // One-shot: the row rebinds whenever its own state changes, and a flash
-            // restarted on every bind never lets the row settle.
-            highlight = false
-            Helpers.applySearchItemHighlight(finalView)
-        }
-        val childPadding = context.resources.getDimensionPixelSize(R.dimen.preference_item_child_padding)
-        val hrzPadding = (indentLevel + 1) * childPadding
-        finalView.setPadding(hrzPadding, 0, childPadding, 0)
-    }
-
-    override fun onBindViewHolder(holder: PreferenceViewHolder) {
-        super.onBindViewHolder(holder)
-        getView(holder.itemView)
-    }
-
-    fun setUnsupported(value: Boolean) {
-        unsupported = value
-        isEnabled = !value
-    }
-
-    override fun markAsNew() {
-        newmod = true
-    }
-
-    override fun applyHighlight() {
-        highlight = true
-    }
+    init { isIconSpaceReserved = false }
+    override fun markAsNew() { extras.putBoolean("ui.new", true); notifyChanged() }
+    override fun applyHighlight() { extras.putBoolean("ui.highlight", true); notifyChanged() }
+    fun setUnsupported(value: Boolean) { extras.putBoolean("ui.unsupported", value); isEnabled = !value }
 }

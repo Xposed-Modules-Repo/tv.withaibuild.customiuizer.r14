@@ -1,24 +1,17 @@
 package tv.withaibuild.customiuizer.utils
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.animation.ArgbEvaluator
-import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.app.admin.DevicePolicyManager
 import android.content.ComponentName
 import android.content.ContentResolver
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.content.res.Configuration
-import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
@@ -26,20 +19,13 @@ import android.graphics.drawable.LayerDrawable
 import android.net.Uri
 import android.os.Environment
 import android.provider.Settings
-import android.text.Spannable
-import android.text.SpannableStringBuilder
-import android.text.style.ForegroundColorSpan
-import android.text.style.RelativeSizeSpan
-import android.text.style.StyleSpan
 import android.util.LruCache
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import miui.util.HapticFeedbackUtil
 import org.xmlpull.v1.XmlPullParser
 import tv.withaibuild.customiuizer.BuildConfig
 import tv.withaibuild.customiuizer.PrefsProvider
@@ -48,10 +34,6 @@ import tv.withaibuild.customiuizer.mods.utils.FatalErrors
 import tv.withaibuild.customiuizer.mods.utils.XposedHelpers
 import java.io.File
 import java.lang.reflect.Method
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
-import java.util.concurrent.ConcurrentHashMap
 
 @Suppress("WeakerAccess")
 object Helpers {
@@ -206,74 +188,6 @@ object Helpers {
         } else {
             true
         }
-    }
-
-    @JvmStatic
-    fun bindPreferenceTitle(title: TextView?, text: CharSequence?, unsupported: Boolean, dynamic: Boolean) {
-        if (title == null) return
-        val status = when {
-            unsupported -> title.context.getString(R.string.preference_unavailable)
-            dynamic -> title.context.getString(R.string.preference_applies_immediately)
-            else -> null
-        }
-        title.stateDescription = status
-        title.text = if (unsupported) if (text.isNullOrEmpty()) status else "$text · $status" else text
-    }
-
-    @JvmStatic
-    fun applyNewMod(title: TextView) {
-        val titleStr = title.text
-        val newModStr = title.resources.getString(R.string.miuizer_new_mod) + " "
-        val start = titleStr.length + 3
-        val end = start + newModStr.length
-        val ssb = SpannableStringBuilder(title.text.toString() + "   " + newModStr)
-        ssb.setSpan(ForegroundColorSpan(markColor), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-        ssb.setSpan(StyleSpan(Typeface.ITALIC), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-        ssb.setSpan(RelativeSizeSpan(0.75f), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-        title.text = ssb
-    }
-
-    /**
-     * Flashes a row to point out the item the user arrived at from search.
-     *
-     * This used to animate the view's own `backgroundColor` property. That is destructive:
-     * `View.setBackgroundColor` replaces whatever background the row had — for a preference
-     * row, the selectable background that draws its pressed state — with a flat
-     * `ColorDrawable`, and the animation ends on `TRANSPARENT`, so the row is left with no
-     * touch feedback at all. The caller must also treat the flash as one-shot, because a
-     * row that restarts it on every bind restarts it on the rebind that its own state change
-     * causes.
-     *
-     * The flash now runs on a private overlay drawable, the original background is put back
-     * when it ends, and a flash already running on this view is cancelled first — item views
-     * are recycled, so the same view can be handed a second highlight.
-     */
-    @JvmStatic
-    fun applySearchItemHighlight(finalView: View) {
-        (finalView.getTag(R.id.search_highlight_animator) as? Animator)?.cancel()
-
-        val original = finalView.getTag(R.id.search_highlight_background) as? Drawable
-            ?: finalView.background
-        val overlay = ColorDrawable(Color.TRANSPARENT)
-        finalView.setTag(R.id.search_highlight_background, original)
-        finalView.background = overlay
-
-        val highColor = finalView.resources.getColor(R.color.color_popup_background, finalView.context.theme)
-        val colorAnim = ObjectAnimator.ofInt(overlay, "color", highColor, Color.TRANSPARENT)
-        colorAnim.duration = 1200
-        colorAnim.setEvaluator(ArgbEvaluator())
-        colorAnim.repeatCount = 1
-        colorAnim.startDelay = 300
-        colorAnim.addListener(object : AnimatorListenerAdapter() {
-            override fun onAnimationEnd(animation: Animator) {
-                if (finalView.getTag(R.id.search_highlight_animator) !== animation) return
-                finalView.background = original
-                finalView.setTag(R.id.search_highlight_animator, null)
-                finalView.setTag(R.id.search_highlight_background, null)
-            }
-        })
-        finalView.setTag(R.id.search_highlight_animator, colorAnim)
-        colorAnim.start()
     }
 
     @JvmStatic

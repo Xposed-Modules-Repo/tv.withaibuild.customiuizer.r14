@@ -21,6 +21,8 @@
 
 工具测试入口为 `python -m unittest discover -s tools/tests -p "test_<affected>.py"`；影响全工具链时用 `-p "test_*.py"`。不要把通配占位符当成已执行范围；最终结果记录实际测试类 / 文件及执行结果。失败在原任务修复，不通过删测试、降断言或吞异常制造通过。
 
+源码合同测试复用 `src/test` 的 `testsupport.repositorySource`，从 Gradle 工作目录向上定位仓库；缺源码必须失败，不通过 ClassLoader URL 或 Assume 跳过。`test_rom_inventory.py` 在临时目录用既有 JDK / SDK 工具生成小 APK / DEX，使用仓库 JAR 验证 class 读取，不依赖历史安装包、厂商 ROM 或预先运行应用构建；固定 SDK 与 `ci_install_android_sdk.sh` 对齐。样本不进入 main 或 Git。
+
 ## 证据复用
 
 首次初始化确定 base/head、脏工作区及受影响契约，续接只更新发生变化的部分，按完整任务 diff 选择检查；收到新消息本身不使证据失效。可信记录包括源码身份、命令 / 范围、环境与配置、实际退出结果和必要的新鲜测试报告；可以来自本轮日志或同范围成功 CI，不另建长期缓存数据库。
@@ -58,6 +60,8 @@ A14 试点测量、已知局限与配置审计见 [执行策略试点](maintenan
 
 ## 关键回归
 
+- 天气需求回归 `WeatherFormatDemandTest` / `WeatherRefreshLifecycleTest` 覆盖四种生效格式、隐藏日期、CC 格式既有规则、无需求零订阅 / 查询、关闭取消发布、灭屏恢复和 owner 替换；复用 `SystemClockHotPathTest` 的格式 / 秒钟能力回归。天气 owner 静态门禁同时识别两参数与需求参数调用，错误 owner 和漏掉 OOM 隔离仍须检出，不以更新合法调用形态放宽所有权 / fatal 合同。
+- 输入成本回归 `StatusBarTouchCostTest` / `GestureBrightnessReadCostTest`：原生单次分发与异常、无整组参数读取、多指后加入亮度、无效控制中心起点、普通亮度读取失败与 fatal；复用既有 GestureMachine 状态 / 所有权压力回归。图标 `BitmapCachedLoaderMetadataTest` 覆盖冷加载元数据复用、热缓存不访问 PM、缺失 / 无图标回退与共享库查询标志。均为 Host 次数和行为证据，设备交互仍须单独验收。
 - 设置界面运行实际 FragmentManager、XML、动画和返回流程，覆盖四类页面、关于页、动画关闭、取消返回和 Activity 重建；断言页面可见且有可见选项。测试 `miui.os.Build` 只控制选项，不模拟 HyperOS。
 - Fragment 动画创建时保留框架正在准备的位置 / alpha，否则可停在屏外。Activity 继续通过 Fragment 公开入口关闭预测预览；重新启用前须验证取消预览遗留位移及目标 HyperOS 手势，不能只看普通返回。
 - Dock 覆盖 4→5→4、1 / 3–6 图标、子布局边界不变、拖拽结束 / 取消、文件夹 / 占位、空 Dock / 重填、空闲帧不读图标、尺寸控制独立；真实动画合成另需设备。
@@ -102,7 +106,7 @@ python tools/brutal_test_runner.py --config tools/brutal_test_config.json mutate
 
 Actions 固定完整 SHA；JDK 下载保留 force-download / verify-signature，wrapper 保留 SHA-256。PyYAML 解析真实 YAML，支持合法别名、引号、内联与多行；普通 CI 禁签名，保护流程仅对完整满足契约的已识别步骤开放，不按文件名整体豁免。
 
-SDK 安装与 Gradle 输入一致；宿主 classpath 与 APK runtime 分开审查。依赖变化按影响检查解析图、编译与 DEX 输出、R8 / API 隔离、签名及必要设备路径；不把 JVM 25 当作 Android API 可用性证明。
+SDK 安装与 Gradle 输入一致；宿主 classpath 与 APK runtime 分开审查。依赖变化按影响检查解析图、编译与 DEX 输出、R8 / API 隔离、签名及必要设备路径；不把 JVM 26 当作 Android API 可用性证明。
 
 发布故障回归覆盖 workflow / event / 仓库 / attempt / SHA、环境策略漂移、签名前 main 前进、错误证书 / 凭据、篡改、版本 / 双语记录、草稿资产、预发行 Latest 与双端部分失败。只允许 Validate / Sign 成功而 Publish 失败的原 attempt 恢复；测试模拟服务器不能证明远端 Secrets / 权限或设备通过。
 

@@ -19,10 +19,13 @@ import io.github.libxposed.api.XposedModuleInterface.PackageReadyParam
 import io.github.libxposed.api.XposedModuleInterface.SystemServerStartingParam
 import org.luckypray.dexkit.query.FindMethod
 import org.luckypray.dexkit.query.matchers.MethodMatcher
-import org.luckypray.dexkit.result.MethodData
 import tv.withaibuild.customiuizer.MainModule
 import tv.withaibuild.customiuizer.R
 import tv.withaibuild.customiuizer.mods.utils.HookDiagnostics
+import tv.withaibuild.customiuizer.mods.utils.FeatureInstallResult
+import tv.withaibuild.customiuizer.mods.utils.FatalErrors
+import tv.withaibuild.customiuizer.mods.utils.PreparedHookBatch
+import tv.withaibuild.customiuizer.mods.utils.HookerClassHelper.CustomMethodUnhooker
 import tv.withaibuild.customiuizer.mods.utils.HookerClassHelper
 import tv.withaibuild.customiuizer.mods.utils.HookerClassHelper.MethodHook
 import tv.withaibuild.customiuizer.mods.utils.ModuleHelper
@@ -30,6 +33,7 @@ import tv.withaibuild.customiuizer.mods.utils.StatusBarHeightConfig
 import tv.withaibuild.customiuizer.mods.utils.XposedHelpers
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.lang.reflect.Method
 import java.util.ArrayList
 import java.util.HashSet
 import tv.withaibuild.customiuizer.utils.HookUtils
@@ -361,152 +365,132 @@ object System {
     }
 
     @JvmStatic
-    fun ScreenshotConfigHook(lpparam: PackageReadyParam) {
+    fun ScreenshotConfigHook(lpparam: PackageReadyParam): FeatureInstallResult {
         installSystemMiscSnapshot()
-        ModuleHelper.hookAllMethods("android.content.ContentResolver", lpparam.classLoader, "update", object : MethodHook() {
-            override fun intercept(chain: XposedInterface.Chain): Any? {
-                var result: Any? = null
-                var throwable: Throwable? = null
-                val args = chain.args
-                try {
-
-                    if (args.size != 4) { return XposedHelpers.proceedOrThrow(chain, throwable) }
-                    val contentValues = args[1] as ContentValues
-                    var displayName = contentValues.getAsString("_display_name")
-                    if (displayName != null && displayName.contains("Screenshot")) {
-                        val format = systemMiscConfig.screenshotFormat
-                        val ext = if (format <= 2) ".jpg" else if (format == 3) ".png" else ".webp"
-
-                        displayName = displayName.replace(".png", "").replace(".jpg", "").replace(".webp", "") + ext
-                        contentValues.put("_display_name", displayName)
-                    }
-
-                    result = chain.proceed()
-                } catch (t: Throwable) {
-                    throwable = t
-                    result = null
-                }
-                return XposedHelpers.throwOrReturn(throwable, result)
-            }
-        })
-        ModuleHelper.findAndHookMethod("android.content.ContentResolver", lpparam.classLoader, "insert", Uri::class.java, ContentValues::class.java, object : MethodHook() {
-            override fun intercept(chain: XposedInterface.Chain): Any? {
-                var result: Any? = null
-                var throwable: Throwable? = null
-                val args = chain.args
-                try {
-
-                    val imgUri = args[0] as Uri
-                    val contentValues = args[1] as ContentValues
-                    var displayName = contentValues.getAsString("_display_name")
-                    if (MediaStore.Images.Media.EXTERNAL_CONTENT_URI == imgUri && displayName != null && displayName.contains("Screenshot")) {
-                        val folder = systemMiscConfig.screenshotPath
-                        val dir = systemMiscConfig.screenshotMyPath
-                        val format = systemMiscConfig.screenshotFormat
-                        val ext = if (format <= 2) ".jpg" else if (format == 3) ".png" else ".webp"
-
-                        var mScreenshotDir: File? = null
-                        displayName = displayName.replace(".png", "").replace(".jpg", "").replace(".webp", "") + ext
-                        if (folder > 1) {
-                            mScreenshotDir = if (folder == 4 && !TextUtils.isEmpty(dir)) File(dir) else File(Environment.getExternalStoragePublicDirectory(if (folder == 2) Environment.DIRECTORY_PICTURES else Environment.DIRECTORY_DCIM), "Screenshots")
-                            if (!mScreenshotDir.exists()) mScreenshotDir.mkdirs()
-                            val relativePath = mScreenshotDir.path.replace(Environment.getExternalStorageDirectory().path + File.separator, "")
-                            contentValues.put("relative_path", relativePath)
-                            if (contentValues.getAsString("_data") != null) {
-                                contentValues.put("_data", mScreenshotDir.path + "/" + displayName)
-                            }
-                        }
-                        contentValues.put("_display_name", displayName)
-                    }
-
-                    result = chain.proceed()
-                } catch (t: Throwable) {
-                    throwable = t
-                    result = null
-                }
-                return XposedHelpers.throwOrReturn(throwable, result)
-            }
-        })
-
-        val format = systemMiscConfig.screenshotFormat
-        if (format > 2) {
-            val bridge = XposedHelpers.bridge
-            if (bridge == null) {
-                HookDiagnostics.recordDexKit("com.miui.screenshot", "saveBitmapToUri", exceptionType = "bridge-null")
-                return
-            }
-            var methodCandidates: List<MethodData>? = null
-            try {
-                methodCandidates = bridge.findMethod(FindMethod.create()
-                    .excludePackages("android", "androidx", "com.xiaomi", "com.google.json", "kotlin", "kotlinx.coroutines", "miuix")
-                    .matcher(MethodMatcher.create().usingStrings("saveBitmapToUri: external storage"))
-                )
-            } catch (t: Throwable) {
-                HookDiagnostics.recordDexKit("com.miui.screenshot", "saveBitmapToUri", exceptionType = t.javaClass.name)
-                return
-            }
-            var methodData: MethodData? = null
-            var compatibleCandidateCount = 0
-            for (candidate in methodCandidates) {
-                if (candidate.paramCount >= 7 &&
-                    candidate.paramTypeNames[4] == Bitmap.CompressFormat::class.java.name
-                ) {
-                    compatibleCandidateCount++
-                    methodData = candidate
-                }
-            }
-            if (compatibleCandidateCount != 1) {
-                XposedHelpers.log("ScreenshotConfigHook: expected one compatible save method, found $compatibleCandidateCount")
-                HookDiagnostics.recordDexKit("com.miui.screenshot", "saveBitmapToUri", noMatch = true)
-                methodData = null
-            }
-
-            val changeFormatHook = object : MethodHook() {
-                override fun intercept(chain: XposedInterface.Chain): Any? {
-                    var result: Any? = null
-                    var throwable: Throwable? = null
-                    try {
-
-                        if (chain.args.size < 7) { return XposedHelpers.proceedOrThrow(chain, throwable) }
-                        val args = XposedHelpers.getArgsArray(chain)
-                        val compress = if (format <= 2) Bitmap.CompressFormat.JPEG else if (format == 3) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.WEBP
-                        args[4] = compress
-
-                        result = chain.proceed(args)
-                    } catch (t: Throwable) {
-                        throwable = t
-                        result = null
-                    }
-                    return XposedHelpers.throwOrReturn(throwable, result)
-                }
-            }
-            if (methodData != null) {
-                try {
-                    val method = methodData.getMethodInstance(lpparam.classLoader)
-                    ModuleHelper.hookMethod(method, changeFormatHook)
-                } catch (t: Throwable) {
-                    XposedHelpers.log(t)
-                }
-            }
+        val bridge = XposedHelpers.bridge
+        if (bridge == null) {
+            HookDiagnostics.recordDexKit("com.miui.screenshot", "saveBitmapToUri", exceptionType = "bridge-null")
+            return FeatureInstallResult.FAILED_TRANSIENT
         }
+        return installScreenshotHooks(lpparam.classLoader, resolveSave = {
+            val candidates = bridge.findMethod(FindMethod.create()
+                .excludePackages("android", "androidx", "com.xiaomi", "com.google.json", "kotlin", "kotlinx.coroutines", "miuix")
+                .matcher(MethodMatcher.create().usingStrings("saveBitmapToUri: external storage")))
+            val compatible = candidates.filter { candidate ->
+                candidate.paramCount >= 7 && candidate.paramTypeNames[4] == Bitmap.CompressFormat::class.java.name
+            }
+            compatible.singleOrNull()?.getMethodInstance(lpparam.classLoader)
+        })
+    }
 
-        ModuleHelper.hookAllMethods("android.graphics.Bitmap", lpparam.classLoader, "compress", object : MethodHook() {
+    internal fun installScreenshotHooks(
+        loader: ClassLoader,
+        resolveSave: () -> Method?,
+        installHook: (Method, MethodHook) -> CustomMethodUnhooker? = ModuleHelper::hookMethod,
+    ): FeatureInstallResult {
+        val entries = try {
+            // Every exposed format is dynamic: prepare its saver on the existing cold bridge.
+            val save = resolveSave()
+            if (save == null || save.parameterCount < 7 || save.parameterTypes[4] != Bitmap.CompressFormat::class.java) {
+                HookDiagnostics.recordDexKit("com.miui.screenshot", "saveBitmapToUri", noMatch = true)
+                return FeatureInstallResult.FAILED_PERMANENT
+            }
+            val resolver = XposedHelpers.findClass("android.content.ContentResolver", loader)
+            val bitmap = XposedHelpers.findClass("android.graphics.Bitmap", loader)
+            val updates = resolver.declaredMethods.filter { it.name == "update" }
+            val compressions = bitmap.declaredMethods.filter { it.name == "compress" }
+            val insert = XposedHelpers.findMethodExact(resolver, "insert", Uri::class.java, ContentValues::class.java)
+            if (updates.isEmpty() || compressions.isEmpty()) return FeatureInstallResult.FAILED_PERMANENT
+            val updateHook = screenshotUpdateHook()
+            val compressHook = screenshotCompressHook()
+            updates.map { it to updateHook } + listOf(insert to screenshotInsertHook(), save to screenshotSaveFormatHook()) +
+                compressions.map { it to compressHook }
+        } catch (t: Throwable) {
+            FatalErrors.unwrapAndRethrowIfFatal(t)
+            HookDiagnostics.recordDexKit("com.miui.screenshot", "saveBitmapToUri", exceptionType = t.javaClass.name)
+            return FeatureInstallResult.FAILED_TRANSIENT
+        }
+        return PreparedHookBatch(installHook).install(entries)
+    }
+
+    internal fun screenshotUpdateHook() = object : MethodHook() {
+        override fun intercept(chain: XposedInterface.Chain): Any? {
+            var result: Any? = null
+            var throwable: Throwable? = null
+            val args = chain.args
+            try {
+
+                if (args.size != 4) { return XposedHelpers.proceedOrThrow(chain, throwable) }
+                val contentValues = args[1] as ContentValues
+                var displayName = contentValues.getAsString("_display_name")
+                if (displayName != null && displayName.contains("Screenshot")) {
+                    val format = systemMiscConfig.screenshotFormat
+                    val ext = if (format <= 2) ".jpg" else if (format == 3) ".png" else ".webp"
+
+                    displayName = displayName.replace(".png", "").replace(".jpg", "").replace(".webp", "") + ext
+                    contentValues.put("_display_name", displayName)
+                }
+
+                result = chain.proceed()
+            } catch (t: Throwable) {
+                throwable = t
+                result = null
+            }
+            return XposedHelpers.throwOrReturn(throwable, result)
+        }
+    }
+
+    internal fun screenshotInsertHook() = object : MethodHook() {
+        override fun intercept(chain: XposedInterface.Chain): Any? {
+            var result: Any? = null
+            var throwable: Throwable? = null
+            val args = chain.args
+            try {
+
+                val imgUri = args[0] as Uri
+                val contentValues = args[1] as ContentValues
+                var displayName = contentValues.getAsString("_display_name")
+                if (MediaStore.Images.Media.EXTERNAL_CONTENT_URI == imgUri && displayName != null && displayName.contains("Screenshot")) {
+                    val folder = systemMiscConfig.screenshotPath
+                    val dir = systemMiscConfig.screenshotMyPath
+                    val format = systemMiscConfig.screenshotFormat
+                    val ext = if (format <= 2) ".jpg" else if (format == 3) ".png" else ".webp"
+
+                    var mScreenshotDir: File? = null
+                    displayName = displayName.replace(".png", "").replace(".jpg", "").replace(".webp", "") + ext
+                    if (folder > 1) {
+                        mScreenshotDir = if (folder == 4 && !TextUtils.isEmpty(dir)) File(dir) else File(Environment.getExternalStoragePublicDirectory(if (folder == 2) Environment.DIRECTORY_PICTURES else Environment.DIRECTORY_DCIM), "Screenshots")
+                        if (!mScreenshotDir.exists()) mScreenshotDir.mkdirs()
+                        val relativePath = mScreenshotDir.path.replace(Environment.getExternalStorageDirectory().path + File.separator, "")
+                        contentValues.put("relative_path", relativePath)
+                        if (contentValues.getAsString("_data") != null) {
+                            contentValues.put("_data", mScreenshotDir.path + "/" + displayName)
+                        }
+                    }
+                    contentValues.put("_display_name", displayName)
+                }
+
+                result = chain.proceed()
+            } catch (t: Throwable) {
+                throwable = t
+                result = null
+            }
+            return XposedHelpers.throwOrReturn(throwable, result)
+        }
+    }
+
+    internal fun screenshotSaveFormatHook(): MethodHook {
+        return object : MethodHook() {
             override fun intercept(chain: XposedInterface.Chain): Any? {
                 var result: Any? = null
                 var throwable: Throwable? = null
                 try {
 
-                    var quality = chain.getArg(1) as Int
-                    if (quality != 100 || (chain.getArg(2) is ByteArrayOutputStream)) { return XposedHelpers.proceedOrThrow(chain, throwable) }
-                    val format2 = systemMiscConfig.screenshotFormat
-                    quality = systemMiscConfig.screenshotQuality
-                    if (format2 == 3) {
-                        quality = 100
-                    }
-                    val compress = if (format2 <= 2) Bitmap.CompressFormat.JPEG else if (format2 == 3) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.WEBP
+                    if (chain.args.size < 7) { return XposedHelpers.proceedOrThrow(chain, throwable) }
                     val args = XposedHelpers.getArgsArray(chain)
-                    args[0] = compress
-                    args[1] = quality
+                    val format = systemMiscConfig.screenshotFormat
+                    val compress = if (format <= 2) Bitmap.CompressFormat.JPEG else if (format == 3) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.WEBP
+                    args[4] = compress
 
                     result = chain.proceed(args)
                 } catch (t: Throwable) {
@@ -515,7 +499,34 @@ object System {
                 }
                 return XposedHelpers.throwOrReturn(throwable, result)
             }
-        })
+        }
+    }
+
+    internal fun screenshotCompressHook() = object : MethodHook() {
+        override fun intercept(chain: XposedInterface.Chain): Any? {
+            var result: Any? = null
+            var throwable: Throwable? = null
+            try {
+
+                var quality = chain.getArg(1) as Int
+                if (quality != 100 || (chain.getArg(2) is ByteArrayOutputStream)) { return XposedHelpers.proceedOrThrow(chain, throwable) }
+                val format2 = systemMiscConfig.screenshotFormat
+                quality = systemMiscConfig.screenshotQuality
+                if (format2 == 3) {
+                    quality = 100
+                }
+                val compress = if (format2 <= 2) Bitmap.CompressFormat.JPEG else if (format2 == 3) Bitmap.CompressFormat.PNG else Bitmap.CompressFormat.WEBP
+                val args = XposedHelpers.getArgsArray(chain)
+                args[0] = compress
+                args[1] = quality
+
+                result = chain.proceed(args)
+            } catch (t: Throwable) {
+                throwable = t
+                result = null
+            }
+            return XposedHelpers.throwOrReturn(throwable, result)
+        }
     }
 
     @JvmStatic

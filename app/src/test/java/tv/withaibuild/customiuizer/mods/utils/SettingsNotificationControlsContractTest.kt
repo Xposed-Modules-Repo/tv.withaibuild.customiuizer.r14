@@ -1,9 +1,10 @@
 package tv.withaibuild.customiuizer.mods.utils
 
+import tv.withaibuild.customiuizer.testsupport.repositorySource as source
+
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
 
 class SettingsNotificationControlsContractTest {
     @Test
@@ -29,12 +30,4 @@ class SettingsNotificationControlsContractTest {
         assertFalse(server.contains("DisableAnyNotificationBlockFeatureId"))
     }
 
-    private fun source(path: String): String {
-        var directory = File(System.getProperty("user.dir")).absoluteFile
-        while (true) {
-            val candidate = File(directory, path)
-            if (candidate.isFile) return candidate.readText()
-            directory = directory.parentFile ?: error("Repository root not found for $path")
-        }
-    }
 }

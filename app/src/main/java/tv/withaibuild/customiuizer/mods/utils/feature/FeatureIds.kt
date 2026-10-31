@@ -1087,3 +1087,18 @@ data object VpnAutoSwitchFeatureId : FeatureId {
     override val id = 262
     override val name = "system_vpn_auto_switch"
 }
+
+data object AppWindowBehaviorFeatureId : FeatureId {
+    override val id = 263
+    override val name = "system_app_window_behavior"
+}
+
+data object AppVolumeMemoryFeatureId : FeatureId {
+    override val id = 264
+    override val name = "system_app_volume_memory"
+}
+
+data object WifiAutomaticSettingsFeatureId : FeatureId {
+    override val id = 265
+    override val name = "system_wifi_automatic_settings"
+}

@@ -561,14 +561,6 @@
       "coverage_status": "BLOCKED_NO_INDEPENDENT_GATE"
     },
     {
-      "name": "shade_tracker_boundary_drift",
-      "mutator": "shade_tracker_boundary_drift",
-      "apply_check": "a14_contract",
-      "kill_gate": null,
-      "required_independent": false,
-      "coverage_status": "BLOCKED_NO_INDEPENDENT_GATE"
-    },
-    {
       "name": "state_reset_removed",
       "mutator": "state_reset_removed",
       "apply_check": "a14_contract",
@@ -659,14 +651,6 @@
     {
       "name": "wrong_process_target",
       "mutator": "wrong_process_target",
-      "apply_check": "a14_contract",
-      "kill_gate": null,
-      "required_independent": false,
-      "coverage_status": "BLOCKED_NO_INDEPENDENT_GATE"
-    },
-    {
-      "name": "wrong_threshold_comparison",
-      "mutator": "wrong_threshold_comparison",
       "apply_check": "a14_contract",
       "kill_gate": null,
       "required_independent": false,
@@ -1040,13 +1024,6 @@
       "requiredFollowUp": null
     },
     {
-      "id": "shade_tracker_boundary_drift",
-      "status": "BLOCKED_NO_INDEPENDENT_GATE",
-      "mutator": "shade_tracker_boundary_drift",
-      "reason": "Executable mutation in current configuration",
-      "requiredFollowUp": null
-    },
-    {
       "id": "state_reset_removed",
       "status": "BLOCKED_NO_INDEPENDENT_GATE",
       "mutator": "state_reset_removed",
@@ -1131,18 +1108,25 @@
       "requiredFollowUp": null
     },
     {
-      "id": "wrong_threshold_comparison",
-      "status": "BLOCKED_NO_INDEPENDENT_GATE",
-      "mutator": "wrong_threshold_comparison",
-      "reason": "Executable mutation in current configuration",
-      "requiredFollowUp": null
-    },
-    {
       "id": "xposedhelpers_abi_drift",
       "status": "BLOCKED_NO_INDEPENDENT_GATE",
       "mutator": "xposedhelpers_abi_drift",
       "reason": "Executable mutation in current configuration",
       "requiredFollowUp": null
+    },
+    {
+      "id": "shade_tracker_boundary_drift",
+      "status": "MUTATOR_STALE",
+      "mutator": "shade_tracker_boundary_drift",
+      "reason": "Retired: ShadeExpansionTracker has no production consumer and was removed in repository simplification; the two mutations exercised only that unused class.",
+      "requiredFollowUp": "If a real shade boundary is changed, target its production caller and add an independent behavior gate; do not restore the unused class."
+    },
+    {
+      "id": "wrong_threshold_comparison",
+      "status": "MUTATOR_STALE",
+      "mutator": "wrong_threshold_comparison",
+      "reason": "Retired: ShadeExpansionTracker has no production consumer and was removed in repository simplification; the two mutations exercised only that unused class.",
+      "requiredFollowUp": "If a real shade boundary is changed, target its production caller and add an independent behavior gate; do not restore the unused class."
     },
     {
       "id": "fake CI PASS",

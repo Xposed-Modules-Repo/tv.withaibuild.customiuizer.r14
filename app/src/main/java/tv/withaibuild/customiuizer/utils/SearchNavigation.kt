@@ -1,7 +1,7 @@
 package tv.withaibuild.customiuizer.utils
 
 /**
- * Pure route resolver and state constants for search navigation.
+ * Pure route resolver for search navigation.
  * Kept free of Android UI dependencies so the navigation logic can be unit tested.
  */
 
@@ -44,27 +44,4 @@ object SearchRouteResolver {
         if (category !in KNOWN_CATEGORIES) return null
         return SearchRoute(category, key, normalizeSub(sub))
     }
-}
-
-object SearchStateMachine {
-
-    const val STATE_IDLE = 0
-    const val STATE_SEARCHING = 1
-    const val STATE_NAVIGATED = 2
-
-    fun canFilter(state: Int): Boolean = state != STATE_NAVIGATED
-
-    fun shouldClearOnReturn(state: Int): Boolean = state == STATE_NAVIGATED
-
-    fun transitionOnQuery(state: Int, query: String?): Int = when {
-        state == STATE_NAVIGATED -> STATE_NAVIGATED
-        query.isNullOrEmpty() -> state
-        else -> STATE_SEARCHING
-    }
-
-    fun transitionOnSelect(state: Int, success: Boolean): Int =
-        if (success) STATE_NAVIGATED else state
-
-    fun transitionOnReturn(state: Int): Int =
-        if (state == STATE_NAVIGATED) STATE_IDLE else state
 }

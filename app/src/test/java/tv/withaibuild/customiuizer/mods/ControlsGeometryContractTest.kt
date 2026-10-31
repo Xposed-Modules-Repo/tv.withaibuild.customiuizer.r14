@@ -17,15 +17,12 @@ class ControlsGeometryContractTest {
     private val saved = MainModule.mPrefs.getAll()
     @After fun restore() { MainModule.mPrefs.replaceSnapshot(saved); Controls.refreshControlsSnapshot() }
     @Test fun importedGestureSizesUseTheSameBoundsAndDefaultsAsTheRealSliders() {
-        val nodes = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-            .parse(Path.of("src/main/res/xml/prefs_controls.xml").toFile()).getElementsByTagName("*")
+        val nodes = tv.withaibuild.customiuizer.testsupport.settingsNodes("prefs_controls")
         for (key in listOf("controls_fsg_coverage", "controls_fsg_width")) {
-            val node = (0 until nodes.length).map(nodes::item).single {
-                it.attributes?.getNamedItem("android:key")?.nodeValue == "pref_key_$key"
-            }
-            val min = node.attributes.getNamedItem("miuizer:minValue").nodeValue.toInt()
-            val max = node.attributes.getNamedItem("miuizer:maxValue").nodeValue.toInt()
-            val default = node.attributes.getNamedItem("android:defaultValue").nodeValue.toInt()
+            val attrs = nodes.mapNotNull { it.optJSONObject("attributes") }.single { it.optString("android:key") == "pref_key_$key" }
+            val min = attrs.getString("app:minValue").toInt()
+            val max = attrs.getString("app:maxValue").toInt()
+            val default = attrs.getString("android:defaultValue").toInt()
             for (raw in listOf(Int.MIN_VALUE, min, default, max, Int.MAX_VALUE)) {
                 MainModule.mPrefs.put(key, raw); Controls.refreshControlsSnapshot()
                 val actual = if (key.endsWith("coverage")) Controls.controlsConfig.fsgCoverage else Controls.controlsConfig.fsgWidth

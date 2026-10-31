@@ -38,7 +38,7 @@ class GlobalActionConfigTest {
 
     @Test
     fun defaultConfig_hasNoGlobalActions() {
-        assertFalse(hasConfiguredGlobalActions())
+        assertFalse(hasConfiguredActionCode(2))
         val map = Class.forName("tv.withaibuild.customiuizer.mods.utils.GlobalActionConfigKt")
             .getDeclaredField("customActionCodeMap").apply { isAccessible = true }.get(null)
         assertNotNull(map)
@@ -48,7 +48,7 @@ class GlobalActionConfigTest {
     fun oneAction_configuredCodeIsTrue() {
         MainModule.mPrefs.put("controls_backlong_action", 2)
         assertEquals(2, MainModule.mPrefs.getInt("controls_backlong_action", 1))
-        hasConfiguredGlobalActions()
+        hasConfiguredActionCode(2)
         assertTrue(configReady())
     }
 
@@ -58,7 +58,7 @@ class GlobalActionConfigTest {
         MainModule.mPrefs.put("controls_backlong_toggle", 6)
         assertEquals(10, MainModule.mPrefs.getInt("controls_backlong_action", 1))
         assertEquals(6, MainModule.mPrefs.getInt("controls_backlong_toggle", 0))
-        hasConfiguredGlobalActions()
+        hasConfiguredActionCode(2)
         assertTrue(configReady())
     }
 
@@ -72,7 +72,7 @@ class GlobalActionConfigTest {
         val tasks = (0 until 2).map {
             executor.submit {
                 start.await()
-                try { hasConfiguredGlobalActions() } catch (t: Throwable) { synchronized(errors) { errors.add(t) } }
+                try { hasConfiguredActionCode(2) } catch (t: Throwable) { synchronized(errors) { errors.add(t) } }
             }
         }
         start.countDown()

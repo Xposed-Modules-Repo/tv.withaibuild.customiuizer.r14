@@ -1,0 +1,214 @@
+{
+  "type": "screen",
+  "attributes": {},
+  "children": [
+    {
+      "type": "toggle",
+      "attributes": {
+        "android:key": "pref_key_system_statusbar_batterytempandcurrent",
+        "android:title": "@string/enable_mod",
+        "android:summary": "@string/needs_systemui_restart",
+        "android:defaultValue": "false"
+      }
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/system_statusbar_batterytempandcurrent_title",
+        "android:dependency": "pref_key_system_statusbar_batterytempandcurrent",
+        "app:state": "2"
+      },
+      "children": [
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/prefs_group_content"
+          },
+          "children": [
+            {
+              "type": "choice",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterytempandcurrent_content",
+                "android:title": "@string/system_statusbar_batterytempandcurrent_content_title",
+                "android:entries": "@array/batterydetails",
+                "android:entryValues": "@array/five_state_val",
+                "app:valueAsSummary": "true",
+                "android:defaultValue": "1"
+              }
+            },
+            {
+              "type": "choice",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterytempandcurrent_hideunit",
+                "android:title": "@string/system_statusbar_batterytempandcurrent_hideunit_title",
+                "android:entries": "@array/batteryhideunit",
+                "android:entryValues": "@array/batteryhideunit_val",
+                "app:valueAsSummary": "true",
+                "android:defaultValue": "0"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterytempandcurrent_atright",
+                "android:title": "@string/system_statusbar_batterytempandcurrentatright_title",
+                "android:summary": "@string/needs_systemui_restart",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterytempandcurrent_temp_decimal",
+                "android:title": "@string/system_statusbar_batterytempandcurrent_temp_decimal_title",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterytempandcurrent_positive",
+                "android:title": "@string/system_statusbar_batterytempandcurrent_positive_title",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterytempandcurrent_fixcurrentratio",
+                "android:title": "@string/system_statusbar_batterytempandcurrent_fixcurrentratio_title",
+                "android:defaultValue": "false"
+              }
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/prefs_group_layout"
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterytempandcurrent_singlerow",
+                "android:title": "@string/system_statusbar_batterytempandcurrent_singlerow_title",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterytempandcurrent_reverseorder",
+                "android:title": "@string/system_statusbar_batterytempandcurrent_reverseorder_title",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterytempandcurrent_incharge",
+                "android:title": "@string/system_statusbar_batterytempandcurrent_incharge_title",
+                "android:defaultValue": "false"
+              }
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/prefs_group_text"
+          },
+          "children": [
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterytempandcurrent_fontsize",
+                "android:title": "@string/launcher_titlefontsize_title",
+                "android:defaultValue": "0",
+                "app:minValue": "0",
+                "app:maxValue": "40",
+                "app:stepValue": "1",
+                "app:displayDividerValue": "2",
+                "app:format": "%s dp",
+                "app:offtext": "@string/array_default"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterytempandcurrent_bold",
+                "android:title": "@string/system_statusbar_mobiletype_single_bold_title",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "choice",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterytempandcurrent_align",
+                "android:title": "@string/system_statusbar_clock_align_title",
+                "android:entries": "@array/horizontalalign",
+                "android:entryValues": "@array/horizontalalign_val",
+                "app:valueAsSummary": "true",
+                "android:defaultValue": "1"
+              }
+            },
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterytempandcurrent_fixedcontent_width",
+                "android:title": "@string/system_clock_fixed_width_title",
+                "android:defaultValue": "10",
+                "app:minValue": "10",
+                "app:maxValue": "120",
+                "app:stepValue": "2",
+                "app:offtext": "@string/array_default",
+                "app:format": "%s dp"
+              }
+            },
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterytempandcurrent_leftmargin",
+                "android:title": "@string/system_statusbar_mobiletype_single_leftmargin_title",
+                "android:defaultValue": "8",
+                "app:minValue": "0",
+                "app:maxValue": "10",
+                "app:stepValue": "1",
+                "app:displayDividerValue": "2",
+                "app:format": "%s dp"
+              }
+            },
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterytempandcurrent_rightmargin",
+                "android:title": "@string/system_statusbar_dualsimin2rows_rightmargin_title",
+                "android:defaultValue": "8",
+                "app:minValue": "0",
+                "app:maxValue": "10",
+                "app:stepValue": "1",
+                "app:displayDividerValue": "2",
+                "app:format": "%s dp"
+              }
+            },
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterytempandcurrent_verticaloffset",
+                "android:title": "@string/system_statusbar_mobiletype_single_verticaloffset",
+                "android:defaultValue": "8",
+                "app:minValue": "0",
+                "app:maxValue": "20",
+                "app:stepValue": "1",
+                "app:negativeShift": "8",
+                "app:displayDividerValue": "2",
+                "app:format": "%s dp"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

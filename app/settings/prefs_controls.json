@@ -1,0 +1,486 @@
+{
+  "type": "screen",
+  "attributes": {
+    "android:key": "pref_key_controls"
+  },
+  "children": [
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/prefs_group_buttons"
+      },
+      "children": [
+        {
+          "type": "section",
+          "attributes": {
+            "android:key": "pref_key_controls_cat_power",
+            "android:title": "@string/controls_mods_power"
+          },
+          "children": [
+            {
+              "type": "action",
+              "attributes": {
+                "android:key": "pref_key_controls_powerdt",
+                "android:title": "@string/launcher_doubletap_title",
+                "android:summary": "@string/controls_powerdt_summ",
+                "app:dynamic": "true"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_controls_powerflash",
+                "android:summary": "@string/controls_powerflash_summ",
+                "android:title": "@string/controls_powerflash_title",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_controls_powerflash_delay",
+                "android:title": "@string/controls_powerflash_delay_title",
+                "android:defaultValue": "false",
+                "android:dependency": "pref_key_controls_powerflash",
+                "app:dynamic": "true",
+                "app:indentLevel": "1"
+              }
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "attributes": {
+            "android:key": "pref_key_controls_cat_volume",
+            "android:title": "@string/controls_mods_volume"
+          },
+          "children": [
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_keyboard"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_controls_volumecursor",
+                    "android:summary": "@string/controls_volumecursor_summ",
+                    "android:title": "@string/controls_volumecursor_title",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_controls_volumecursor_reverse",
+                    "android:title": "@string/controls_volumecursor_reverse_title",
+                    "android:defaultValue": "false",
+                    "android:dependency": "pref_key_controls_volumecursor",
+                    "app:indentLevel": "1"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:title": "@string/system_statusbarcolor_apps_title",
+                    "android:key": "pref_key_controls_volumecursor_apps",
+                    "android:dependency": "pref_key_controls_volumecursor",
+                    "app:indentLevel": "1",
+                    "app:countAsSummary": "true"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_actions"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_controls_volumedowndt_torch",
+                    "android:title": "@string/controls_volumedowndt_turnon_torch_title",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_controls_mediaplayer_apps",
+                    "android:title": "@string/controls_mediaplayer_apps_title",
+                    "app:dynamic": "true",
+                    "app:countAsSummary": "true"
+                  }
+                },
+                {
+                  "type": "choice",
+                  "attributes": {
+                    "android:key": "pref_key_controls_volumemedia_up",
+                    "android:summary": "@string/controls_volumemedia_up_summ",
+                    "android:title": "@string/controls_volumemedia_up_title",
+                    "android:entries": "@array/media_action",
+                    "android:entryValues": "@array/media_action_val",
+                    "android:defaultValue": "0"
+                  }
+                },
+                {
+                  "type": "choice",
+                  "attributes": {
+                    "android:key": "pref_key_controls_volumemedia_down",
+                    "android:summary": "@string/controls_volumemedia_down_summ",
+                    "android:title": "@string/controls_volumemedia_down_title",
+                    "android:entries": "@array/media_action",
+                    "android:entryValues": "@array/media_action_val",
+                    "android:defaultValue": "0"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_controls_volumemedia_vibrate",
+                    "android:title": "@string/controls_volumemedia_vibrate_title",
+                    "android:defaultValue": "true"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_controls_volumemedia_vibrate_ignore",
+                    "android:title": "@string/controls_fingerprintsuccess_ignore_title",
+                    "android:dependency": "pref_key_controls_volumemedia_vibrate",
+                    "android:defaultValue": "false",
+                    "app:indentLevel": "1"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "attributes": {
+            "android:key": "pref_key_controls_cat_fingerprint",
+            "android:title": "@string/controls_mods_fingerprint"
+          },
+          "children": [
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_behavior"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_controls_fingerprintscreen",
+                    "android:title": "@string/controls_fingerprintscreen_title",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_controls_fingerprintwake",
+                    "android:title": "@string/controls_fingerprintwake_title",
+                    "android:summary": "@string/controls_fingerprintwake_summ",
+                    "android:defaultValue": "false"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/system_mods_vibration"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_controls_fingerprintfailure",
+                    "android:title": "@string/controls_fingerprintfailure_title",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "choice",
+                  "attributes": {
+                    "android:key": "pref_key_controls_fingerprintsuccess",
+                    "android:title": "@string/controls_fingerprintsuccess_title",
+                    "android:entries": "@array/qshaptic",
+                    "android:entryValues": "@array/qshaptic_val",
+                    "android:defaultValue": "1"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_controls_fingerprintsuccess_ignore",
+                    "android:title": "@string/controls_fingerprintsuccess_ignore_title",
+                    "android:defaultValue": "false",
+                    "app:indentLevel": "1"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/prefs_group_navigation"
+      },
+      "children": [
+        {
+          "type": "section",
+          "attributes": {
+            "android:key": "pref_key_controls_cat_fsg",
+            "android:title": "@string/controls_mods_fsg"
+          },
+          "children": [
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_back_gesture"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_controls_fsg_horiz",
+                    "android:summary": "@string/controls_fsg_horiz_summ",
+                    "android:title": "@string/controls_fsg_horiz_title",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:title": "@string/system_statusbarcolor_apps_title",
+                    "android:key": "pref_key_controls_fsg_horiz_apps",
+                    "android:dependency": "pref_key_controls_fsg_horiz",
+                    "app:indentLevel": "1",
+                    "app:countAsSummary": "true"
+                  }
+                },
+                {
+                  "type": "slider",
+                  "attributes": {
+                    "android:key": "pref_key_controls_fsg_coverage",
+                    "android:title": "@string/controls_fsg_coverage_title",
+                    "android:defaultValue": "60",
+                    "app:minValue": "20",
+                    "app:maxValue": "95",
+                    "app:stepValue": "5",
+                    "app:format": "%d%%",
+                    "app:offtext": "@string/array_default"
+                  }
+                },
+                {
+                  "type": "slider",
+                  "attributes": {
+                    "android:key": "pref_key_controls_fsg_width",
+                    "android:title": "@string/controls_fsg_width_title",
+                    "android:defaultValue": "100",
+                    "app:minValue": "100",
+                    "app:maxValue": "400",
+                    "app:stepValue": "50",
+                    "app:format": "%d%%",
+                    "app:offtext": "@string/array_default"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_actions"
+              },
+              "children": [
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_controls_fsg_assist_left",
+                    "android:title": "@string/controls_fsg_assist_left_title",
+                    "app:dynamic": "true"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_controls_fsg_assist_right",
+                    "android:title": "@string/controls_fsg_assist_right_title",
+                    "app:dynamic": "true"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_controls_fsg_swipeandstop",
+                    "android:title": "@string/controls_fsg_swipeandstop_title",
+                    "app:dynamic": "true"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_controls_fsg_swipeandstop_disablevibrate",
+                    "android:title": "@string/controls_fsg_swipeandstop_disablevibrate_title",
+                    "app:indentLevel": "1"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "attributes": {
+            "android:key": "pref_key_controls_cat_navbar",
+            "android:title": "@string/controls_mods_navbar"
+          },
+          "children": [
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_display"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_controls_nonavbar",
+                    "android:title": "@string/controls_nonavbar_title",
+                    "android:defaultValue": "false",
+                    "android:disableDependentsState": "true"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_controls_hidenavbar_whenscreenshot",
+                    "android:defaultValue": "false",
+                    "android:dependency": "pref_key_controls_nonavbar",
+                    "android:title": "@string/controls_hidenavbar_whenscreenshot_title"
+                  }
+                },
+                {
+                  "type": "slider",
+                  "attributes": {
+                    "android:key": "pref_key_controls_navbarmargin",
+                    "android:title": "@string/controls_navbarmargin_title",
+                    "android:summary": "@string/controls_navbarmargin_summ",
+                    "android:defaultValue": "0",
+                    "app:minValue": "0",
+                    "app:maxValue": "50",
+                    "app:stepValue": "1",
+                    "app:format": "%d dp",
+                    "android:dependency": "pref_key_controls_nonavbar"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_keyboard"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_controls_nonavbar_fix_inputmethod",
+                    "android:title": "@string/controls_nonavbar_fix_inputmethod_title",
+                    "android:summary": "@string/controls_nonavbar_fix_inputmethod_summ"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_controls_hide_ime_dismiss_button",
+                    "android:title": "@string/controls_hide_ime_dismiss_button_title",
+                    "android:summary": "@string/controls_hide_ime_dismiss_button_summ",
+                    "android:defaultValue": "false"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/mods_actions",
+                "app:dynamic": "true"
+              },
+              "children": [
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_controls_backlong",
+                    "android:title": "@string/controls_backlong_title",
+                    "app:dynamic": "true",
+                    "android:dependency": "pref_key_controls_nonavbar"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_controls_homelong",
+                    "android:title": "@string/controls_homelong_title",
+                    "app:dynamic": "true",
+                    "android:dependency": "pref_key_controls_nonavbar"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_controls_menulong",
+                    "android:title": "@string/controls_menulong_title",
+                    "app:dynamic": "true",
+                    "android:dependency": "pref_key_controls_nonavbar"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_controls_navbarleft",
+                    "android:title": "@string/controls_navbarleft_title",
+                    "android:dependency": "pref_key_controls_nonavbar"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_controls_navbarleftlong",
+                    "android:title": "@string/controls_navbarleftlong_title",
+                    "android:dependency": "pref_key_controls_nonavbar"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_controls_navbarright",
+                    "android:title": "@string/controls_navbarright_title",
+                    "android:dependency": "pref_key_controls_nonavbar"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_controls_navbarrightlong",
+                    "android:title": "@string/controls_navbarrightlong_title",
+                    "android:dependency": "pref_key_controls_nonavbar"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

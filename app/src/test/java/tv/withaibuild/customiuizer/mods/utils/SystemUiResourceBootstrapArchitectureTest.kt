@@ -49,8 +49,8 @@ class SystemUiResourceBootstrapArchitectureTest {
             bootstrap.contains("fun setupSystemUiResources(")
         )
         assertTrue(
-            "SystemUiResourceBootstrap must own statusbarTextIconLayoutResId",
-            bootstrap.contains("statusbarTextIconLayoutResId")
+            "SystemUiResourceBootstrap retains native resource policy",
+            bootstrap.contains("status_bar_padding_top")
         )
     }
 
@@ -107,9 +107,9 @@ class SystemUiResourceBootstrapArchitectureTest {
             hooks.contains("private var statusbarTextIconLayoutResId")
         )
         assertTrue(
-            "SystemUIStatusBarHooks.createStatusbarTextIcon must use the layout id from SystemUiResourceBootstrap",
-            hooks.contains("SystemUiResourceBootstrap") ||
-                hooks.contains("tv.withaibuild.customiuizer.mods.utils.statusbarTextIconLayoutResId")
+            "Text icons must use native host Views without the removed XML registration",
+            hooks.contains("XposedHelpers.newInstance(type, mContext) as LinearLayout") &&
+                hooks.contains("iconView.addView(number)") && hooks.contains("iconView.addView(unit)")
         )
     }
 

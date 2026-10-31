@@ -10,6 +10,7 @@ import android.os.Binder
 import android.os.Bundle
 import tv.withaibuild.customiuizer.mods.utils.StatusBarHeightConfig
 import tv.withaibuild.customiuizer.utils.AppHelper
+import tv.withaibuild.customiuizer.utils.CommittedAutomationPreferences
 import java.io.FileNotFoundException
 import java.io.IOException
 
@@ -19,6 +20,7 @@ class PrefsProvider : ContentProvider() {
         const val AUTHORITY = BuildConfig.APPLICATION_ID + ".provider.sharedprefs"
         const val COMMITTED_HEIGHT = "committed_statusbar_height"
         const val HEIGHT_DP = "height_dp"
+        const val COMMITTED_AUTOMATION = "committed_automation"
     }
 
     private val uriMatcher = UriMatcher(UriMatcher.NO_MATCH).apply {
@@ -32,9 +34,10 @@ class PrefsProvider : ContentProvider() {
      * This provider stays non-exported and exposes no complete preference map.
      */
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
-        if (method != COMMITTED_HEIGHT) return super.call(method, arg, extras)
+        if (method != COMMITTED_HEIGHT && method != COMMITTED_AUTOMATION) return super.call(method, arg, extras)
         if (Binder.getCallingUid() != 1000) throw SecurityException("System UID required")
         val remote = AppHelper.remotePrefs ?: return null
+        if (method == COMMITTED_AUTOMATION) return CommittedAutomationPreferences.read(remote, arg)
         val dp = remote.getInt("pref_key_" + StatusBarHeightConfig.PREF_KEY, StatusBarHeightConfig.DEFAULT_SENTINEL)
         if (dp !in StatusBarHeightConfig.DEFAULT_SENTINEL..80) return null
         return Bundle().apply { putInt(HEIGHT_DP, dp) }

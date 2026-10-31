@@ -5,11 +5,7 @@ import android.provider.Settings
 import tv.withaibuild.customiuizer.MainModule
 import tv.withaibuild.customiuizer.R
 
-internal var statusbarTextIconLayoutResId = 0
-    private set
-
 internal fun setupSystemUiResources(mContext: Context) {
-    statusbarTextIconLayoutResId = MainModule.resHooks.addFakeResource("statusbar_text_icon", R.layout.statusbar_text_icon, "layout")
     if (MainModule.mPrefs.getBoolean("system_statusbar_topmargin")) {
         val topMargin = MainModule.mPrefs.getInt("system_statusbar_topmargin_val", 1)
         MainModule.resHooks.setThemeValueReplacement("com.android.systemui", "dimen", "status_bar_padding_top", topMargin)

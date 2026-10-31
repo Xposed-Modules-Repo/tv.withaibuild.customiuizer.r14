@@ -5,7 +5,7 @@ import kotlin.math.pow
 
 /** Native Canvas mesh, driven by the accepted ROM spring. No independent animation clock. */
 internal object IslandAbsorptionMesh {
-    const val ROWS = 48
+    const val ROWS = 16
     const val FLOATS = (ROWS + 1) * 4
     private const val BEND_STEPS = 32
     private const val BEND_STRENGTH = 2.6f

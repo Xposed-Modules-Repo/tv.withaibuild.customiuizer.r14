@@ -15,6 +15,7 @@ import tv.withaibuild.customiuizer.mods.utils.ModuleHelper
 
 /** Read-only scalar bridge. Never creates an AudioRecord or returns recorded samples. */
 internal object IslandRecorderMeter {
+    internal const val SAMPLE_INTERVAL_MS = 67L
     private const val DESCRIPTOR = "tv.withaibuild.customiuizer.r14.RecorderLevel"
     private const val LEVEL = IBinder.FIRST_CALL_TRANSACTION
     /** Fixed speech display response to a 16-bit peak. Noise remains quiet; no per-frame AGC. */
@@ -69,14 +70,19 @@ internal object IslandRecorderMeter {
                     // A five-sample envelope, not invented frequency bands. Quiet remains quiet.
                     if (previous < 0f || kotlin.math.abs(level - previous) >= .004f || level == 0f && previous != 0f)
                         previous = level
-                    if (bars.any { kotlin.math.abs(it - previous) >= .006f }) {
+                    // Real silence must drain even a retained tail below the display delta.
+                    if (bars.any { kotlin.math.abs(it - previous) >= .006f || previous == 0f && it != 0f }) {
                         for (i in 0..3) bars[i] = bars[i + 1]
                         bars[4] = previous
                         output(bars)
                     }
-                    delay((67L - (SystemClock.uptimeMillis() - start)).coerceAtLeast(1L))
+                    delay((SAMPLE_INTERVAL_MS - (SystemClock.uptimeMillis() - start)).coerceAtLeast(1L))
                 }
-                if (generation == epoch) { owner = null; job = null; output(FloatArray(5)) }
+                if (generation == epoch) {
+                    owner = null; job = null
+                    bars.fill(0f)
+                    output(bars)
+                }
             }
         }
         fun stop() = stop(clearFrame = true)

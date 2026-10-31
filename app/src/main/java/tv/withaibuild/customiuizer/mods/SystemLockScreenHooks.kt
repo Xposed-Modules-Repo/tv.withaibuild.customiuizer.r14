@@ -15,8 +15,10 @@ import android.net.wifi.WifiManager
 import android.os.Binder
 import android.os.Bundle
 import android.os.Handler
+import android.text.InputType
 import android.text.format.DateFormat
 import android.text.format.DateUtils
+import android.text.method.SingleLineTransformationMethod
 import android.util.TypedValue
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -397,51 +399,9 @@ object SystemLockScreenHooks {
             Int::class.javaPrimitiveType!!
         )
 
-        ModuleHelper.findAndHookMethod("com.android.systemui.keyguard.KeyguardViewMediator", lpparam.classLoader, "handleKeyguardDone", object : MethodHook() {
-            override fun intercept(chain: XposedInterface.Chain): Any? {
-                var result: Any?
-                var throwable: Throwable? = null
-                try {
-                    result = chain.proceed()
-                } catch (t: Throwable) {
-                    throwable = t
-                    result = null
-                }
-                try {
+        ModuleHelper.findAndHookMethod("com.android.systemui.keyguard.KeyguardViewMediator", lpparam.classLoader, "handleKeyguardDone", keyguardDoneAuthenticationHook())
 
-                    if (isUnlockedInnerCall) {
-                        isUnlockedInnerCall = false
-                        return XposedHelpers.throwOrReturn(throwable, result)
-                    }
-                    isUnlockedWithStrong = true
-
-                } catch (t: Throwable) {
-                    XposedHelpers.log(t)
-                }
-                return XposedHelpers.throwOrReturn(throwable, result)
-            }
-        })
-
-        ModuleHelper.findAndHookMethod("com.android.keyguard.KeyguardUpdateMonitor", lpparam.classLoader, "onFingerprintAuthenticated", Int::class.javaPrimitiveType!!, Boolean::class.javaPrimitiveType!!, object : MethodHook() {
-            override fun intercept(chain: XposedInterface.Chain): Any? {
-                var result: Any?
-                var throwable: Throwable? = null
-                try {
-                    result = chain.proceed()
-                } catch (t: Throwable) {
-                    throwable = t
-                    result = null
-                }
-                try {
-
-                    isUnlockedWithFingerprint = true
-
-                } catch (t: Throwable) {
-                    XposedHelpers.log(t)
-                }
-                return XposedHelpers.throwOrReturn(throwable, result)
-            }
-        })
+        ModuleHelper.findAndHookMethod("com.android.keyguard.KeyguardUpdateMonitor", lpparam.classLoader, "onFingerprintAuthenticated", Int::class.javaPrimitiveType!!, Boolean::class.javaPrimitiveType!!, fingerprintAuthenticationHook())
 
         ModuleHelper.findAndHookMethod("com.android.keyguard.KeyguardSecurityContainerController", lpparam.classLoader, "onInit", object : MethodHook() {
             override fun intercept(chain: XposedInterface.Chain): Any? {
@@ -733,6 +693,26 @@ object SystemLockScreenHooks {
                 return XposedHelpers.throwOrReturn(throwable, result)
             }
         })
+    }
+
+    internal fun keyguardDoneAuthenticationHook() = object : MethodHook() {
+        override fun intercept(chain: XposedInterface.Chain): Any? {
+            val result = chain.proceed()
+            if (isUnlockedInnerCall) {
+                isUnlockedInnerCall = false
+            } else {
+                isUnlockedWithStrong = true
+            }
+            return result
+        }
+    }
+
+    internal fun fingerprintAuthenticationHook() = object : MethodHook() {
+        override fun intercept(chain: XposedInterface.Chain): Any? {
+            val result = chain.proceed()
+            isUnlockedWithFingerprint = true
+            return result
+        }
     }
 
     @JvmStatic
@@ -1197,7 +1177,28 @@ object SystemLockScreenHooks {
 
     private fun restoreChargingInfoSingleLine(textView: TextView) {
         val originalSingleLine = XposedHelpers.getAdditionalInstanceField(textView, CHARGING_INFO_ORIGINAL_SINGLE_LINE) as? Boolean ?: return
-        textView.isSingleLine = originalSingleLine
+        applyChargingInfoSingleLine(textView, originalSingleLine)
+    }
+
+    private fun applyChargingInfoSingleLine(textView: TextView, singleLine: Boolean) {
+        // Android 14's setter also resets line bounds, scrolling and transformation. Comparing
+        // only isSingleLine (or a last-applied flag) would miss a later native appearance change.
+        // Keep its input-type/automatic-length-filter work for any text input or editable buffer.
+        if (textView.editableText == null
+            && (textView.inputType and InputType.TYPE_MASK_CLASS) != InputType.TYPE_CLASS_TEXT
+            && textView.isSingleLine == singleLine
+        ) {
+            val matches = if (singleLine) {
+                textView.minLines == 1 && textView.maxLines == 1
+                    && textView.isHorizontallyScrollable
+                    && textView.transformationMethod === SingleLineTransformationMethod.getInstance()
+            } else {
+                textView.maxLines == Int.MAX_VALUE && !textView.isHorizontallyScrollable
+                    && textView.transformationMethod == null
+            }
+            if (matches) return
+        }
+        textView.isSingleLine = singleLine
     }
 
     private fun restoreChargingInfoStyle(textView: TextView) {
@@ -1236,7 +1237,7 @@ object SystemLockScreenHooks {
 
         val opt = prefs.getStringAsInt("system_charginginfo_view", 1)
         if (opt == 1) {
-            textView.isSingleLine = false
+            applyChargingInfoSingleLine(textView, false)
         } else {
             restoreChargingInfoSingleLine(textView)
         }

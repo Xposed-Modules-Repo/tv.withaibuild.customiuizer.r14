@@ -1,5 +1,7 @@
 package tv.withaibuild.customiuizer
 
+import tv.withaibuild.customiuizer.testsupport.repositorySource as source
+
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -13,8 +15,8 @@ class AboutMigrationTest {
     private val mainFragment = source("app/src/main/java/tv/withaibuild/customiuizer/MainFragment.kt")
     private val preferenceFragmentBase = source("app/src/main/java/tv/withaibuild/customiuizer/PreferenceFragmentBase.kt")
     private val buildGradle = source("app/build.gradle.kts")
-    private val mainPreferences = source("app/src/main/res/xml/prefs_main.xml")
-    private val aboutLayout = source("app/src/main/res/layout/fragment_about.xml")
+    private val mainPreferences = source("app/settings/prefs_main.json")
+    private val aboutLayout = aboutFragment
 
     @Test
     fun aboutFragmentIsAPlainFragment() {
@@ -28,7 +30,7 @@ class AboutMigrationTest {
         assertFalse("AboutFragment must not use ListPreferenceEx", aboutFragment.contains("ListPreferenceEx"))
         assertFalse("AboutFragment must not use PreferenceScreen", aboutFragment.contains("PreferenceScreen"))
         assertFalse("AboutFragment must not use Preference", aboutFragment.contains("androidx.preference.Preference"))
-        assertFalse("AboutFragment must not load prefs_about", aboutFragment.contains("R.xml.prefs_about"))
+        assertFalse("AboutFragment must not load prefs_about", aboutFragment.contains("R.id.prefs_about"))
         assertFalse("AboutFragment must not call setPreferencesFromResource", aboutFragment.contains("setPreferencesFromResource"))
     }
 
@@ -40,7 +42,7 @@ class AboutMigrationTest {
 
     @Test
     fun aboutLaunchDoesNotRequirePrefsAboutXml() {
-        assertFalse("PreferenceFragmentBase must not reference R.xml.prefs_about", preferenceFragmentBase.contains("R.xml.prefs_about"))
+        assertFalse("PreferenceFragmentBase must not reference R.id.prefs_about", preferenceFragmentBase.contains("R.id.prefs_about"))
         assertTrue("PreferenceFragmentBase should launch AboutFragment", preferenceFragmentBase.contains("AboutFragment()"))
     }
 
@@ -65,8 +67,12 @@ class AboutMigrationTest {
     }
 
     @Test
-    fun noComposeDependenciesIntroduced() {
-        assertFalse("build.gradle.kts must not add Compose dependencies", buildGradle.contains("androidx.compose"))
+    fun composeIsEnabledForSettingsAndNativeHookRenderingStaysIndependent() {
+        assertTrue(buildGradle.contains("compose = true"))
+        assertTrue(aboutFragment.contains("settingsView {"))
+        for (name in listOf("mods/LauncherDockBackground.kt", "mods/island/IslandActivityView.kt")) {
+            assertFalse(source("app/src/main/java/tv/withaibuild/customiuizer/$name").contains("androidx.compose"))
+        }
     }
 
     @Test
@@ -91,16 +97,8 @@ class AboutMigrationTest {
     fun homeTitlesUseDistinctResources() {
         assertTrue("MainFragment ActionBar must use the product name", mainFragment.contains("actionBar?.setTitle(R.string.app_name)"))
         assertFalse("MainFragment ActionBar must not use the generic settings title", mainFragment.contains("actionBar?.setTitle(R.string.settings_title)"))
-        assertTrue("Home settings category must use the generic settings title", mainPreferences.contains("android:title=\"@string/settings_title\""))
-        assertFalse("Home settings category must not reuse the legacy product settings title", mainPreferences.contains("android:title=\"@string/miuizer\""))
+        assertTrue("Home settings category must use the generic settings title", mainPreferences.contains("\"android:title\": \"@string/settings_title\""))
+        assertFalse("Home settings category must not reuse the legacy product settings title", mainPreferences.contains("\"android:title\": \"@string/miuizer\""))
     }
 
-    private fun source(path: String): String {
-        var directory = File(System.getProperty("user.dir") ?: "").absoluteFile
-        while (true) {
-            val candidate = File(directory, path)
-            if (candidate.isFile) return candidate.readText()
-            directory = directory.parentFile ?: error("Repository root not found for $path")
-        }
-    }
 }

@@ -28,8 +28,8 @@ import kotlin.coroutines.coroutineContext
  *   referenced so rebuilding SystemUI clock controllers cannot leak old views.
  * - One refresh job coalesces ticks and forced updates while a query is in flight.
  *   A Mutex also serializes uncancellable provider work across scope replacements.
- * - TIME_TICK is only registered while the screen is on; screen off stops both
- *   the receiver and any delayed refresh job.
+ * - TIME_TICK is only registered while an effective clock format needs weather
+ *   and the screen is on. Removing format demand also releases the screen listener.
  * - A missed force refresh is remembered and executed when the screen turns
  *   back on.
  *
@@ -56,11 +56,14 @@ object WeatherDataController : ScreenStateController.ScreenStateListener {
     private var timeTickRegistered = false
     private var pendingForceRefresh = false
     private var queryFailureLogged = false
+    @Volatile private var enabled = true
+    private var screenStateRegistered = false
 
     private fun newScope(): CoroutineScope =
         CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate + ModuleHelper.coroutineFailureHandler)
 
     override fun onScreenStateChanged(isOn: Boolean) {
+        if (!enabled) return
         val ctx = context ?: return
         if (isOn) {
             ensureTickRegistered(ctx)
@@ -112,6 +115,7 @@ object WeatherDataController : ScreenStateController.ScreenStateListener {
 
     @JvmStatic
     fun refreshWeatherData(forceRefresh: Boolean) {
+        if (!enabled) return
         if (forceRefresh) pendingForceRefresh = true
         if (!ScreenStateController.isScreenOn()) return
         val ctx = context ?: return
@@ -121,7 +125,7 @@ object WeatherDataController : ScreenStateController.ScreenStateListener {
             val weather = withContext(Dispatchers.IO) {
                 queryMutex.withLock {
                     coroutineContext.ensureActive()
-                    if (!ScreenStateController.isScreenOn()) return@withLock null
+                    if (!enabled || !ScreenStateController.isScreenOn()) return@withLock null
                     queryWeather(ctx)
                 }
             }
@@ -139,7 +143,7 @@ object WeatherDataController : ScreenStateController.ScreenStateListener {
 
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @JvmStatic
-    fun initContext(context: Context, clockController: Any) {
+    fun initContext(context: Context, clockController: Any, enabled: Boolean = true) {
         // Cancel any pending work from a previous context and start fresh.
         controllerScope.cancel()
         controllerScope = newScope()
@@ -149,19 +153,15 @@ object WeatherDataController : ScreenStateController.ScreenStateListener {
         val appContext = context.applicationContext
         val oldContext = this.context
         oldContext?.let { unregisterTick(it) }
+        releaseScreenState()
 
         updateTarget = WeakReference(clockController)
         this.context = appContext
+        this.enabled = enabled
 
-        ScreenStateController.addListener(appContext, this)
-
-        timeTickReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent) = ModuleHelper.guarded {
-                if (!ScreenStateController.isScreenOn()) return@guarded
-                refreshWeatherData(false)
-            }
-        }
-
+        timeTickReceiver = null
+        if (!enabled) return
+        ensureScreenState(appContext)
         if (ScreenStateController.isScreenOn()) {
             ensureTickRegistered(appContext)
             controllerScope.launch {
@@ -174,12 +174,53 @@ object WeatherDataController : ScreenStateController.ScreenStateListener {
         }
     }
 
+    /** Main-thread demand updates share the clock preference publication boundary. */
+    fun setEnabled(enabled: Boolean) {
+        if (this.enabled == enabled && (!enabled || screenStateRegistered)) return
+        this.enabled = enabled
+        val ctx = context ?: return
+        if (!enabled) {
+            controllerScope.cancel()
+            controllerScope = newScope()
+            refreshJob = null
+            pendingForceRefresh = false
+            unregisterTick(ctx)
+            releaseScreenState()
+            return
+        }
+        ensureScreenState(ctx)
+        if (ScreenStateController.isScreenOn()) {
+            ensureTickRegistered(ctx)
+            refreshWeatherData(true)
+        } else {
+            pendingForceRefresh = true
+        }
+    }
+
+    private fun ensureScreenState(ctx: Context) {
+        if (screenStateRegistered) return
+        ScreenStateController.addListener(ctx, this)
+        screenStateRegistered = true
+    }
+
+    private fun releaseScreenState() {
+        if (!screenStateRegistered) return
+        screenStateRegistered = false
+        ScreenStateController.removeListener(this)
+    }
+
     @SuppressLint("UnspecifiedRegisterReceiverFlag")
     private fun ensureTickRegistered(ctx: Context) {
-        if (timeTickRegistered || timeTickReceiver == null) return
+        if (timeTickRegistered) return
+        val receiver = timeTickReceiver ?: object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) = ModuleHelper.guarded {
+                if (!ScreenStateController.isScreenOn()) return@guarded
+                refreshWeatherData(false)
+            }
+        }.also { timeTickReceiver = it }
         try {
             ctx.registerReceiver(
-                timeTickReceiver,
+                receiver,
                 IntentFilter("android.intent.action.TIME_TICK"),
                 Context.RECEIVER_NOT_EXPORTED
             )

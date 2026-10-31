@@ -5,8 +5,6 @@ import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.view.View
-import android.widget.AdapterView
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 
@@ -16,21 +14,20 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 import tv.withaibuild.customiuizer.R
+import tv.withaibuild.customiuizer.AppSelectionRow
 import tv.withaibuild.customiuizer.SubFragmentWithSearch
 import tv.withaibuild.customiuizer.mods.GlobalActions
 import tv.withaibuild.customiuizer.utils.AppData
-import tv.withaibuild.customiuizer.utils.AppDataAdapter
-import tv.withaibuild.customiuizer.utils.AppHelper
 
 class ActivitySelector : SubFragmentWithSearch() {
 
+    override val activityRows = true
     private var pkg: String? = null
     private var key: String? = null
     private var user = 0
     private val activities = ArrayList<AppData>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        this.padded = false
         super.onCreate(savedInstanceState)
     }
 
@@ -42,7 +39,7 @@ class ActivitySelector : SubFragmentWithSearch() {
         pkg = args?.getString("package")
         user = args?.getInt("user", 0) ?: 0
 
-        lifecycleScope.launch(Dispatchers.IO) {
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             delay(animDur.toLong())
             loadActivities()
             withContext(Dispatchers.Main) {
@@ -64,6 +61,7 @@ class ActivitySelector : SubFragmentWithSearch() {
                     appData.actName = info.name ?: ""
                     appData.label = info.loadLabel(pm).toString()
                     appData.enabled = info.enabled
+                    appData.prepareForList()
                     activities.add(appData)
                 }
             }
@@ -80,26 +78,22 @@ class ActivitySelector : SubFragmentWithSearch() {
             finish()
             return
         }
-        listView?.adapter = AppDataAdapter(act.applicationContext, activities, AppHelper.AppAdapterType.Activities, null)
-        listView?.setOnItemClickListener { parent: AdapterView<*>, _, position: Int, _ ->
-            val appData = (parent.adapter?.getItem(position) as? AppData) ?: return@setOnItemClickListener
-            val intent = Intent()
-            intent.putExtra("activity", appData.pkgName + "|" + appData.actName)
-            intent.putExtra("user", user)
-            targetFragment?.onActivityResult(targetRequestCode, Activity.RESULT_OK, intent)
-            finish()
-        }
-        listView?.setOnItemLongClickListener { parent: AdapterView<*>, _, position: Int, _ ->
-            val appData = (parent.adapter?.getItem(position) as? AppData) ?: return@setOnItemLongClickListener true
-            val intent = Intent()
-            intent.setComponent(ComponentName(appData.pkgName, appData.actName))
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
-            intent.putExtra("user", user)
-            val bIntent = Intent(GlobalActions.ACTION_PREFIX + "LaunchIntent")
-            bIntent.putExtra("intent", intent)
-            activity?.sendBroadcast(bIntent)
-            true
-        }
-        view?.findViewById<View>(R.id.am_progressBar)?.visibility = View.GONE
+        appRows = activities.sortedBy { it.actNameLower }.map { AppSelectionRow(it, it.actName.replace(".", ".\u200B")) }
+        loading = false
+    }
+
+    override fun selectApp(row: AppSelectionRow) {
+        val appData = row.app
+        val intent = Intent().putExtra("activity", "${appData.pkgName}|${appData.actName}").putExtra("user", user)
+        targetFragment?.onActivityResult(targetRequestCode, Activity.RESULT_OK, intent)
+        finish()
+    }
+
+    override fun longSelectApp(row: AppSelectionRow): Boolean {
+        val appData = row.app
+        val intent = Intent().setComponent(ComponentName(appData.pkgName, appData.actName))
+            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED).putExtra("user", user)
+        activity?.sendBroadcast(Intent(GlobalActions.ACTION_PREFIX + "LaunchIntent").putExtra("intent", intent))
+        return true
     }
 }

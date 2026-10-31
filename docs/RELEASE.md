@@ -25,9 +25,13 @@ main 合并、正式签名、tag 与公开发行以当前任务授权为准。�
 
 仓库简介与交流群入口统一维护在 `tools/release-policy.json`。双仓库 About 使用短简介与群链接；源码双语 README、下载仓库文档生成器和应用关于页保持相同入口，文档反馈不再链接 Issues。新发布说明在来源信息之后附一行普通群链接，不使用标题或独立大区块；历史原候选恢复仍接受原文，并继续严格核对版本、来源、正文和资产。不为补群链接重建 APK 或修改旧版功能说明。
 
-### 当前正式候选
+### 当前正式版本
 
-当前正式目标为 **r14.25.9 / 258**，说明基线为 **r14.25.7**；公开安全基线仍须在实际发布时按双仓读回核实。2026-10-29 用户明确授权整合所有分支到 main 并按既有自动化流程正式发布。r14.25.8 / 257 仅为未公开本地候选，其有效变化累计进入 r14.25.9，不发布或晋升旧候选。此前整合阶段的禁止公开发行及 CI-skip 停止点已被本次授权取代；保留 exact main CI、历史证书、两环境及双仓验收门禁。设备待验范围见[原路线图](maintenance/A14_REFINEMENT_ROADMAP.md#全分支整合与-vpn-入口)。旧 r14.25.5 / 250 候选仍不得晋升，不移动或覆盖历史标签。
+当前已公开正式版为 **r14.26.3 / 263**，说明基线为 **r14.25.9**；双仓稳定版、Latest、两份附件与下载文档均已读回核验。正式源码为 `91827e3e758540d104dad99ed6d989abb451d196`，通过 归档构建记录 后由归档构建记录签名一次并发布。APK 为 5,980,249 字节，SHA-256 为 `e135a9c13e8708ce391f399158712ea6c7b61fd7b9b9271c5943bc16eb5f4f2b`；实机安装包与双仓附件完全一致。验收范围和剩余测量见[原路线图](maintenance/A14_REFINEMENT_ROADMAP.md)。
+
+2026-10-29 的 r14.25.9 双仓发行已完成；r14.25.8 / 257 仅为未公开本地候选，其有效变化已累计进入 r14.25.9，不发布或晋升旧候选。旧 r14.25.5 / 250 候选仍不得晋升，不移动或覆盖历史标签。
+
+2026-10-31 的 r14.26.1 有效变化已累计进入 r14.26.3。新版完成双仓与实机验收后，按授权删除旧版两端页面、附件与标签；旧源码保留在 Git 历史，r14.24.1 及更早正式版保持不变。当前版本的标签与产物不移动或覆盖，设备持续成本的未测范围仍单独保留。
 
 ### 手动与恢复入口
 
@@ -70,7 +74,7 @@ gh workflow run a14-signed-build.yml --ref main -f destination=actions-only
 python tools/check_release_metadata.py
 ```
 
-准备工具先验证全部输入，再统一更新五个版本文件；不 commit、push、打 tag 或发布。当前 r14.25.9 / 258 已准备，双语记录按 r14.25.7 对照；不要对同一已准备版本重复升版。准备工具保留真实历史；后续版本按发布策略递增，不创建额外试用版名称。旧 `--supersede / --base-version` 仅兼容旧的源码整理用途，不能与 `--notes-base` 混用。
+准备工具先验证全部输入，再统一更新五个版本文件；不 commit、push、打 tag 或发布。当前 r14.26.3 / 263 已正式发布，双语记录按 r14.25.9 对照；不要对同一版本重复升版或重新签名，也不把元数据准备当成签名或发行成功。准备工具保留真实历史；后续版本按发布策略递增，不创建额外试用版名称。旧 `--supersede / --base-version` 仅兼容旧的源码整理用途，不能与 `--notes-base` 混用。
 
 ### Release Notes 质量
 
@@ -133,7 +137,7 @@ gh workflow run a14-promote-release.yml --ref main -f destination=docs-only -f v
 
 ## 本地正式签名与设备证据
 
-本地正式构建另需任务明确授权，密钥和 properties 放在仓库外，保持当前 JDK 25 与构建工具；不在工作流写入本机路径。使用 `-PcustomiuizerA14KeystoreProperties` 或 `CUSTOMIUIZER_A14_KEYSTORE_PROPERTIES` 指定绝对路径，properties 包含 storeFile、storePassword、keyAlias、keyPassword；相对 storeFile 按 app/ 解析，Windows 路径建议正斜杠。
+本地正式构建另需任务明确授权，密钥和 properties 放在仓库外，保持当前 JDK 27 与构建工具；不在工作流写入本机路径。使用 `-PcustomiuizerA14KeystoreProperties` 或 `CUSTOMIUIZER_A14_KEYSTORE_PROPERTIES` 指定绝对路径，properties 包含 storeFile、storePassword、keyAlias、keyPassword；相对 storeFile 按 app/ 解析，Windows 路径建议正斜杠。
 
 ```powershell
 .\scripts\check-signing-config.ps1 -RequireSigning -KeystoreProperties "<external-absolute-path>/keystore.properties"

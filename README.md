@@ -29,9 +29,9 @@
 
 [文档目录](docs/README.md)提供开发、测试、发布和专项说明；参与维护先读[共同工程规则](AGENTS.md)。
 
-当前源码版本：`r14.25.9`（versionCode 258）。维护者：`thetvplus`。应用 ID：`tv.withaibuild.customiuizer.r14`。
+当前源码版本：`r14.26.5`（versionCode 265）。维护者：`thetvplus`。应用 ID：`tv.withaibuild.customiuizer.r14`。
 
-r14.25.9 累计整合 VPN 自动开关、POCO 文件夹图标模糊、动态岛与锁屏精修，已授权按自动化流程正式发布，变化见[更新记录](CHANGELOG.md)。上一公开版 r14.25.7 的主要变化见[简版发行说明](docs/releases/r14.25.7.md)；ROM 验收范围及待确认事项见[当前精修状态](docs/maintenance/A14_REFINEMENT_ROADMAP.md#poco-文件夹模糊完整性)。
+r14.26.5 整合此前 Compose 与 API 102 改进，并调整文本运动、选项可读性及页面按压反馈，移除 Dock 轻量玻璃，见[更新记录](CHANGELOG.md)。当前处于正式发行验收，r14.26.3 暂保留；验证边界见[当前精修状态](docs/maintenance/A14_REFINEMENT_ROADMAP.md)。
 
 ## 支持与许可
 

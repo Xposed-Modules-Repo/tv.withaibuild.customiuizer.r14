@@ -1,0 +1,63 @@
+{
+  "type": "screen",
+  "attributes": {},
+  "children": [
+    {
+      "type": "toggle",
+      "attributes": {
+        "android:key": "pref_key_system_autobrightness",
+        "android:title": "@string/enable_mod",
+        "android:defaultValue": "false"
+      }
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/prefs_group_brightness",
+        "android:dependency": "pref_key_system_autobrightness"
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_autobrightness_limitmin",
+            "android:title": "@string/system_minbrightness_title",
+            "android:defaultValue": "false"
+          }
+        },
+        {
+          "type": "slider",
+          "attributes": {
+            "android:key": "pref_key_system_autobrightness_min",
+            "android:defaultValue": "25",
+            "android:dependency": "pref_key_system_autobrightness_limitmin",
+            "app:minValue": "0",
+            "app:maxValue": "98",
+            "app:stepValue": "1",
+            "app:format": "%d%%"
+          }
+        },
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_autobrightness_limitmax",
+            "android:title": "@string/system_maxbrightness_title",
+            "android:defaultValue": "false"
+          }
+        },
+        {
+          "type": "slider",
+          "attributes": {
+            "android:key": "pref_key_system_autobrightness_max",
+            "android:defaultValue": "75",
+            "android:dependency": "pref_key_system_autobrightness_limitmax",
+            "app:minValue": "0",
+            "app:maxValue": "100",
+            "app:stepValue": "1",
+            "app:format": "%d%%"
+          }
+        }
+      ]
+    }
+  ]
+}

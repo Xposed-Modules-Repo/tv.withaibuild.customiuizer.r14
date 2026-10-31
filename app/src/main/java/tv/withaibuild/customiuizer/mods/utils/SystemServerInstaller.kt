@@ -24,6 +24,12 @@ import tv.withaibuild.customiuizer.utils.PrefMap
  */
 object SystemServerInstaller {
 
+    /** Shared cold context handoff; optional business stays uninitialized when its switch is off. */
+    fun onContextReady(context: Context) {
+        if (MainModule.mPrefs.getBoolean("system_wifiauto_enabled"))
+            tv.withaibuild.customiuizer.mods.wifiauto.WifiAutomationHooks.systemReady(context)
+    }
+
     private val lock = Any()
     private var registry: FeatureInstallRegistry? = null
 
@@ -38,35 +44,16 @@ object SystemServerInstaller {
         synchronized(lock) {
             val registry = this.registry ?: run {
                 val registry = FeatureInstallRegistry()
-                val catalogStartNanos = FeatureInstallMetrics.nowNanos()
-                val catalogStartBytes = FeatureInstallMetrics.allocatedBytes()
+
                 val packagePermissionsFeature = PackagePermissionsFeature(lpparam, mPrefs)
                 val features = SystemServerFeatures.all(lpparam)
-                val catalogEndNanos = FeatureInstallMetrics.nowNanos()
-                val catalogEndBytes = FeatureInstallMetrics.allocatedBytes()
-                val registerStartNanos = FeatureInstallMetrics.nowNanos()
-                val registerStartBytes = FeatureInstallMetrics.allocatedBytes()
+
                 registry.register(packagePermissionsFeature)
 
                 // All preference-guarded system_server features.
                 for (feature in features) {
                     registry.register(feature)
                 }
-
-                val registerEndNanos = FeatureInstallMetrics.nowNanos()
-                val registerEndBytes = FeatureInstallMetrics.allocatedBytes()
-                FeatureInstallMetrics.recordCatalog(
-                    label = "system-server/starting",
-                    specCount = features.size + 1,
-                    catalogStartNanos = catalogStartNanos,
-                    catalogEndNanos = catalogEndNanos,
-                    catalogStartBytes = catalogStartBytes,
-                    catalogEndBytes = catalogEndBytes,
-                    registerStartNanos = registerStartNanos,
-                    registerEndNanos = registerEndNanos,
-                    registerStartBytes = registerStartBytes,
-                    registerEndBytes = registerEndBytes,
-                )
 
                 // PhoneWindowManager GlobalAction receiver is a cheap always-on transport.
                 // It must be installed at system_server start so later none → configured

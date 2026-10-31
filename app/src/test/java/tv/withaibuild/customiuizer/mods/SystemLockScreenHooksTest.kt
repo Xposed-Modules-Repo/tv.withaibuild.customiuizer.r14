@@ -153,6 +153,13 @@ class SystemLockScreenHooksTest {
         assertTrue("isUnlockedInnerCall must be set before broadcast", flagSet >= 0 && flagSet < broadcastStart)
     }
 
+    @Test
+    fun installedAuthenticationHooksUseTheBehaviorTestedCallbacks() {
+        val source = sourceFile("app/src/main/java/tv/withaibuild/customiuizer/mods/SystemLockScreenHooks.kt").readText()
+        assertTrue(source.contains("\"handleKeyguardDone\", keyguardDoneAuthenticationHook())"))
+        assertTrue(source.contains("Boolean::class.javaPrimitiveType!!, fingerprintAuthenticationHook())"))
+    }
+
     private fun sourceFile(relativePath: String): File {
         var directory = File(requireNotNull(java.lang.System.getProperty("user.dir"))).absoluteFile
         while (true) {

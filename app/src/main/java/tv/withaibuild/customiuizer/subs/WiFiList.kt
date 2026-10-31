@@ -15,11 +15,12 @@ import android.util.Pair
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewStub
-import android.widget.AdapterView
-import android.widget.BaseAdapter
-import android.widget.ListView
-import android.widget.TextView
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import tv.withaibuild.customiuizer.ui.NetworkSelectionRow
+import tv.withaibuild.customiuizer.ui.SettingsNetworkList
+import tv.withaibuild.customiuizer.ui.settingsView
 import android.widget.Toast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,19 +32,15 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import tv.withaibuild.customiuizer.R
 import tv.withaibuild.customiuizer.SubFragment
-import tv.withaibuild.customiuizer.applyGroupedListRow
 import tv.withaibuild.customiuizer.utils.AppHelper
-import tv.withaibuild.customiuizer.utils.PrefPair
 import tv.withaibuild.customiuizer.mods.utils.FatalErrors
 
 class WiFiList : SubFragment() {
 
     private val scanInterval = 15 * 1000
     private var key: String? = null
-    private var listView1: ListView? = null
-    private var listView2: ListView? = null
-    private var wifiAdapter1: WiFiAdapter? = null
-    private var wifiAdapter2: WiFiAdapter? = null
+    private var rows by mutableStateOf<List<NetworkSelectionRow>>(emptyList())
+    private var loading by mutableStateOf(false)
     private lateinit var wifiManager: WifiManager
     private var wifiList: List<ScanResult> = emptyList()
     private var bssids = LinkedHashSet<String>()
@@ -62,8 +59,7 @@ class WiFiList : SubFragment() {
                 } catch (ignored: SecurityException) {
                     emptyList()
                 }
-                wifiAdapter1?.notifyDataSetChanged()
-                wifiAdapter2?.notifyDataSetChanged()
+                refreshRows()
                 updateProgressBar()
             } else if (action == WifiManager.NETWORK_STATE_CHANGED_ACTION) {
                 val netInfo = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO) as? NetworkInfo ?: return
@@ -80,7 +76,6 @@ class WiFiList : SubFragment() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        padded = false
         super.onCreate(savedInstanceState)
     }
 
@@ -91,55 +86,13 @@ class WiFiList : SubFragment() {
         bssids = LinkedHashSet(AppHelper.getStringSetOfAppPrefs(key, LinkedHashSet()))
 
         wifiManager = requireActivity().getSystemService(Context.WIFI_SERVICE) as WifiManager
-        val ctx = requireContext()
-        wifiAdapter1 = WiFiAdapter(ctx, true)
-        wifiAdapter2 = WiFiAdapter(ctx, false)
-
-        val view = requireView()
-        listView1 = view.findViewById(android.R.id.text1)
-        listView2 = view.findViewById(android.R.id.text2)
-
-        @SuppressLint("CutPasteId")
-        val locationStub: ViewStub? = view.findViewById(R.id.location_settings)
-        locationStub?.layoutResource = R.layout.pref_item
-        locationStub?.inflate()
-
-        @SuppressLint("CutPasteId")
-        val location: View? = view.findViewById(R.id.location_settings)
-        location?.findViewById<TextView>(android.R.id.title)?.text = getString(R.string.wifi_location_title)
-        location?.findViewById<TextView>(android.R.id.summary)?.text = getString(R.string.wifi_location_summ)
-        location?.let { applyGroupedListRow(it, 0, 1) }
-        location?.setOnClickListener {
-            startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-        }
-
-        listView1?.adapter = wifiAdapter1
-        listView1?.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
-            val sr = wifiAdapter1?.getItem(position) ?: return@OnItemClickListener
-            bssids = LinkedHashSet(AppHelper.getStringSetOfAppPrefs(key, LinkedHashSet()))
-            AppHelper.removeStringPair(bssids, sr.first)
-            AppHelper.appPrefs!!.edit().putStringSet(key, if (bssids.isEmpty()) null else bssids).apply()
-            wifiAdapter1?.notifyDataSetChanged()
-            wifiAdapter2?.notifyDataSetChanged()
-        }
-
-        listView2?.adapter = wifiAdapter2
-        listView2?.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
-            val sr = wifiAdapter2?.getItem(position) ?: return@OnItemClickListener
-            bssids = LinkedHashSet(AppHelper.getStringSetOfAppPrefs(key, LinkedHashSet()))
-            AppHelper.addStringPair(bssids, sr.first, sr.second)
-            AppHelper.appPrefs!!.edit().putStringSet(key, bssids).apply()
-            wifiAdapter1?.notifyDataSetChanged()
-            wifiAdapter2?.notifyDataSetChanged()
-        }
-
         isWiFiReady()
         updateProgressBar()
     }
 
     fun updateProgressBar() {
-        view?.findViewById<View>(R.id.progress_bar)?.visibility =
-            if (wifiManager.isWifiEnabled && isLocationServicesEnabled() && wifiList.isEmpty()) View.VISIBLE else View.GONE
+        loading = wifiManager.isWifiEnabled && isLocationServicesEnabled() && wifiList.isEmpty()
+        refreshRows()
     }
 
     fun isLocationServicesEnabled(): Boolean {
@@ -212,53 +165,30 @@ class WiFiList : SubFragment() {
         registerReceivers()
     }
 
-    private inner class WiFiAdapter(context: Context, private val isSelected: Boolean) : BaseAdapter() {
-        private val mInflater: LayoutInflater = LayoutInflater.from(context)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View = settingsView {
+        SettingsNetworkList(getString(R.string.wifi_location_title),
+            getString(R.string.wifi_location_summ), { startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)) },
+            getString(R.string.wifi_category1), getString(R.string.wifi_category2), rows, loading, ::toggleNetwork)
+    }
 
-        override fun getCount(): Int = if (isSelected) bssids.size else wifiList.size
-
-        override fun getItem(position: Int): Pair<String, String>? {
-            return if (isSelected) {
-                if (bssids.isEmpty()) return null
-                val network = bssids.elementAt(position).split("|", limit = 2)
-                Pair(network[0], if (network.size > 1) network[1] else "")
-            } else {
-                val result = wifiList[position]
-                Pair(result.BSSID, result.SSID)
-            }
+    @SuppressLint("MissingPermission")
+    private fun refreshRows() {
+        val current = try { wifiManager.connectionInfo?.bssid?.let { setOf(it) } ?: emptySet() } catch (_: SecurityException) { emptySet() }
+        val selectedRows = bssids.map {
+            val parts = it.split("|", limit = 2)
+            NetworkSelectionRow(parts[0], parts.getOrElse(1) { "" }, selected = true, current = parts[0] in current)
         }
-
-        override fun getItemId(position: Int): Long = position.toLong()
-
-        override fun isEnabled(position: Int): Boolean {
-            return isSelected || !PrefPair.containsFirst(bssids, getItem(position)?.first ?: "")
+        val known = selectedRows.mapTo(HashSet()) { it.id }
+        rows = selectedRows + wifiList.map { Pair(it.BSSID, it.SSID) }.distinctBy { it.first }.filter { it.first !in known }.map {
+            NetworkSelectionRow(it.first, it.second.orEmpty(), current = it.first in current)
         }
+    }
 
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-            val row = convertView ?: mInflater.inflate(R.layout.pref_item, parent, false)
-            applyGroupedListRow(row, position, count)
-
-            val itemTitle: TextView = row.findViewById(android.R.id.title)
-            val itemSumm: TextView = row.findViewById(android.R.id.summary)
-            val sr = getItem(position) ?: return row
-            itemTitle.text = sr.second
-            itemSumm.text = sr.first
-
-            if (isEnabled(position)) {
-                row.isEnabled = true
-                if (sr.first == wifiManager.connectionInfo?.bssid)
-                    itemTitle.setTextColor(resources.getColor(R.color.highlight_normal_light, activity?.theme))
-                else
-                    itemTitle.setTextColor(resources.getColor(R.color.preference_primary_text_color, activity?.theme))
-                itemTitle.alpha = 1.0f
-                itemSumm.alpha = 1.0f
-            } else {
-                row.isEnabled = false
-                itemTitle.setTextColor(resources.getColor(R.color.preference_secondary_text_color, activity?.theme))
-                itemTitle.alpha = 0.5f
-                itemSumm.alpha = 0.5f
-            }
-            return row
-        }
+    private fun toggleNetwork(row: NetworkSelectionRow) {
+        bssids = LinkedHashSet(AppHelper.getStringSetOfAppPrefs(key, LinkedHashSet()))
+        if (row.selected) AppHelper.removeStringPair(bssids, row.id)
+        else AppHelper.addStringPair(bssids, row.id, row.name)
+        AppHelper.appPrefs?.edit()?.putStringSet(key, bssids.takeIf { it.isNotEmpty() })?.apply()
+        refreshRows()
     }
 }

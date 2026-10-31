@@ -25,6 +25,9 @@ internal object VpnAutoSwitchHooks {
     @Volatile var status = "UNAVAILABLE"
         private set
 
+    /** Includes a retiring asynchronous client start after application rules were disabled. */
+    internal fun busyForWifi(): Boolean = options?.enabled == true || runtime != null
+
     fun install(loader: ClassLoader) {
         val activity = Class.forName("com.android.server.wm.ActivityRecord", false, loader)
         val state = Class.forName("com.android.server.wm.ActivityRecord\$State", false, loader)

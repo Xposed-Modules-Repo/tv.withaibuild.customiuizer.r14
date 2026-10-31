@@ -11,27 +11,11 @@ import org.junit.Test
 
 class DockSuggestionCallerScopeTest {
 
-    private class DockActivityFixture {
-        class MatchingWorker(owner: DockActivityFixture) : Runnable {
-            @JvmField
-            val owner = WeakReference(owner)
-
-            @JvmField
-            val loading = false
-
-            override fun run() = Unit
-        }
-
-        class WrongWorker(@JvmField val owner: DockActivityFixture) : Runnable {
-            override fun run() = Unit
-        }
-    }
-
     @Test
     fun resolvesVerifiedDockWorkerShapeWithoutUsingItsObfuscatedInnerName() {
-        val method = resolveDockSuggestionRomCallerMethod(DockActivityFixture::class.java)
+        val method = resolveDockSuggestionRomCallerMethod(DockSuggestionActivityFixture::class.java)
 
-        assertEquals(DockActivityFixture.MatchingWorker::class.java, method.declaringClass)
+        assertEquals(DockSuggestionActivityFixture.MatchingWorker::class.java, method.declaringClass)
         assertEquals("run", method.name)
         assertEquals(Void.TYPE, method.returnType)
         assertTrue(method.parameterTypes.isEmpty())

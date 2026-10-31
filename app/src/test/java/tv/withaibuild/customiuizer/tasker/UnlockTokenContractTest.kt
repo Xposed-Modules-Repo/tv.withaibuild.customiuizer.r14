@@ -1,6 +1,7 @@
 package tv.withaibuild.customiuizer.tasker
 
-import java.io.File
+import tv.withaibuild.customiuizer.testsupport.repositorySource as source
+
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -106,7 +107,7 @@ class UnlockTokenContractTest {
         )
         assertTrue(
             "Host summary must be shown to the user",
-            unlockSettings.contains("R.id.host_info") &&
+            unlockSettings.contains("Text(hostSummary,") &&
                 unlockSettings.contains("R.string.unlock_host_summary")
         )
     }
@@ -220,13 +221,4 @@ class UnlockTokenContractTest {
         )
     }
 
-    private fun source(relativePath: String): String {
-        var directory = File(System.getProperty("user.dir")).absoluteFile
-        while (true) {
-            val candidate = File(directory, relativePath)
-            if (candidate.isFile) return candidate.readText()
-            directory = directory.parentFile
-                ?: error("Repository root not found while locating $relativePath")
-        }
-    }
 }

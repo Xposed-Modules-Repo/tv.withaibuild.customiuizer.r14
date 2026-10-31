@@ -124,7 +124,11 @@ def parse_install_hooks(text: str) -> dict[str, str]:
     for m in re.finditer(r"internal class (\w+)\s*\(", text):
         cls = m.group(1)
         body = extract_class_body(text, cls)
-        hm = re.search(r"override fun installHook\(\)\s*(?==|\{)", body)
+        # An explicit install() owns dispatch even if a legacy installHook() remains.
+        signature = r"\(\)\s*(?::\s*[\w.]+\s*)?(?==|\{)"
+        hm = re.search(r"override fun install" + signature, body)
+        if hm is None:
+            hm = re.search(r"override fun installHook" + signature, body)
         if hm:
             start = hm.end() + (1 if body[hm.end()] == "=" else 0)
             hooks[cls] = extract_rhs(body, start).strip()

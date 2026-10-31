@@ -380,6 +380,21 @@ object SystemClockHooks {
         return timeFmt
     }
 
+    /** Format eligibility only; no View visibility or controller lifetime inference. */
+    internal fun needsWeatherData(
+        snapshot: ClockStyleSnapshot,
+        statusbarClockTweak: Boolean,
+        ccClockTweak: Boolean,
+        hideDateView: Boolean,
+        hideDrawerDate: Boolean,
+    ): Boolean {
+        if (!snapshot.enableWeatherParam) return false
+        fun usesWeather(name: String) =
+            buildClockText(name, snapshot, null, statusbarClockTweak, ccClockTweak)?.contains("tq") == true
+        return usesWeather("clock") || usesWeather("ccClock") ||
+            (!hideDateView && usesWeather("ccDate")) || (!hideDrawerDate && usesWeather("drawerDate"))
+    }
+
     /**
      * Applies the snapshot-backed style to a clock [TextView].
      *
@@ -848,6 +863,7 @@ object SystemClockHooks {
             for (listener in clockListeners) {
                 val clock = listener as View
                 if (ModuleHelper.getViewInfo(clock, "showSeconds") == null) continue
+                if (!clock.isShown) continue
                 val effect = publication.resolveForClock(clock, clock.context?.javaClass ?: context.javaClass)
                 if (effect != null) return effect
             }
@@ -855,14 +871,21 @@ object SystemClockHooks {
         }
 
         private fun runWithEffect(effect: ClockEffect, controller: Any) {
-            val calendar = effect.readCalendar(controller) ?: return
-            if (!effect.setTimeInMillis(calendar, java.lang.System.currentTimeMillis())) return
-            if (!effect.writeIs24(controller, DateFormat.is24HourFormat(context))) return
             @Suppress("UNCHECKED_CAST")
             val clockListeners = effect.readClockListeners(controller) as ArrayList<Any>
+            var prepared = false
             for (listener in clockListeners) {
                 val clock = listener as View
                 if (ModuleHelper.getViewInfo(clock, "showSeconds") == null) continue
+                if (!clock.isShown) continue
+                // Hidden / detached clocks need no calendar, settings read or text layout.
+                // Reuse the existing tick to resume; prepare shared time once on first output.
+                if (!prepared) {
+                    val calendar = effect.readCalendar(controller) ?: return
+                    if (!effect.setTimeInMillis(calendar, java.lang.System.currentTimeMillis())) return
+                    if (!effect.writeIs24(controller, DateFormat.is24HourFormat(context))) return
+                    prepared = true
+                }
                 if (!effect.invokeUpdateTime(clock)) return
             }
         }
@@ -872,33 +895,6 @@ object SystemClockHooks {
             val delay = 1000L - java.lang.System.currentTimeMillis() % 1000L
             handler.postDelayed(this, delay)
         }
-    }
-
-    private fun initWeatherInfoHook(lpparam: PackageReadyParam) {
-        ModuleHelper.hookAllConstructors("com.android.systemui.statusbar.policy.MiuiStatusBarClockController", lpparam.classLoader, object : MethodHook() {
-            override fun intercept(chain: XposedInterface.Chain): Any? {
-                var result: Any?
-                var throwable: Throwable? = null
-                try {
-                    result = chain.proceed()
-                } catch (t: Throwable) {
-                    throwable = t
-                    result = null
-                }
-                try {
-                    val thisObject = chain.thisObject
-
-                    val mContext = XposedHelpers.getObjectField(thisObject, "mContext") as Context
-                    WeatherDataController.initContext(mContext, thisObject)
-
-                } catch (oom: OutOfMemoryError) {
-                    throw oom
-                } catch (t: Throwable) {
-                    XposedHelpers.log(t)
-                }
-                return XposedHelpers.throwOrReturn(throwable, result)
-            }
-        })
     }
 
     /** Prepare only the immutable formatting capability; never retain a clock or controller. */
@@ -920,9 +916,6 @@ object SystemClockHooks {
     @JvmStatic
     fun StatusBarClockTweakHook(lpparam: PackageReadyParam) {
         val enableWeatherParam = MainModule.mPrefs.getBoolean("system_statusbar_enable_weather_param")
-        if (enableWeatherParam) {
-            initWeatherInfoHook(lpparam)
-        }
         val hideStatusbarClock = MainModule.mPrefs.getBoolean("system_statusbaricons_clock")
         val statusbarClockTweak = !hideStatusbarClock && MainModule.mPrefs.getBoolean("system_statusbar_clocktweak")
         val ccClockTweak = MainModule.mPrefs.getBoolean("system_cc_clocktweak")
@@ -932,6 +925,7 @@ object SystemClockHooks {
         val clockEffectPublication = prepareClockEffectPublication(MainModule.mPrefs) {
             ClockResolver.resolveCore(lpparam.classLoader)
         }
+        val hasClockWork = ccClockTweak || statusbarClockTweak || clockEffectPublication != null
 
         val scheduleHook = object : MethodHook() {
             override fun intercept(chain: XposedInterface.Chain): Any? {
@@ -948,6 +942,17 @@ object SystemClockHooks {
 
                     val mContext = XposedHelpers.getObjectField(thisObject, "mContext") as Context
                     val snapshot = ensureClockStyleSnapshot(mContext.resources)
+                    if (enableWeatherParam) {
+                        try {
+                            WeatherDataController.initContext(mContext, thisObject,
+                                needsWeatherData(snapshot, statusbarClockTweak, ccClockTweak, hideDateView, hideDrawerDate))
+                        } catch (oom: OutOfMemoryError) {
+                            throw oom
+                        } catch (t: Throwable) {
+                            FatalErrors.unwrapAndRethrowIfFatal(t)
+                            XposedHelpers.log(t)
+                        }
+                    }
 
                     val effectiveStatusBarSeconds = statusbarClockTweak && snapshot.showStatusBarSeconds
                     val effectiveCcSeconds = ccClockTweak && snapshot.showCCSeconds
@@ -964,7 +969,7 @@ object SystemClockHooks {
                             ModuleHelper.guarded { initSecondTicker(owner, statusbarClockTweak, ccClockTweak, clockEffectPublication) }
                         }
                     }
-                    initSecondTicker(thisObject, statusbarClockTweak, ccClockTweak, clockEffectPublication)
+                    if (hasClockWork) initSecondTicker(thisObject, statusbarClockTweak, ccClockTweak, clockEffectPublication)
 
                     val controllerRef = WeakReference(thisObject)
                     val handler = Handler(mContext.mainLooper)
@@ -977,6 +982,10 @@ object SystemClockHooks {
                                 try {
                                     val res = context.resources
                                     val freshSnapshot = refreshClockStyleSnapshot(res)
+                                    if (enableWeatherParam) ModuleHelper.guarded {
+                                        WeatherDataController.setEnabled(needsWeatherData(freshSnapshot,
+                                            statusbarClockTweak, ccClockTweak, hideDateView, hideDrawerDate))
+                                    }
 
                                     @Suppress("UNCHECKED_CAST")
                                     val clockListeners = XposedHelpers.getObjectField(controller, "mClockListeners") as? ArrayList<Any>
@@ -992,7 +1001,7 @@ object SystemClockHooks {
                                         }
                                     }
 
-                                    initSecondTicker(controller, statusbarClockTweak, ccClockTweak, clockEffectPublication)
+                                    if (hasClockWork) initSecondTicker(controller, statusbarClockTweak, ccClockTweak, clockEffectPublication)
                                 } catch (oom: OutOfMemoryError) {
                                     throw oom
                                 } catch (t: Throwable) {
@@ -1011,7 +1020,7 @@ object SystemClockHooks {
                 return XposedHelpers.throwOrReturn(throwable, result)
             }
         }
-        if (ccClockTweak || statusbarClockTweak || clockEffectPublication != null) {
+        if (enableWeatherParam || hasClockWork) {
             ModuleHelper.hookAllConstructors("com.android.systemui.statusbar.policy.MiuiStatusBarClockController", lpparam.classLoader, scheduleHook)
         }
 

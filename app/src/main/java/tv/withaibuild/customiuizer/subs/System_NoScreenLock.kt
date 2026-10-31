@@ -46,11 +46,11 @@ class System_NoScreenLock : SubFragment() {
 
     fun openWifiNetworks() {
         val args = Bundle().apply { putString("key", "pref_key_system_noscreenlock_wifi") }
-        openSubFragment(WiFiList(), args, AppHelper.SettingsType.Edit, AppHelper.ActionBarType.HomeUp, R.string.wifi_networks, R.layout.prefs_wifi_networks)
+        openSubFragment(WiFiList(), args, AppHelper.SettingsType.Edit, AppHelper.ActionBarType.HomeUp, R.string.wifi_networks, R.id.prefs_wifi_networks)
     }
 
     fun openBtNetworks() {
         val args = Bundle().apply { putString("key", "pref_key_system_noscreenlock_bt") }
-        openSubFragment(BTList(), args, AppHelper.SettingsType.Edit, AppHelper.ActionBarType.HomeUp, R.string.bt_devices, R.layout.prefs_bt_networks)
+        openSubFragment(BTList(), args, AppHelper.SettingsType.Edit, AppHelper.ActionBarType.HomeUp, R.string.bt_devices, R.id.prefs_bt_networks)
     }
 }

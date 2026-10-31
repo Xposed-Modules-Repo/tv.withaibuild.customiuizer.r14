@@ -6,20 +6,21 @@ import org.junit.Assert.*
 import org.junit.Test
 import tv.withaibuild.customiuizer.utils.PrefMap
 
+@org.junit.runner.RunWith(org.robolectric.RobolectricTestRunner::class)
+@org.robolectric.annotation.Config(sdk = [34], application = android.app.Application::class)
 class IslandDefaultContractTest {
     @Test fun layoutXmlAndRuntimeDefaultsDescribeTheSameAutomaticConfiguration() {
-        val document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
-            Path.of("src/main/res/xml/prefs_system_island_layout.xml").toFile())
-        val nodes = document.getElementsByTagName("*")
+        val nodes = tv.withaibuild.customiuizer.testsupport.settingsNodes("prefs_system_island_layout")
         val prefs = PrefMap()
-        for (index in 0 until nodes.length) {
-            val node = nodes.item(index)
-            val key = node.attributes?.getNamedItem("android:key")?.nodeValue ?: continue
-            val raw = node.attributes.getNamedItem("android:defaultValue")?.nodeValue ?: continue
+        for (node in nodes) {
+            val attrs = node.optJSONObject("attributes") ?: continue
+            if (!attrs.has("android:key") || !attrs.has("android:defaultValue")) continue
+            val key = attrs.getString("android:key")
+            val raw = attrs.getString("android:defaultValue")
             val value: Any = when {
                 raw == "true" -> true
                 raw == "false" -> false
-                node.nodeName.endsWith("SeekBarPreference") -> raw.toInt()
+                node.getString("type") == "slider" -> raw.toInt()
                 else -> raw
             }
             prefs.put(key, value)

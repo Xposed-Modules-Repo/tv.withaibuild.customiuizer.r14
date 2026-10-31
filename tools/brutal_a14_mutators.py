@@ -405,16 +405,6 @@ def action_cancel_as_up(root: Path, cfg: dict) -> None:
     )
 
 
-def wrong_threshold_comparison(root: Path, cfg: dict) -> None:
-    """Change the ShadeExpansionTracker threshold to >=."""
-    _replace_first(
-        root,
-        _kt_file("tv/withaibuild/customiuizer/mods/utils/ShadeExpansionTracker.kt"),
-        r"if \(value > threshold\)",
-        r"if (value >= threshold)",
-    )
-
-
 def horizontal_vertical_axis_swap(root: Path, cfg: dict) -> None:
     """Use Y delta instead of X delta for brightness calculation."""
     _replace_first(
@@ -483,16 +473,6 @@ def plugin_runtime_lifecycle_leak(root: Path, cfg: dict) -> None:
         _kt_file("tv/withaibuild/customiuizer/mods/utils/gesture/ControlCenterGestureRuntimeHolder.kt"),
         r"        existing\?\.machine\?\.clear\(\)\n",
         "",
-    )
-
-
-def shade_tracker_boundary_drift(root: Path, cfg: dict) -> None:
-    """Use a strict >= boundary in ShadeExpansionTracker."""
-    _replace_first(
-        root,
-        _kt_file("tv/withaibuild/customiuizer/mods/utils/ShadeExpansionTracker.kt"),
-        r"if \(value > threshold\)",
-        r"if (value >= threshold)",
     )
 
 
@@ -663,7 +643,6 @@ MUTATORS: dict[str, Callable[[Path, dict], None]] = {
     "remove_event_dedup": remove_event_dedup,
     "remove_side_effect_gate": remove_side_effect_gate,
     "action_cancel_as_up": action_cancel_as_up,
-    "wrong_threshold_comparison": wrong_threshold_comparison,
     "horizontal_vertical_axis_swap": horizontal_vertical_axis_swap,
     "left_right_action_swap": left_right_action_swap,
     "state_reset_removed": state_reset_removed,
@@ -671,7 +650,6 @@ MUTATORS: dict[str, Callable[[Path, dict], None]] = {
     "dependency_resolver_fallback_removed": dependency_resolver_fallback_removed,
     "config_publisher_stale": config_publisher_stale,
     "plugin_runtime_lifecycle_leak": plugin_runtime_lifecycle_leak,
-    "shade_tracker_boundary_drift": shade_tracker_boundary_drift,
     "statusbar_maths_sign_rounding_drift": statusbar_maths_sign_rounding_drift,
     # Fatal / OOM
     "catch_throwable_no_fatal": catch_throwable_no_fatal,

@@ -55,32 +55,4 @@ class SeekBarValuesTest {
         assertFalse(SeekBarValues(11, 12, 5, 0, 1).isValid)
     }
 
-    @Test fun everyCurrentXmlSliderRoundTripsIncludingItsOriginalDefaultAndSentinel() {
-        var root = File(System.getProperty("user.dir")).absoluteFile
-        while (!File(root, "app/src/main/res/xml").isDirectory) root = root.parentFile ?: error("repo not found")
-        val parser = DocumentBuilderFactory.newInstance().apply { isNamespaceAware = true }.newDocumentBuilder()
-        val android = "http://schemas.android.com/apk/res/android"
-        val app = "http://schemas.android.com/apk/res-auto"
-        var count = 0
-        File(root, "app/src/main/res/xml").listFiles()!!.filter { it.extension == "xml" }.forEach { file ->
-            val nodes = parser.parse(file).getElementsByTagName("tv.withaibuild.customiuizer.prefs.SeekBarPreference")
-            for (i in 0 until nodes.length) {
-                val element = nodes.item(i) as Element
-                fun attr(name: String, fallback: Int) = element.getAttributeNS(app, name).toIntOrNull() ?: fallback
-                val values = SeekBarValues(attr("minValue", 0), attr("maxValue", 10), attr("stepValue", 1),
-                    attr("negativeShift", 0), attr("displayDividerValue", 1))
-                val key = element.getAttributeNS(android, "key")
-                val default = element.getAttributeNS(android, "defaultValue").toInt()
-                assertTrue(key, values.isValid)
-                assertTrue("$key default=$default", values.contains(default))
-                for (progress in 0..values.progressMax) {
-                    val raw = values.storage(progress)
-                    assertEquals(key, raw, values.parse(values.number(raw)))
-                    assertEquals(key, progress, values.progress(raw))
-                }
-                count++
-            }
-        }
-        assertTrue("all slider pages covered", count >= 125)
-    }
 }

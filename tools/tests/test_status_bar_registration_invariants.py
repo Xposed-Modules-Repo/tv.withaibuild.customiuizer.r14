@@ -182,6 +182,61 @@ private fun leftIcons(mStatusBar: FrameLayout) {
     def test_clean_per_display_passes(self):
         self.assertEqual([], self._findings(self._passing_base))
 
+    @property
+    def _passing_queued(self) -> str:
+        text = self._passing_base
+        start = text.index("private val netSpeedSecondRowHookCallback =")
+        end = text.index("private fun applyNetworkSpeedToRow(", start)
+        return text[:start] + """
+private val netSpeedDelivery by lazy {
+    StatusBarNetworkSpeedDispatcher.LatestDelivery(
+        post = { netSpeedMainHandler.post(it) },
+        deliver = { payload, sequence -> ModuleHelper.guarded {
+            StatusBarNetworkSpeedDispatcher.dispatch(payload, sequence, netSpeedLastAppliedSequence,
+                statusBarDisplayRegistry, ::applyNetworkSpeedToRow)
+        } },
+    )
+}
+private val netSpeedSecondRowHookCallback by lazy { createNetSpeedSecondRowHook(netSpeedDelivery) }
+internal fun createNetSpeedSecondRowHook(delivery: StatusBarNetworkSpeedDispatcher.LatestDelivery) = object : MethodHook() {
+    override fun after(param: AfterHookCallback) {
+        if (param.getThrowable() != null) return
+        val state = param.getArg(0)
+        delivery.submit(StatusBarNetworkSpeedDispatcher.NetworkSpeedPayload(
+            XposedHelpers.getObjectField(state, "networkSpeedNumber"),
+            XposedHelpers.getObjectField(state, "networkSpeedUnit"),
+            XposedHelpers.getObjectField(state, "visible")), netSpeedSequence.incrementAndGet())
+    }
+}
+""" + text[end:]
+
+    def test_bounded_main_delivery_passes(self):
+        self.assertEqual([], self._findings(self._passing_queued))
+
+    def test_queue_cannot_dispatch_inline_instead_of_posting(self):
+        text = self._passing_queued.replace("netSpeedMainHandler.post(it)", "it.run(); true")
+        self.assertTrue(any("must post its runnable" in d for d in self._details(self._findings(text))))
+
+    def test_queue_cannot_use_background_handler(self):
+        text = self._passing_queued.replace("Handler(Looper.getMainLooper())", "Handler(workerLooper)")
+        self.assertTrue(any("main-looper handler" in d for d in self._details(self._findings(text))))
+
+    def test_queue_cannot_drop_guard_or_dispatch(self):
+        for old, new in (("ModuleHelper.guarded", "run"),
+                         ("StatusBarNetworkSpeedDispatcher.dispatch", "anotherDispatch"),
+                         ("payload, sequence, netSpeedLastAppliedSequence", "oldPayload, sequence, netSpeedLastAppliedSequence")):
+            with self.subTest(old=old):
+                text = self._passing_queued.replace(old, new)
+                self.assertTrue(any("guard and dispatch" in d for d in self._details(self._findings(text))))
+
+    def test_queue_callback_must_bind_the_validated_delivery(self):
+        text = self._passing_queued.replace("createNetSpeedSecondRowHook(netSpeedDelivery)", "createNetSpeedSecondRowHook(otherQueue)")
+        self.assertTrue(any("bind the process-owned delivery" in d for d in self._details(self._findings(text))))
+
+    def test_queue_delivery_cannot_capture_a_stale_snapshot(self):
+        text = self._passing_queued.replace("deliver = { payload, sequence ->", "deliver = { payload, sequence ->\n val state = registry.allStatesSnapshot()")
+        self.assertTrue(any("stale" in d and "posted" in d for d in self._details(self._findings(text))))
+
     def test_safe_rewrite_with_different_variable_names_passes(self):
         """The rule is structural: equivalent code with different identifiers still passes."""
         # Rename only local identifiers that are not part of the structural contract.

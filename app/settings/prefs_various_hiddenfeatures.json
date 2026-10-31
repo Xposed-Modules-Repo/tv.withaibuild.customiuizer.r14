@@ -1,0 +1,27 @@
+{
+  "type": "screen",
+  "attributes": {},
+  "children": [
+    {
+      "type": "action",
+      "attributes": {
+        "android:key": "pref_key_various_runningservices",
+        "android:title": "@string/various_runningservices_title"
+      }
+    },
+    {
+      "type": "action",
+      "attributes": {
+        "android:key": "pref_key_various_batteryoptimization",
+        "android:title": "@string/various_batteryoptimization_title"
+      }
+    },
+    {
+      "type": "action",
+      "attributes": {
+        "android:key": "pref_key_various_aospnotif",
+        "android:title": "@string/various_aospnotif_title"
+      }
+    }
+  ]
+}

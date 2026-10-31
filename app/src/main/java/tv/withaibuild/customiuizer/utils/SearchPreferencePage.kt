@@ -9,6 +9,8 @@ import tv.withaibuild.customiuizer.subs.System_ScreenshotConfig
 import tv.withaibuild.customiuizer.subs.System_VibrationAmp
 import tv.withaibuild.customiuizer.subs.System_Visualizer
 import tv.withaibuild.customiuizer.subs.System_VpnAutoSwitch
+import tv.withaibuild.customiuizer.subs.System_AppBehavior
+import tv.withaibuild.customiuizer.subs.System_WifiAutomatic
 import tv.withaibuild.customiuizer.subs.Various_CallUIBright
 import tv.withaibuild.customiuizer.subs.Various_HiddenFeatures
 
@@ -29,6 +31,8 @@ class SearchPreferencePage(
         "System_NoScreenLock" -> System_NoScreenLock()
         "System_ScreenshotConfig" -> System_ScreenshotConfig()
         "System_VpnAutoSwitch" -> System_VpnAutoSwitch()
+        "System_AppBehavior" -> System_AppBehavior()
+        "System_WifiAutomatic" -> System_WifiAutomatic()
         "Various_CallUIBright" -> Various_CallUIBright()
         "Various_HiddenFeatures" -> Various_HiddenFeatures()
         else -> null

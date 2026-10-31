@@ -1,6 +1,7 @@
 package tv.withaibuild.customiuizer
 
-import java.io.File
+import tv.withaibuild.customiuizer.testsupport.repositorySource as source
+
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -186,16 +187,6 @@ class BroadcastSecurityContractTest {
             !unlockTokenProvider.contains(Regex("const val TOKEN\\b")) &&
                 !unlockTokenProvider.contains(Regex("\"[A-Za-z0-9]{16,}\""))
         )
-    }
-
-    private fun source(relativePath: String): String {
-        var directory = File(System.getProperty("user.dir")).absoluteFile
-        while (true) {
-            val candidate = File(directory, relativePath)
-            if (candidate.isFile) return candidate.readText()
-            directory = directory.parentFile
-                ?: error("Repository root not found while locating $relativePath")
-        }
     }
 
     private fun String.section(start: String, end: String): String {

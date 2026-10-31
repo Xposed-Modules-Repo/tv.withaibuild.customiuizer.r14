@@ -118,6 +118,15 @@ def _find_xml_visible_refs() -> tuple[set[str], set[str]]:
                         string_refs.add(val[8:])
                     elif val.startswith("@array/"):
                         array_refs.add(val[7:])
+    from tools.settings_schema import read_element
+    for source in (REPO / "app/settings").glob("*.json"):
+        for node in read_element(source).iter():
+            for attr in USER_VISIBLE_ATTRS:
+                value = node.get(f"{{{ANDROID_NS}}}{attr}", "")
+                if value.startswith("@string/"):
+                    string_refs.add(value[8:])
+                elif value.startswith("@array/"):
+                    array_refs.add(value[7:])
     return string_refs, array_refs
 
 

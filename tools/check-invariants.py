@@ -431,7 +431,7 @@ HOOK_UTILS = "tv/withaibuild/customiuizer/utils/HookUtils.kt"
 CONTROLS = "tv/withaibuild/customiuizer/mods/Controls.kt"
 BATTERY_INDICATOR = "tv/withaibuild/customiuizer/utils/BatteryIndicator.kt"
 XPOSED_SERVICE_MANAGER = "tv/withaibuild/customiuizer/utils/XposedServiceManager.kt"
-CHECKBOX_PREFERENCE = "tv/withaibuild/customiuizer/prefs/CheckBoxPreferenceEx.kt"
+COMPOSE_PREFERENCES = "tv/withaibuild/customiuizer/ui/SettingsPreferences.kt"
 
 
 def check_feature_install_oom_cleanup(path: Path, text: str) -> list[Finding]:
@@ -804,7 +804,8 @@ def check_weather_data_lifecycle(path: Path, text: str) -> list[Finding]:
                     "do not allocate a controller-capturing Runnable for the process singleton",
                 )
             )
-        if "WeatherDataController.initContext(mContext, thisObject)" not in text:
+        init = re.search(r"WeatherDataController\.initContext\(\s*mContext\s*,\s*thisObject\s*(?=[,)])", text)
+        if init is None:
             findings.append(
                 Finding(
                     "weather-data-lifecycle",
@@ -813,7 +814,7 @@ def check_weather_data_lifecycle(path: Path, text: str) -> list[Finding]:
                     "pass the clock controller itself so WeatherDataController can retain it weakly",
                 )
             )
-        init_call = text.find("WeatherDataController.initContext(mContext, thisObject)")
+        init_call = init.start() if init else -1
         oom_catch = text.find("catch (oom: OutOfMemoryError)", init_call)
         generic_catch = text.find("catch (t: Throwable)", init_call)
         if init_call >= 0 and (oom_catch < 0 or generic_catch < 0 or oom_catch > generic_catch):
@@ -902,20 +903,14 @@ def check_battery_indicator_lifecycle(path: Path, text: str) -> list[Finding]:
 def check_preference_click_feedback(path: Path, text: str) -> list[Finding]:
     """Preference clicks must render before remote mirroring and switches need pressed feedback."""
     rel = rel_posix(path)
-    if rel == CHECKBOX_PREFERENCE:
-        findings = []
-        if "android.R.id.switch_widget" not in text:
-            findings.append(Finding("preference-click-feedback", path, 1, "bind the platform switch widget"))
-        if "isDuplicateParentStateEnabled = true" not in text:
-            findings.append(
-                Finding(
-                    "preference-click-feedback",
-                    path,
-                    1,
-                    "propagate the row pressed state to the switch for immediate touch feedback",
-                )
-            )
-        return findings
+    if rel == COMPOSE_PREFERENCES:
+        requirements = (
+            ("modifier.toggleable(preference.isChecked", "the row must own immediate switch interaction feedback"),
+            ("role = Role.Switch, onValueChange = { click() }", "toggle input must use the guarded single preference click path"),
+            ("Switch(preference.isChecked, onCheckedChange = null", "the child switch must not install a second persistence callback"),
+        )
+        return [Finding("preference-click-feedback", path, 1, detail)
+                for token, detail in requirements if token not in text]
 
     if rel != XPOSED_SERVICE_MANAGER:
         return []
@@ -2197,7 +2192,7 @@ def check_status_bar_registration_cleanup(path: Path, text: str) -> list[Finding
                 )
 
     # --- the posted runnable must dispatch from the main looper with immutable payload only ---
-    if "netSpeedMainHandler" not in text:
+    if not re.search(r"netSpeedMainHandler\s*=\s*Handler\(Looper\.getMainLooper\(\)\)", text):
         findings.append(
             Finding(
                 "status-bar-registration-cleanup",
@@ -2207,8 +2202,32 @@ def check_status_bar_registration_cleanup(path: Path, text: str) -> list[Finding
             )
         )
 
-    post_blocks = list(re.finditer(r"netSpeedMainHandler\.post\s*\{", text))
-    if not post_blocks:
+    posted_bodies = [
+        _body_before(text, match.start())
+        for match in re.finditer(r"netSpeedMainHandler\.post\s*\{", text)
+    ]
+    # The bounded delivery owns a reusable Runnable. Validate its actual main-handler post,
+    # guarded delivery and hook binding, rather than requiring an inline Runnable per sample.
+    queued = re.search(r"val\s+netSpeedDelivery\s+by\s+lazy\s*\{", text)
+    if queued is not None:
+        queue_body = _body_before(text, queued.start())
+        delivery = re.search(r"deliver\s*=\s*\{\s*payload\s*,\s*sequence\s*->", queue_body)
+        delivery_body = _body_before(queue_body, delivery.start()) if delivery else ""
+        for valid, detail in (
+            ("StatusBarNetworkSpeedDispatcher.LatestDelivery(" in queue_body,
+             "network speed queue must use the bounded LatestDelivery"),
+            (re.search(r"post\s*=\s*\{\s*netSpeedMainHandler\.post\(it\)\s*\}", queue_body),
+             "network speed queue must post its runnable to the main looper"),
+            (re.search(r"ModuleHelper\.guarded\s*\{\s*StatusBarNetworkSpeedDispatcher\.dispatch\(\s*payload\s*,\s*sequence\s*,\s*netSpeedLastAppliedSequence\s*,\s*statusBarDisplayRegistry\s*,\s*::applyNetworkSpeedToRow\s*,?\s*\)", delivery_body),
+             "network speed queue must guard and dispatch the current payload on delivery"),
+            (re.search(r"val\s+netSpeedSecondRowHookCallback\s+by\s+lazy\s*\{\s*createNetSpeedSecondRowHook\(netSpeedDelivery\)\s*\}", text),
+             "network speed hook must bind the process-owned delivery"),
+        ):
+            if not valid:
+                findings.append(Finding("status-bar-registration-cleanup", path, 1, detail))
+        posted_bodies.append(delivery_body)
+
+    if not posted_bodies:
         findings.append(
             Finding(
                 "status-bar-registration-cleanup",
@@ -2223,8 +2242,7 @@ def check_status_bar_registration_cleanup(path: Path, text: str) -> list[Finding
         # checked for stale View/owner/state capture, but only the one that dispatches network
         # speed requires StatusBarNetworkSpeedDispatcher.dispatch.
         dispatch_seen = False
-        for posted in post_blocks:
-            posted_body = _body_before(text, posted.start())
+        for posted_body in posted_bodies:
             if "StatusBarNetworkSpeedDispatcher.dispatch" in posted_body:
                 dispatch_seen = True
             for banned in ("val row", "val owner", "val state", "row.post", "allStatesSnapshot", "for ("):

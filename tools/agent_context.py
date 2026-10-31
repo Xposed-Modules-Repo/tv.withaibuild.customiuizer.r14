@@ -23,10 +23,10 @@ except ImportError:
     from catalog_contract_probe import balanced_blocks, field, symbol_field
     from extract_process_matrix import extract_class_body, parse_install_hooks
 
-VERSION = 6
+VERSION = 7
 JAVA = "app/src/main/java"
 FEATURES = "mods/utils/feature/"
-SOURCE_PATHS = [JAVA, "app/src/main/res/xml", "app/src/main/res/values/strings.xml",
+SOURCE_PATHS = [JAVA, "app/settings", "app/src/main/res/xml", "app/src/main/res/values/strings.xml",
                 "app/src/main/res/values-zh-rCN/strings.xml", "app/src/test/java",
                 "app/src/main/res/values/arrays.xml",
                 "feature-semantics/a14.json", "docs/rom-intelligence/A14_PROCESS_MATRIX.json",
@@ -108,7 +108,13 @@ def snapshot(db, root, refresh=False):
             hits += 1
             continue
         text = file.read_text(encoding="utf-8")
-        if path.endswith(".json"):
+        if path.startswith("app/settings/"):
+            from settings_schema import read_element, ANDROID_NS
+            tree = read_element(file)
+            ns = "{" + ANDROID_NS + "}"
+            payload = [dict(key=n.get(ns + "key"), title=n.get(ns + "title"), entries=n.get(ns + "entries"))
+                       for n in tree.iter() if n.get(ns + "key")]
+        elif path.endswith(".json"):
             payload = json.loads(text)
         elif path.endswith(".xml"):
             tree = ET.fromstring(text)
@@ -201,7 +207,7 @@ def query(args):
         labels = {}
         titles = data.get("app/src/main/res/values/strings.xml", {}) | data.get("app/src/main/res/values-zh-rCN/strings.xml", {})
         for path, rows in data.items():
-            if path.startswith("app/src/main/res/xml"):
+            if path.startswith(("app/settings/", "app/src/main/res/xml")):
                 for pref in rows:
                     key = (pref["key"] or "").removeprefix("pref_key_")
                     title = pref["title"] or ""

@@ -3,6 +3,7 @@ import pathlib
 import re
 import unittest
 import xml.etree.ElementTree as ET
+from tools.settings_schema import read_element, preference_sources
 
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
@@ -31,7 +32,7 @@ class NetSpeedResourceTest(unittest.TestCase):
 
     def test_rowspacing_preference_attributes(self):
         xml_path = RES_ROOT / "xml" / "prefs_system_detailednetspeed.xml"
-        tree = ET.parse(xml_path)
+        tree = read_element(xml_path)
         ns = {
             "android": "http://schemas.android.com/apk/res/android",
             "miuizer": "http://schemas.android.com/apk/res-auto",
@@ -58,7 +59,8 @@ class NetSpeedResourceTest(unittest.TestCase):
 
     def test_prerequisite_preference_non_interactive(self):
         xml_path = RES_ROOT / "xml" / "prefs_system_detailednetspeed.xml"
-        text = xml_path.read_text(encoding="utf-8")
+        ET.register_namespace("android", "http://schemas.android.com/apk/res/android")
+        text = ET.tostring(read_element(xml_path), encoding="unicode")
         self.assertIn('android:selectable="false"', text, "prerequisite note must not be clickable")
         self.assertIn('android:persistent="false"', text, "prerequisite note must not save state")
 

@@ -2,13 +2,486 @@
 
 本页只维护当前决定、未决问题与证据入口。任务认领和交接用 [AGENTS](../../AGENTS.md#git-与协作) 及 GitHub，不在这里复制分支数据库或开发流水账。
 
+## r14.26.5：文本运动、原生反馈与 Dock 收敛（2026-10-31）
+
+本轮在 r14.26.3 有效实现上增量修改，累计发布说明仍从 r14.25.9 起算。r14.26.3 的双仓发行暂保留，r14.26.5 完成双端与实机验收后再按授权撤下旧页面、附件和标签，源码历史保留。
+
+- 恢复 Compose 原生边缘拉伸。问题范围是运动中字形 / 字距微调，统一使用官方 `TextMotion.Animated` 稳定运动时的字形度量，不增加硬件图层或自定义文字绘制；观感以实机录屏为准。
+- 单选 / 多选采用 Material 3 `bodyLarge`（16sp）、主文字颜色与至少 48dp 触摸区域，跟随系统字体缩放；保留标题回退、取消和持久化语义。
+- 页面暂停与菜单层级离场时解除原生 Ripple 节点，阻止已结束的按压状态随离场内容移动；页面恢复时使用主题原生反馈，无每行状态管理、计时器或常驻工作。
+- 移除 Dock 轻量玻璃及专用渐变、绘制、模糊 / 省电监听，旧值 3 回退到面板。保留纯色面板 / 磨砂玻璃、API 102 Chain、祖先动画跟随及原生模糊透明度恢复。删除无生产调用的 G4 路径构造与退役测试，保留动态岛使用的曲率公式。
+- 应用选择器空查询直接展示已准备数据，避免无意义的后台过滤派发；设置摘要每次失效只读取一次已有值。不将源码调用减少等同设备 CPU / GPU 或功耗收益。
+
+相关 Host 共 125 项通过，覆盖选框文本、旧材质迁移、原生拉伸、页面 Ripple 生命周期、Dock 动画与动态岛几何；137 项关联发布工具、资源与 schema 回归通过。Develop / R8、fatal lint、历史证书、16 KiB 对齐和嵌入版本来源通过；最终 DEX 未打包 Hook API 或测试定义，设置入口无直接 Hook API 引用。
+
+实机框架为 API 102。搜索展开 / 返回 / 再进入、菜单层级与取消、深浅色、200% 字号及手动输入通过；大字号输入操作底部距 IME 127px。录屏核对页面 / 菜单离场反馈与原生边缘拉伸，本次抽查未见未点击行变深或异常字距跳变，保留正常拉伸形变。纯色面板与磨砂玻璃均可启动桌面，每个初始化阶段只记录一次，未见缺目标、安装失败或偏好不可用；测试前后偏好完全一致。
+
+同脚本暖滚动旧版 228 帧 / 1 帧卡顿，新版 259 帧 / 1 帧卡顿，两者 P95 均为 7ms；原生拉伸恢复后帧数不同，不能据此认定提速。单次冷启动 173→205ms、PSS 82,255→83,856 KiB，条件未控制到可做性能归因，不宣称启动或内存降低。源码确定减少空查询派发及已删除材质的监听 / 绘制；设备 CPU / GPU / 功耗未测。未新增运行依赖。正式签名与双仓验收待完成，原始证据仅私有留存。
+
+参考：[官方文字运动](https://developer.android.com/develop/ui/compose/animation/quick-guide)、[Telegram 原生导航交接](https://github.com/DrKLO/Telegram/blob/master/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java)。只借鉴输入与离场反馈边界，不引入第三方导航框架。
+
+## 原生能力与界面一致性续审（2026-10-31）
+
+本节承接下节的 Compose 收敛结果。当前正式版为 **r14.26.3 / 263**，累计说明基线仍为 r14.25.9。新版已完成双仓与实机验收；被替代的 r14.26.1 页面、附件与标签已按授权从两端删除，独立展示章节已合并，源码历史及更早正式版保留。
+
+设置页恢复原有中性背景与文字色，原生按钮、开关和滑块使用 Material 3 动态取色。状态栏与导航栏在创建 / 配置变化时同步页面背景，不增加监听或持续工作。菜单沿用全局主题与字号，重启子菜单采用短淡入淡出与尺寸过渡；各层、各条目使用独立组合身份，并禁用正在退出的条目，避免按压反馈与操作残留。设置列表关闭平台边缘拉伸，保留滚动与系统字体缩放，消除到边界时文字被拉伸的观感。
+
+首页搜索展开时独占页面，隐藏主页内容与旧顶栏；输入节点首次布局后再请求焦点，使用真实 IME 可见状态释放焦点，避免高度变化误判。设备进一步发现旧主窗口默认选择 adjustPan 且根布局消费边距，使搜索收不到 IME 状态；主窗口显式使用 adjustResize，并移除多余的根布局消费，由现有系统窗口处理外框、Compose 接收输入边距，不增加键盘观察器。结果标题与路径按查询词高亮，结果与高亮仅随输入 / 索引或主题变化计算。选择弹窗标题缺省时统一回退到设置项标题；数值输入首次全选，输入弹窗在 IME 与安全区之外增加留白。系统目录为“应用与自动化”补齐“应用”分组，保留全部设置键与导航归属。
+
+设备框架原生状态接口已确认实际 API 为 102。对照官方 [Chain](https://libxposed.github.io/api/io/github/libxposed/api/XposedInterface.Chain.html)、[HookHandle](https://libxposed.github.io/api/io/github/libxposed/api/XposedInterface.HookHandle.html)、[Invoker](https://libxposed.github.io/api/io/github/libxposed/api/XposedInterface.Invoker.html) 与 [Service](https://github.com/libxposed/service) 合同，仅将 Dock 的 measure / layout 两个成功后装饰回调改为直接 Chain：原方法只执行一次，原结果、原异常与致命异常边界保留，省去通用 before / after 包装和参数数组副本。受控 Host 回归验证原生调用次数与失败语义；尚无设备分配、CPU / GPU、帧时间或功耗对照，不宣称数值性能收益。
+
+已有高频直接 Chain、冷路径缓存 Invoker、固定 Hook ID 与组回滚、原生 Service / RemotePreferences 保持。通用回调仍服务于参数修改、提前返回、异常恢复与优先级；反射匹配、偏好镜像确认与限定调用方的缓存桥仍有实际消费者和安全责任。普通配置不重新挂载 Hook，不引入 replaceHook、全局 Hot Reload、detach、轮询或常驻线程：当前没有更换实现或结束生命周期回调的需求，Invoker.ORIGIN 也不能等价替换需要保留 Hook 链语义的普通反射调用。
+
+本轮相关 Host 回归、154 项生成与发布工具回归通过；窗口边距调整后又完成完整设置导航套件和边距所有权回归，无跳过。主窗口采用官方混合布局的边距传递：外框只预留系统栏 / 开孔空间，两个 ComposeView 保留原始边距向下分发，页面统一处理 IME，避免同级工具栏截走输入状态。JDK 27 的 Develop R8 / fatal lint、历史证书、16 KiB 对齐与内嵌来源通过。最终试用源码为 `81706a74af6153f5514102546faf98cdd93bebd4`，APK 5,980,294 字节、4,783 个 DEX 类，SHA-256 为 `993d09d9fe7a8d2a3b41b6108ad1fac6989c0147a518c0c05cc9d01b2ba796f3`。未新增依赖；官方 DexSQL 确认 Hook API 定义、设置入口直接 API 引用和测试框架定义均为空，setId / getId 指令仍归属原安装器，replaceHook 为零。产物指令数不代表安装次数。
+
+API 102 实机完成 12 轮搜索展开 / 返回，其中三轮包含后台与恢复；IME 返回释放焦点，第二次返回收起搜索，结果导航返回不残留输入。菜单展开、返回与重开录屏未见错误按压反馈，宿主未被误重启；中性深浅色、系统栏、200% 字号、弹窗标题与目录分组通过。数值自动聚焦、全选替换和取消通过，大字号下操作按钮底部到键盘顶部为 127 px。到列表底部继续上滑的录屏中文字保持形状与位置。桌面重新加载试用代码后完成三次解锁，录屏中的 Dock 恢复正常，两个安装阶段各输出一次汇总，Develop 成功诊断项为 54，目标缺失 / 安装失败 / 偏好不可用均为零；未变更的系统界面和系统服务进程保持原 PID。这些汇总不是两个布局回调的设备调用计数。
+
+独立于录屏的一次暖机列表样本为 227 帧、1 帧 jank（0.44%），帧耗时中位与 P99 均为 7 ms，PSS 约 78.4 MiB；单次启动 182 ms。此前样本为 258 帧、零 jank，输入 / 帧数不同且没有重复对照，不据此宣称速度、内存、CPU / GPU 或功耗改善。可以确认的变化是边缘拉伸移除和两个热回调绕过包装；长时重组次数、持续成本与无障碍专项保持未测。模块偏好快照一致，字号、主题与息屏时间恢复，VPN 保持连接，临时手机文件和录制进程已清理并锁屏。原始材料仅私有留存。
+
+完整 归档构建记录 已通过，包括 734 项工具测试、全量应用回归、源码门禁、lint 和 Develop 压缩构建。此前应用测试发现选择器窗口夹具与后台加载结果竞争：直接替换显示状态后，原加载结果可能覆盖样本。夹具改为提供固定应用输入，推进暂停的主线程并有界等待实际渲染，保留两种窗口高度、滚动到远端行、搜索栏固定位置与有效列表高度的全部断言；47 项设置导航回归和后续完整 CI 通过。生产加载、设置页与 Hook 实现未变，复用先前实机矩阵。
+
+正式版由归档构建记录从 `91827e3e758540d104dad99ed6d989abb451d196` 构建一次，Release / R8、fatal lint、平台身份、历史证书、16 KiB 对齐及来源通过。[源码发行](https://github.com/thetvplus/customiuizer-a14/releases/tag/r14.26.3)和[下载发行](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/263-r14.26.3)均为稳定 Latest，标题、说明、标签来源及两份附件大小 / 摘要读回一致。正式 APK 5,980,249 字节、4,783 个 DEX 类，SHA-256 为 `e135a9c13e8708ce391f399158712ea6c7b61fd7b9b9271c5943bc16eb5f4f2b`；比此前 r14.26.1 正式版增加 98,785 字节（约 96.5 KiB），未新增依赖。最终 DEX 的 Hook API / 测试定义、设置入口直接 API 引用与 replaceHook 均为零；未取得远端 Release mapping，不由混淆容器名推断安装归属。
+
+设备已覆盖安装同一正式附件并读回相同摘要，搜索、关键词高亮、返回、菜单和三次解锁再次通过录屏复验。桌面日志确认正式源码标记，`application.attach` ID 回读 confirmed 一次，两阶段汇总各一次、缺失 / 失败 / 偏好不可用为零；Release 紧凑成功事件为 58。Develop 按诊断键去重，Release 只维护成功事件计数，两者口径不同，不能用 54 与 58 推断实际 Hook 数量变化。两个布局 Hook 的单次安装 / 原生调用仍由行为回归约束，设备回调频率与分配未测。偏好不变、系统设置恢复、VPN 连接及手机清理锁屏再次确认；双仓旧版页面与标签删除后均读回 404，下载文档由既有生成器同步，正式源码与历史提交保留。
+
+随后按授权深度清理测试环境：先校验归档，再移除手机端 73 份历史采集与 DEX / VDEX 测试文件（约 63.5 MiB），功能所需的 VPN 辅助程序保留。停止已确认闲置的本轮 Gradle / Kotlin 编译进程，清除本地生成输出、项目缓存、测试副本和临时媒体依赖，共 26,669 份文件、约 1.10 GiB；工具链、依赖下载缓存、签名材料与正式 APK 保留。必要证据及同产物 mapping 已压缩归档到仓库外，忽略目录保留本地归档索引。清理后正式安装包摘要与偏好再次确认一致，无测试包、采集进程、ADB forward / reverse 或调试覆盖残留；VPN 正常，手机锁屏。生产源码与已发布 APK 未变，不重新构建或重复 CI。
+
+## Compose 原生组件与搜索收敛（2026-10-31）
+
+本节记录较早的试用阶段，当前实现与正式验收以上节为准。
+
+首页搜索恢复为工具栏按钮按需展开，退出、结果跳转和分类导航后收起；IME 收回、页面停止和销毁时释放输入焦点。状态恢复只保存展开状态与查询文字，首帧后清掉框架恢复的旧焦点；不以延时轮询维持状态。首页与应用选择器共用 Material 3 输入、搜索 IME 动作和清空按钮，保留选择器的固定搜索位置与增量图标加载。
+
+设置主题改用系统 Material 3 动态色，保留原生深浅色配对与容器层级；顶栏使用官方 TopAppBar。设置值移到标题 / 说明下方，取消右侧固定宽度截断，分组标题共用既有组件，导航箭头使用可随 RTL 镜像的向量。三点菜单恢复分级重启入口，沿用旧 XML 的 10 dp 圆角、8 dp 阴影、16 sp 正文和中性背景；不重新引入 XML 菜单或第三方 UI 库。
+
+已核对迁移边界：无应用自有布局 / 偏好 XML，AndroidX Preference 仍有持久化与依赖通知消费者，AppCompat / Palette / 反射依赖仍有生产用途。移除四份无引用搜索行背景、重复查询副本、失效焦点字段及旧搜索状态机；旧状态机测试随生产对象移除，由实际 Compose 输入、返回、导航、后台和重建回归覆盖。平台配置、宿主 Hook 资源和 View / Canvas 保留。
+
+实机进一步发现数值弹窗的操作按钮被键盘覆盖。输入型 Material 3 弹窗显式采用 WindowInsets，处理系统安全区与 IME 留白，数值 / 文本长内容可滚动；自动聚焦归属弹窗自身组合并在首帧布局后执行。未改变解析、校验、提交或取消持久化语义。独立的主机键盘弹窗实验在未改动原实现上也进入虚拟窗口布局循环，未计作通过或设备证据；原始对照仅私有留存，真实键盘几何由设备验收。
+
+本轮按 Standard 验证，复用未受影响结果并补验新增焦点与编辑路径：七套件共 76 个用例均已有通过结果，无跳过；文档、生成地图和版本一致性检查通过。最终源码为 `e571df9924374cc4125b73c391179a0d3196cbd8`，JDK 27 的 Develop R8 / fatal lint、内嵌来源、历史证书及 16 KiB 对齐通过。最终本地 Develop APK 为 5,914,725 字节、4,709 个 DEX 类，SHA-256 为 `e1d4c2dadd85027c8baf85d0fa65b589ed77e10814f9c3f7aa8cdf93a772914a`；设备安装包已按同一摘要读回。未新增依赖，压缩 mapping 无 JUnit、Robolectric 或 Compose UI 测试框架。此前正式 Release 为 5,881,464 字节；变体不同，不把差额作为同变体体积收益。
+
+Android 14 实机完成搜索展开 / 收起、IME 返回失焦、结果导航返回、菜单分级与取消、深浅色、200% 字号、设置值排版、数值编辑聚焦与取消验收；最终候选的页面过渡、菜单和键盘过程均有私有录屏，已检查过渡中间帧和终态。输入弹窗按钮在大字号和键盘同时出现时可见且可点击。测试前后模块偏好快照一致，系统字号、主题与息屏时间恢复，VPN 保持连接；临时采集与手机文件已清理并锁屏。手机保留经验证的本地 Develop，仅为试用构建，未合并 main 或正式发行。
+
+独立于录屏的单次暖机设置列表滚动样本为 258 帧，系统 jank 计数 0；内存单次 PSS 约 77.7 MiB。没有同条件改前基线，不据此宣称响应、分配、CPU / GPU、功耗或持续运行改善。减少闲置输入节点和重复状态是可确认的工作量变化；长时性能、重组次数与 TalkBack / 物理键盘专项仍未测量。
+
+## 设置界面与工具链迁移（2026-10-31）
+
+本节记录已由 r14.26.3 替代的 **r14.26.1 / 261** 迁移验收，累计说明继续从已公开的 r14.25.9 起算。未公开的 r14.25.11 候选不晋升、不创建历史发行。完整设置界面 Compose 迁移、布局一致性评估与 Dock 解锁材质修复已完成当时必要验收；有效变化已累计到上节的当前正式版。
+
+构建使用 JDK 27，稳定版 Kotlin 2.4.21 的最高字节码目标为 26；经确认采用 Java / Kotlin 26，不引入测试版编译器。Gradle 9.8.2、AGP 9.5.0、Palette 1.1.0 已纳入本轮升级；compileSdk 已为 37，minSdk / targetSdk 保持 34。升级不扩展运行支持范围，也不代表性能收益。
+
+迁移保留设置键、默认值、依赖关系、权限与保存语义，统一搜索、选择器、编辑页和顶层导航；原生 Hook 内的 View / Canvas 不移入设置端 Compose 生命周期。页面按功能归属分组，主开关、适用范围与附加参数就近展示，隐藏或禁用条件须有一致语义。应用自有布局、菜单与 39 份偏好 XML 已移除，以 settings JSON 生成模型并由 Compose 绘制。相关页面 / 编辑 / 依赖绑定回归已迁移；4,211 项 Host 测试、734 项工具测试均通过且无跳过，最终 Full 门禁与 Debug / Develop 致命 lint 通过。源码隔离、两项确定性输出和 11 项必需独立 mutation 全部通过；没有自检冒充独立检出或清理失败。实机完成首页、自动化入口、搜索路由、数值输入聚焦 / 取消、横屏与大字号、深色模式及波形停用 / 恢复 / 释放验收。正式版由 exact main CI 后的正式签名流程生成，双仓资产及下载文档均已读回核验。
+
+更早的公开正式实现同样可复现 Dock 解锁后模糊丢失。A14 原生 `BackgroundBlurDrawable.setAlpha` 写入私有透明度，却继承恒返 255 的 `Drawable.getAlpha`；隐藏时写零后，旧实现据错误读回值跳过恢复 255。现按材质 Drawable 身份记录本 owner 的最后写入，隐藏 / 重现仍沿用原生窗口事件，detach 清引用；无新增捕获、线程或轮询。回归在旧算法失败，修复后的 Dock 三套件通过；开发源码集隔离诊断及三次解锁录屏确认原生透明度恢复，固定无图标区域的亮度边缘指标与新启动状态接近。诊断不进入正式构建；完整 Compose 压缩候选又完成三轮解锁后录屏复验，收敛后的无图标区域与启动状态接近。所有临时模糊策略均恢复并重新加载；不据此宣称设备帧时间、CPU / GPU 或功耗收益。
+
+JDK 27 / 字节码 26 下，Dock 与动态岛控制器 208 项组合回归连续两次通过，未删除或跳过断言。控制器测试只为应用自身波形调度提供有界虚拟帧适配；原生 Choreographer / 窗口初始化与独立波形 vsync 回归保持原路径。编译、Host 回归不代替 Dock 修复后的设备验收。
+
+压缩候选的实际边界检查：应用自有布局 XML 与偏好 XML 均为 0；39 份 JSON 定义只在构建时生成模型。Develop APK 为 5,881,509 字节、4,661 个 DEX 类，迁移前本地 Release 候选为 4,453,285 字节、2,839 类；变体不同，不据此宣称体积或运行性能改善。最终正式 Release 为 5,881,464 字节、4,661 个 DEX 类；本地构建、实机安装与两仓附件 SHA-256 均为 `603c5764d314be4c33c0d29b79e8adbd8f3318607d593aaf03c8752d8a1b3670`。Compose 增加设置端运行库，旧适配器与布局绑定则移除；宿主源码仍不引用 Compose。Release runtime 依赖图无 JUnit、Robolectric、Compose UI 测试或协程测试依赖，压缩 mapping 无测试框架 / Dock 诊断入口；最终 DEX 的 compileOnly Hook API 定义与设置入口直接 API 引用均为空。
+
+波形录屏仅证明可见工作量与状态：轻量模式约 121 次柱形变化 / 秒，实时模式约 107 次 / 秒；系统动画关闭后停止，开启后恢复；测试退出时 Visualizer 数量由 1 回到 0。编码帧率、可见柱形变化、Host 调用计数均不替代设备 CPU / GPU、实际帧时间、内存或功耗对照；这些持续成本仍未完成全面测量。证据仅保留仓库外或忽略目录，不公开设备、应用列表、网络身份、操作细节或凭据。
+
+正式构建源码为 `a92310cc20503b2f0ec0663f503ce4af62bc1e22`。已完整快进合并已验证的三条工作分支，整合树一致，93 个已删除路径无物理残留；本地及远端仅保留 main。当前任务的独立诊断 Worktree、Frida / Node 临时环境、测试应用、采集与转发均已清理；临时系统配置恢复，保留正常服务并锁屏。四个既有 detached 工作区属于原有开发资产，本轮未覆盖或删除；证据保留在仓库外。
+
+
+## 波形流畅度与新增功能入口反馈（2026-10-30）
+
+有效波形与入口调整累计纳入 r14.26.1，不发行旧候选。Dock 问题与最新验收状态以上一节为准；正式发行状态以双仓实际资产读回为准。
+
+波形显示使用 View.postOnAnimation，音乐采样请求恢复为最多 30 Hz、录音间隔恢复为 67 ms，继续遵守 ROM 上限、可见性和来源租约。轻量波形仅在可见播放期间接收原生动画缩放通知，隐藏 / 暂停 / 切实测 / detach 即释放；实测稳定或静音后停帧。原生动画重新开启后的恢复已通过回归与录屏。受控录屏中的柱高变化频率约由 17.56 提高到 107.00 次 / 秒；这是呈现变化统计，不代表稳定帧率、CPU / GPU 耗时或功耗收益。
+
+应用行为、Wi-Fi 与 VPN 自动规则集中在系统页首个惰性目录“应用与自动化”，三个控制器和稳定键保留，旧位置去重，搜索、备份及生成地图同步。应用行为与 Wi-Fi 自动设置的 13 个固定键通过既有 non-exported、仅 system UID 的 Provider 读取已确认镜像，解决部分框架缓存旧值的问题；单键类型读取、批量原子快照、删除默认及失败保留原快照，不增加轮询。
+
+相关 Host 回归和工具检查通过；补充缓存桥 7 套件 / 59 项通过。设备证据覆盖波形、设置入口、应用行为规则、Wi-Fi 所有权及 Dock 编辑 / 拖动返回，但此前未充分覆盖解锁材质恢复，不能标作全场景通过。完整 CI 中还发现间接构造波形的生命周期测试使用自动推进时钟，正在修正测试夹具并补验。受控帧时间、CPU / GPU、内存 / 功耗和长期稳定性仍无完整对照。
+
+公开记录仅保留抽象场景和汇总证据，不披露个人设备、应用、网络、账户、路径或实际操作记录。原始设备材料不入库；38 条内部 Issues 已关闭并删除且逐条读回确认不可访问，第三方反馈未删除。已完成的实施不保留开放任务壳，已替代路径不复活；未决 Dock 回归和缺少设备对照的项目继续在本页维护，不把隐私删除解释为问题已解决。
+
+## r14.25.11 本地正式 APK（2026-10-30）
+
+用户在第二轮性能实施完成后授权本地生成最新正式 APK 并升版至 r14.25.11。承接 `codex/performance-first-round2` 已推送实施 `d69b854f6f3b363c2be1fda4d1fd9eefb6a2b346`；刷新远端后确认 main / 整合分支没有新增遗漏成果。两仓当前公开正式版均为 r14.25.9 / 258、来源 `f18a112cac62f1db63a0bbda3958681f33df483b`，无更高预发行或草稿。
+
+源码目标调整为 **r14.25.11 / 260**，说明从 r14.25.9 累计，双语 README / Changelog、Gradle 与 release-policy 同步；未改生产算法、依赖、SDK 或签名实现。只在任务分支准备与本地构建，不合并 main、不打 tag、不启动 Actions 正式签名或双仓发行。复用已通过的 149 项受影响 Host 回归与 35 项工具检查，补版本 / 双语记录、Release / R8、fatal lint 及最终 APK 来源 / 身份 / 签名检查。
+
+本地正式签名已完成：使用用户提供的仓库外 keystore.properties，签名前导出证书核对历史指纹 `c0eff2dc4e662717195490da78b12a984c6f2e6bd38acf4edad14d53e3d22e70`，最终 APK 的 V2 签名与同一证书再次核验通过。密钥、密码和本地签名配置始终留在仓库外；未新增签名实现或证书，未把先前未签名产物作为正式交付。
+
+升版实施来源为 `fa6914ba5d4fe03550e037f71b65c868236185be`，最终签名 APK 的内嵌来源为 `19a6d858f00ea25048085b1a296b50f8c82c8311`，二者只差构建证据文档。本地 JDK 25 / 既有 SDK 工具下正式 assembleRelease、lintVitalRelease 与 R8 通过；版本检查、文档 / 地图、CI 合同扫描通过；版本一致性 10 项、准备工具 9 项、签名 / 发布合同 87 项回归通过。正式目标测试同步到 11 / 260，保留历史累计说明基线与旧候选拒绝断言，没有放宽签名或发布边界。应用行为未改，复用前述 Host 结果。
+
+交付文件为 CustoMIUIzer-A14-r14.25.11.apk，4,468,521 字节、2,837 个最终 DEX 类，SHA-256 `b59e8fb2823a6e90e4ea6cab549a78ab5dbe4e0282c3116c513387f281bf3e8a`。包身份、r14.25.11 / 260、min / target 34、仅 arm64-v8a、不可调试、16 KB zipalign、V2 签名、历史证书与内嵌完整 sourceCommit 均核验通过；ZIP 完整性及构建原件 / 交付副本摘要一致。官方 DexSQL 的 Hook API 定义、设置入口直接 API 引用、测试框架 / testsupport 定义查询均为空；直接引用结果不替代传递类加载证据。原始日志在忽略目录 `.di-evidence/local-r14.25.11/`，APK、摘要、来源 JSON 与同产物 R8 输出保存在仓库外 `customiuizer-a14-evidence/local-r14.25.11-19a6d858/`。这只完成本地正式签名交付，双仓公开版仍为 r14.25.9，设备功能、观感及性能验收仍待完成。
+
+## Performance-First 第二轮：算法减负与恢复正确性（2026-10-30）
+
+相关工程记录（以现行源码与回归为准）。从已推送且工作树干净的 `codex/a14-consolidated` exact SHA `67fc8a5c11a73d9ad78c9e22aa3b824f533bc51d` 创建 `codex/performance-first-round2`；基线已领先 main `863305ebd56351687b2e0c54313b7247e7020373` 30 个提交，并非此前审查时的 28。承接已整合成果，不合并未经核验分支、不改正式版本号、不发布或合并 main。按用户限定范围只做受影响回归、源码门禁与最小 Debug 构建，不启动完整 CI 或 Release / R8 重建。
+
+### 当前决定与实现
+
+| 范围 | 决定与实际实现 | 保留的合同与边界 |
+| --- | --- | --- |
+| Dock 装饰 | 直接删除 DockGlassBackdrop、DockWallpaperCapture、DockGlassOptics；LauncherDockBackground 只复用已有 BackdropBlurRelativeLayout，失败使用简单半透明面板与缓存渐变。删除捕获调度、动态壁纸追踪、纹理 / Shader / generation / 有限重试整条路径，不另建静态采样系统 | 原材质值 3 与设置键不迁移，十种语言改为轻量玻璃及真实回退说明。保留 DockCornerGeometry、图标边界、编辑 / 拖动 / 解锁原生动画及透明度跟随；原生材质失败与 detach 释放模糊 / 省电监听，失败后不逐帧重装。外观不再精确折射壁纸，这是本轮允许的装饰精度取舍 |
+| Wi-Fi 状态租约 | WifiSettingLease 恢复必须得到目标读回才清所有权；失败或暂时未知读数保留每属性一组 original / last。场景直接切换失败保留此前确认的原值；DND 只有确认写成功才认领原生铃声副作用 | 已观察到手动覆盖立即撤销恢复权，未知状态不发写命令；用户切换强制丢弃旧用户所有权。普通重复网络事件不触发重复恢复，无无限重试或轮询 |
+| Wi-Fi 关闭 / 恢复机会 | Coordinator 与 Runtime 关闭后仅在仍有待恢复属性时保留一个停止的运行对象；解除网络回调和属性观察，只复用既有生命周期事件 / 显式设置刷新尝试恢复。重新启用沿用同一原值，注册失败清除已注册资源 | 不新增线程、监听器或定时恢复任务；没有待恢复状态就释放对象与生命周期接收器。权限撤销暂停恢复，后续明确机会重新读回，不跨用户恢复 |
+| 网络 overflow | WifiNetworkTracker.beginSnapshot 清掉旧记录与 overflow，但保持未知；只有原生完整枚举结束且不再溢出才确认 snapshotReady。Runtime 重建前同时清 raw 去重表，不沿用不完整旧集合，删除失去生产调用方的 networks 列表转换 | 最大 16 条；丢失事件不能自行解除隔离，身份被隐去 / 缺能力 / 仍超限继续未知。只由现有网络事件或显式身份刷新触发完整快照，不轮询、不猜身份 |
+| 应用窗口行为 | AppWindowBehaviorHooks 先判断开关，再准备共用必要接口；旋转与亮度 / 拦截各自准备和安装。普通 ROM API 缺失仅影响本组，致命异常仍回滚已装 Hook 并抛出；同一个 WM 的偏好变化只请求一次 traversal | 不新增通用反射框架；原生 proceed 一次、brightness finally 恢复、锁 / 用户 / 显示与多窗口限定保留。共用反射元数据只准备一次，不用两套全量接口换隔离 |
+| 动态岛遮挡 | IslandStatusBarCompact 生产算法不改。已有唯一 Geometry 节点和脏标记能跳过未变化的完整遮挡查询；补实测调用计数回归固定共享祖先去重 | RenderNode 变换与祖先滚动 / 裁切可在无 layout 时变化，因此保留每帧必要的轻量几何核验，不增加监听器或缓存系统 |
+
+删除五个仅验证已退役捕获 / 折射算法的测试类和孤立的 RuntimeShader 测试 shadow；保留并调整原生材质、失败回退、轮廓、编辑 / 解锁、全宽、Hook 安装及生命周期行为回归。测试源码仍在 src/test，未新增生产测试接口、依赖、模块、Manifest 或 Gradle 配置。架构合同、Dock 文档与原生界面技能入口已同步，后续不得恢复旧采样路径来补装饰精度。
+
+### 可证明的工作量变化
+
+| 项目 | 基线源码 / Host 计数 | 本轮结果 |
+| --- | --- | --- |
+| 自定义 Dock 动态壁纸捕获 | 可见且需要刷新时最短间隔 67 ms，理论最多约 14.93 次 / 秒；静态壁纸原本已有稳定停采及约 200 ms 收敛 | 模块自定义捕获、采样定时任务与请求均为 0；动画期间和稳定后同样为 0 |
+| 模块壁纸图像资源 | 单张最多 196,608 像素、任一边不超过 768；一张保留纹理、最多一个在途捕获及替换时 BitmapShader 输入 | 上述自定义 Bitmap 分配、保留纹理、Shader 输入更新与异步交接为 0；无旧纹理释放路径需要继续维护。不表示 Launcher 原生模糊没有 GPU / 图形内存成本 |
+| 窗口接口准备 | WindowAccess 总是解析 4 类 / 8 字段 / 6 方法 | 仅旋转 2 / 4 / 5，仅亮度 4 / 7 / 4；同时启用仍为 4 / 8 / 6。此为直接反射目标数量，均不含共用 BackgroundThread 获取，不是设备耗时 |
+| 动态岛静止帧 | 既有实现 120 次稳定 PreDraw 不重做完整遮挡查询 | 继续为 0 次完整查询；12 个叶节点共用祖先在 120 帧只读该祖先矩阵 120 次，不是 1,440 次。生产代码未改，不重复宣称优化收益 |
+| 恢复失败后的重复网络通知 | 失败即丢恢复权，无法正确恢复 | 测试中重复相同退出通知 100 次不增加写入，只有明确状态机会重新核验；手动覆盖或用户切换终止待恢复权 |
+
+这里的零捕获 / 零自定义纹理来自整条生产路径删除与源码门禁，不是设备采样数据。尚无帧时间、GPU、内存或功耗对照，不以删行数、Host 耗时、APK 体积代替运行时性能证据。
+
+### 验证与剩余范围
+
+原始日志 / XML 在本地忽略目录 `.di-evidence/performance-round2/`。JDK 25、SDK 34 下分批验证以下 16 个受影响套件；各次 XML 统计按套件去重，共 149 项，0 失败 / 错误 / 跳过：
+
+- verify.py fast：WifiSettingLeaseTest、WifiAutomationCoordinatorTest、WifiNetworkTrackerTest、AppWindowAccessIsolationTest、AppBehaviorPolicyTest、DockBackgroundTest、DockFullWidthTest、DockLiquidGlassTest、DockHookInstallationTest、DockMaterialContourTest、DockNativeAnimationTest、SurfaceCostBudgetTest、IslandStatusBarCompactTest。
+- 补充 verify.py fast：WifiAutomaticSettingsTest、DockBackgroundGeometryTest、DockBackgroundFeatureTest、IslandStatusBarCompactTest；另补 AppWindowAccessIsolationTest / AppBehaviorPolicyTest，真实安装流程同时启用两组、故意缺少另一组 ROM API，仍只安装有效 Hook，并保留一个偏好观察器。
+- 偏好资源、生成产物、当前架构三组 Python 回归 35 项通过；源码 / 偏好 / 热路径 / 语义静态门禁、文档链接与功能地图检查通过。assembleDebug 通过；十种语言标签与生成资源编译有效。没有复用旧采样单元测试冒充当前材质测试。
+
+仍需 HyperOS 1 / A14 定向实测：轻量玻璃的 Google / MIUI 原生材质与无模糊回退外观，Dock 编辑 / 拖动 / 解锁 / detach 恢复，锁屏与动态壁纸切换；Wi-Fi 系统写入失败、权限撤销 / 恢复、用户切换的实际原生事件；应用窗口两组功能各自缺接口的设备行为。按同一交互脚本对比实际帧时间、CPU / GPU、Binder、内存与功耗，不能把源码捕获次数推断为设备总开销比例。
+
+当前没有证据要求再给动态岛增加状态层，或为 Dock 新建图像系统。回退应按 Dock 材质路线、Wi-Fi 恢复合同、overflow 重建、应用接口隔离各自的代码与回归成组处理；不要单独恢复捕获调度器。下文较早的 Dock 捕获、AGSL 与 uniform 数值记录为历史证据，其算法和待优化项已由本节退役决定取代，不再是当前生产合同。
+
+
+## 工程精简与生产隔离（2026-10-30）
+
+相关工程记录（以现行源码与回归为准），当前分支 `codex/a14-consolidated`（承接已清理的 `codex/repository-simplification`）；有效基线 `fbf25c247137edd0cc75f19fdb86f37860a6d918`，不是较旧的 main。首次工作树干净、基线已推送，保留 Wi-Fi、应用行为及此前八类成本审计成果。本轮 Deep，不更改正式版本号，不签名、发布或合并 main。宿主原始证据保存在忽略目录 `.di-evidence/repository-simplification/`，APK / mapping / 外部源码 / DexSQL 缓存不入库。
+
+### 分支收拢与剩余范围
+
+按用户后续授权，把所有有效分支成果收拢到 `codex/a14-consolidated`，保留 main 稳定线。收拢前 31 个本地分支和 26 个实际远端分支引用的 exact SHA 全部为 `77b9d3c80722a72222a733759a35f325f5bc3eca` 的祖先，因此无需重复 merge、冲突处理或重新引入已替代实现。先推送新分支并独立读回，再原子删除 25 个远端任务分支；30 个旧本地分支均经祖先复核后用普通安全删除清理，无 force push、历史改写或 main 合并。
+
+四个仍存在的旧 Worktree 均无未提交 / 未跟踪修改，已脱离旧分支并固定在各自原 SHA，文件与本地忽略资产保留；两个路径已不存在的过期注册，在确认其 HEAD 也被新分支包含后清理。删除前保存完整 Git bundle 与引用 / Worktree SHA 清单到 `.di-evidence/repository-simplification/branch-consolidation/`。该目录仅为本地可恢复证据，不作为新任务数据库。当前仅保留 main 与整合分支，tags 不变。
+
+分支收拢时只变更文档与 Git 引用，并复用首批 Deep / R8 证据；随后按用户“静态能处理的处理一下”继续实施。下表为静态续处理后的当前状态，不等同于全仓每项复杂度均已穷尽审查。
+
+| 优先度 / 未完成项 | 具体证据与下一步 |
+| --- | --- |
+| 已处理 · 电池源码合同与共用测试入口 | 修复 BatteryArchitectureCTest 的 ClassLoader URL 定位失败，缺源码改为失败；检查实际方法调用而非注释中的同名文字，并要求冻结 Field.get。21 个现有测试类与电池测试共用 src/test 的 testsupport.repositorySource，新增缺源码失败回归；不把测试入口放入 main |
+| 已处理 · 94 个未使用资源 | 逐项核对 main / 生成资源 / XML、动态资源获取与原 Release resources.txt；全部无消费者且收缩报告明确不可达。移除 93 个字符串、1 个尺寸及各语言共 931 条定义，覆盖 11 个文件；UnusedResources 94 → 0，lint warnings 478 → 384，没有删除真实功能资产 |
+| 已处理 · 五个 ROM inventory 样本跳过 | 不再绑定 tmp-apk 中的 r14.13.0 历史安装包；测试用已有 JDK 25 / D8 / AAPT2 临时编译一个类、两个方法、一个字段的 APK，实际检查 DEX、包信息、SDK、去重、JSON / CSV 和缺工具回退；JAR / compileOnly stub 使用仓库已有构建输入，缺失不再跳过。样本不入库 |
+| 已处理 · 重复 / 无效的清单基础设施 | rom_inventory 复用 rom_catalog.manifest_attributes 读取 Manifest 根与 uses-sdk，保留现有 APK / JAR / DEX ABI 元数据职责；移除可选 pyaxmlparser 依赖、无人调用的 JADX 方法，以及同时传 -public / -p、没有类名而必定失败的 javap 调用。JAR 直接 class 解析保留；测试约束不启动该无效外部进程 |
+| 已处理 · 仅剩测试使用的旧配置查询 | hasConfiguredGlobalActions 没有生产调用方，原 R8 usage 已移除该方法。删除此 main API，既有缓存就绪 / 并发 / bootstrap 测试改为调用真实生产 hasConfiguredActionCode，Robolectric 默认空配置仍逐动作 / toggle 验证；不删除有效测试 |
+| 已复核保留 · 生产边界与工具职责 | XposedServiceManager 是设置进程的连接 / 偏好发布 owner，ShakeManager 跟随 Launcher resume / pause 注册释放，不能按 Manager 名字合并；Helpers / HookUtils 隔离设置初始化与宿主叶子能力，Feature Spec / Definition / Registry 分离惰性创建与安装状态。APK 单产物归因与跨变体报告的输入 / 来源职责不同；签名脚本、双语发行文档及实际 Open With 资产继续保留。未发现已跟踪 APK / DEX / trace / log / 临时缓存可删 |
+| 待设备 · 生命周期与性能验收 | 未进行本轮目标 A14 / HyperOS 1 实机对照、启动 / 交互延迟、CPU / GPU、分配 / PSS、帧时间及功耗测量；Host、R8 与 APK 不能代替这些证据。未实施没有运行证据的大型行为重构 |
+| 保留范围说明 · 更广泛审查与社区研究 | 本轮沿具体静态缺陷清理，不宣称所有历史 / 所有功能包均已穷尽审查。指定八仓库参考仍有效；没有新可落地候选时，不为扩大改动量做泛化社区调研或强行合并有效边界 |
+
+静态续处理基线 `89f0efd1988f455733815d51703429bef2b3748f`；本轮证据保存在 `.di-evidence/repository-simplification/static-followup/`，按 Deep 验证。全量 JVM 已验证 4,267 项、0 失败 / 错误 / 跳过；随后删除旧配置查询并对四类真实消费者补验 13 项，全部通过。全量工具 728 项全部通过、0 跳过；本轮同步校准旧本地化测试到真实 XML 使用的 prefs_group_connectivity，保留全语言要求。Develop / fatal lint 与未签名 Release 构建通过。以实施提交 `062ebe19d0a3372c70f7a531eb8f8d0fed0da896` 的固定快照复验：两个矩阵输出确定性通过；11 项必需 mutation 全部被独立门禁检出，0 存活 / gate 错误 / 无法验证 / 清理错误。后续仅更新文档证据，复用已验证的应用、工具和测试输入。应用依赖、版本、Hook 签名与交互不变，不签名、发布或合并 main。
+
+静态续处理 APK 对照（同一 JDK 25 / SDK / 依赖）：4,484,537 → 4,480,961 字节（减少 3,576），最终 DEX 类数仍为 2,843。新 APK SHA-256 为 `f44d3e415e2c3f07cd0a6da681e786f45470a4b518d47a8d42d9c986ace7255f`。比较产物来自本轮基线加完整实施 diff，revision 标签随基线更新；不是正式候选，也不把全部字节差异归因于单个删除项。
+
+ZIP 条目集合无增删；资源编号重新分配，因此二进制 Manifest、87 个 XML 及 DEX 等字节不同。用各自 AAPT2 资源表解析引用后，Manifest 属性完全一致，全部 2,976 个已打包资源的名称、各配置和值完全一致；原来 94 个候选本就不在可达输出中。native、功能样本与许可资产内容不变，两个变化的 assets 是构建来源和基线 profile。官方 DexSQL 未检出测试框架 / testsupport / compileOnly API 定义、安装采样调用或设置入口到 Hook API 的直接引用；Release runtime 依赖树与基线一致。主功能、偏好、Hook 精度及动作交互未变；不存在可据此声称的实机响应 / CPU / GPU / 功耗收益。
+
+### 决策与实施
+
+| 候选 | 证据、收益与取舍 | 决定 / 验证边界 |
+| --- | --- | --- |
+| main 中的安装性能采样 | 三个安装器、四个阶段复制时钟 / ART 分配读取与日志参数；Release 虽被 R8 删除，main 和 Develop 仍维护该实验 | 删除 FeatureInstallMetrics 及调用，直接注册原 Catalog；安装顺序、惰性工厂、失败隔离和补装不变。开发测量使用外部 Trace / Simpleperf，不增加变体桥接抽象 |
+| 旧 XposedHelpers API 全集 | 26 个方法在 main、test、XML 中无消费者；核对全仓字符串、入口、R8 usage，属于内部辅助面而非外部 SDK | 删除参数索引 / 类数组包装、无人使用的基本类型字段访问和资产流转换；保留 overload 匹配、ClassUtils / MemberUtilsX、缓存与异常语义。编译和现有反射回归验证真实消费者；逐方法对照确认保留的 126 个方法体未改动，ABI 测试固定真实重载签名而非最少方法数 |
+| ShadeExpansionTracker | main 没有调用方，仅自身单元测试创建；无 Manifest / XML / 反射入口，基线 R8 usage 含整个类 | 删除无生产对象的类、自身测试及两个重复且无独立 gate 的可执行 mutation；既有 74 项覆盖合同保留两条明确退役说明，11 个必需独立缺陷门禁不变。实际手势状态机 / Hook 行为回归保留 |
+| provenance 三套重复注册 | 字段与任务声明重复，Release 多一个完整 sourceCommit；消费依赖与各变体目录已有实际合同 | 共用 registerBuildProvenance，保留原任务名、目录及 Release 专属字段；实际生成与合并 assets 回归 |
+| 模块、目录和接口 | 现有单 app；Installer 负责进程入口，Spec 负责惰性创建，Registry 负责状态；拆分减少宿主错误初始化 | 保留有效边界，不机械合并成大类；不新增模块、源码层级或通用管理器。根目录无已跟踪 APK / ROM / trace 可删，忽略的本地证据不清空 |
+| 第三方依赖 | Commons 参与反射重载选择，DexKit 参与 ROM 定位，Palette / Preference / AppCompat / 协程均有生产消费者；Fragment KTX 是传递版本对齐约束 | 不重写成熟库或删除仍有用依赖；compileOnly framework / API 与 testImplementation 边界保留，实际解析图和 APK 复核 |
+
+仅移除三个已失去实现对象的测试类（采样算术、采样接线、旧阈值类），不删除或弱化有效业务断言。main 洁净门禁补拦 Robolectric、协程测试运行库和开发采样；BuildConfig 条件不再被当作源码集隔离。同步 AGENTS、ARCHITECTURE、开发与测量规范，防止恢复历史通用 API 和采样接线。
+
+### 外部真实源码与适用性
+
+本轮按以下 exact commit 读取构建、目录树、初始化 / 配置或生命周期源码，并记录提交时间 / 消息；不以仓库规模、国籍或 Star 判断。表中是局部工程取舍，不是对整个项目的质量排名，未复制其代码或依赖。
+
+| 来源 / exact commit | 真实实现与 A14 取舍 |
+| --- | --- |
+| [Telegram / 3de37c8](https://github.com/DrKLO/Telegram/blob/3de37c8cfb039452be7398909461da6288babf15/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java) | postInitApplication 有单次初始化门；settings 分离应用分发和 AppTests。借鉴明确入口与幂等，保留 A14 的分进程安装；不照搬账号初始化和完整客户端依赖 |
+| [Telegram X / d1ebf3f](https://github.com/TGX-Android/Telegram-X/blob/d1ebf3fef5bc302a2df25f268e7ef8c4beefe84d/app/src/main/java/org/thunderdog/challegram/telegram/TdlibListeners.java) | 分类 listener 的 subscribe / unsubscribe 成对，settings 显式 extension bridge 与 tests 模块。A14 复用现有 owner / release 合同，不新增总线，也不照搬其复杂 flavor / SDK 矩阵 |
+| [Nekogram / 199abde](https://github.com/Nekogram/Nekogram/blob/199abde0f100d92cee8d925337561633e6e11186/TMessagesProj/src/main/java/tw/nekomimi/nekogram/NekoConfig.java) | 定制配置集中于独立包，loadConfig 受锁与状态门约束，昂贵支持检查异步。借鉴边界清晰；静态 SharedPreferences / 全量载入不适合 A14 多宿主惰性安装。该提交修复错误线程上的数据库操作，也说明直接实现仍需线程合同 |
+| [AyuGram / 7013145](https://github.com/AyuGram/AyuGram4A/blob/7013145676d36d82ee13c02a89f72097b7490dcd/TMessagesProj/src/main/java/com/radolyn/ayugram/AyuConfig.java) | 所指定仓库默认分支停在 2023 年；配置独立包、configLoaded 避免重复加载可参考，静态初始化整组偏好不引入 A14；不把旧快照当当前 Android 工程标准 |
+| [NekoX / 3581a10](https://github.com/NekoX-Dev/NekoX/blob/3581a10f8ecaa0f6d42d7a77442742caf95c6a13/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java) | observer 修改有线程约束，View attach / detach 绑定订阅释放；借鉴生命周期与所有权，A14 现有注册释放足够，不增加全局事件中心 |
+| [Kotatsu / 34f6e52](https://github.com/KotatsuApp/Kotatsu/blob/34f6e5232bf7f0bcdf8f3fbddb986697518e82a4/app/src/debug/kotlin/org/koitharu/kotatsu/KotatsuApp.kt) | debug KotatsuApp 才安装 StrictMode / LeakCanary，release 同名入口仅继承 BaseApp；这是清楚的源码集隔离。A14 删除已完成的采样实验；未来长期调试实现按此原则隔离，不引入其 Hilt / 网络 / reader 基础设施 |
+| [MaterialFiles / 93c3339](https://github.com/zhanghai/MaterialFiles/blob/93c333960aa897836ba3f215a19d0cb0de494db1/app/src/main/java/me/zhanghai/android/files/storage/LanSmbServerListLiveData.kt) | 单 app 按功能包组织；扫描以旧数据增量发布、取消旧任务、dispatcher use 释放。借鉴明确 owner 与增量结果，不复制 SMB 扫描的 60 线程预算，不能因目录浅就认定适合 Hook 宿主 |
+| [ReVanced Manager / 2a88257](https://github.com/ReVanced/revanced-manager/blob/2a88257b71d35c9f141907ffea67c87e51bbb0db/app/src/main/java/app/revanced/manager/domain/worker/WorkerRepository.kt) | app / api 有独立边界，hidden API stub 为 compileOnly；唯一任务 REPLACE 和输入 claim 后移除体现一次交接。其全局输入 map、Koin / WorkManager 不适用于 A14 现有短生命周期宿主，不为形式引入 |
+
+构建历史交叉检查也覆盖八仓库各自的三条相关提交：例如 Telegram X [aa687c67](https://github.com/TGX-Android/Telegram-X/commit/aa687c67c06fa3c1abd8c1b5c78d536d7cc5fb00) 明确引入独立测试基础设施；ReVanced [3613e4d7](https://github.com/ReVanced/revanced-manager/commit/3613e4d752a1efc86137817d6bf859ffd1b71eac) 撤回过早移除的 Release 构建 workaround。前者支持测试边界，后者说明历史路径必须证明失效才删，不能只凭简短或陈旧判断。原始路径与提交摘要保存在外部证据。
+
+### 生产隔离结论与产物对照
+
+A = 仅仓库、不参与 APK；B = main 中存在、无运行入口；C = Release 实际打包；D = 生产实际运行或初始化。四层必须分别取证，静态引用缺失不能单独证明没有反射。
+
+| 对象 | A / B / C / D 证据 |
+| --- | --- |
+| tools、scripts、ROM 契约、测试替身与回归 | A：构建任务可调用生成器，但脚本本身不成为 APK 内容；src/test 与 testImplementation 不属于生产源码 / 依赖。正式输出以 Gradle 解析图、合并 Manifest、ZIP 与 DEX 检查为准 |
+| 旧阈值类与 26 个辅助方法 | B：无生产 / 资源 / 反射消费者；基线 R8 usage 证实移除；C、D 无证据。删除前逐项复核，不仅按文件名搜索 |
+| 安装采样 | main 存在，Develop 初始化四阶段执行；Release 常量折叠后 DexSQL 未见 ART 分配采样调用，usage 含采样类。不是 Release C / D 污染；本轮同时清除 main 维护负担与 Develop 工作 |
+| test0–test4 资产、PrefsProvider test/* | C 且在用户触发“打开方式”验证时 D：真实用户功能，保留授权 URI、可 seek 资产与 MIME 处理，不因名称 test 删除 |
+| HookDiagnostics / 故障日志 | C / D：实际失败隔离与有界诊断，有生产用途；保留，不扩展采样、常驻监听或轮询 |
+| framework.jar / libxposed API、测试运行库 | compileOnly / testImplementation；基线最终 DEX 未定义 libxposed API、JUnit / Robolectric / Mockito / MockK / 协程测试类。设置 Manifest 入口到 API 的直接指令引用为空；另由现有类加载回归覆盖传递边界 |
+
+首批精简对照：前后均为 JDK 25.0.4.1、同一环境与 revision `fbf25c24` 的未签名 Release；after 是基线加本任务完整 diff，比较用产物不是正式发布候选。final DEX 类数含第三方库，不等同 A14 自有类数量。
+
+| 指标 | 修改前 | 修改后 |
+| --- | --- | --- |
+| APK 字节 | 4,484,537 | 4,484,537 |
+| 最终 DEX 类数 | 2,843 | 2,843 |
+| APK SHA-256 | `04e1d93237ff6a26acbf11b8a4c1d65193990be7dcab3ba2bad55468f6e56821` | `4d371e0ff805019a9c35391c0e36cb944b6a31ea324ca2a8b1be7cf67bf800d5` |
+| ZIP 条目集合 / 合并 Manifest / 资源 / 普通资产 / native | 原基线 | 集合一致，内容逐项一致；native 仍仅 arm64-v8a/libdexkit.so |
+| 实际变化条目 | — | 仅 classes.dex 与 assets/dexopt/baseline.prof；不是逐字节等同 APK |
+| Release runtime 依赖树 | 原基线 | 完全一致，无依赖新增或删除 |
+
+官方 DexSQL 对两份实际 APK 均未检出测试框架 / libxposed API 定义、ART 安装采样调用，设置 Manifest 入口到 API 的直接指令引用为空；保留 R8 mapping / usage / configuration 与类加载回归，直接引用查询不冒充传递加载证明。Gradle 实际 sourceSets 与 Release / Develop / debugUnitTest 解析图分离，生产运行图无测试库、framework.jar 或 libxposed API；三变体合并 provenance 与消费依赖回归通过。没有新增常驻对象、监听器、线程或业务初始化。
+
+首批精简（静态续处理前）的 Deep 已执行 `verify.py full`（4,266 项 JVM：0 失败 / 错误，2 跳过；Debug lint 0 errors / 478 warnings）、全量工具测试（725 项：通过，5 跳过）、`:app:assembleDevelop :app:lintVitalDevelop :app:assembleRelease`、文档链接 / 功能地图及完整 diff 检查。独立门禁以实施提交 `da6f01e` 的固定源码快照运行：两个 process matrix 输出确定性通过；11 项必需 mutation 全部应用并由独立语义门禁检出，0 存活 / 无法验证 / gate 错误 / 清理错误。最后的文档证据提交不改变应用、构建、工具或测试输入，复用上述通过记录。
+
+删除项已被基线 R8 清除，因此没有 Release APK 体积或运行收益声明。Develop 每阶段移除 4 次时钟读取、4 次 ART 统计读取及 1 条日志（四阶段分布于三个宿主）；这是调用链减少，不是实测 CPU / 时延收益。设备延迟、CPU / GPU、帧时间和功耗仍待实机，不以 Host 测试推断。
+
+其余取舍：成熟依赖、单 app 模块、进程入口、Feature 元数据 / 惰性行为 / 状态职责、有效行为测试及有界失败诊断继续保留。未发现足以支持继续合并这些边界或删除备份兼容路径的证据；不把目录层级、历史名称或文件数当作修改理由。后续只对新增调用链与实测成本推进，不重新恢复已退役类与采样设施。
+
+## Wi-Fi 自动设置（2026-10-30）
+
+名称为“Wi-Fi 自动设置 / Wi-Fi automatic settings”，入口“系统 → 其他 → 网络连接”。复用系统 Feature（265）、原有 system_server Context 交接、带发送者身份校验的动作通道、设置搜索与备份；首次启用安装仍需重启。最多 32 条规则，每条有名称、独立开关、SSID、可选 BSSID、优先级与四个默认“不修改”的属性。匹配顺序为优先级数值降序 → 精确 BSSID → 原列表顺序；编辑器可手动输入或选择已配置 / 当前连接的网络，不复用会扫描的旧 WiFiList。
+
+- 识别使用一个 `ConnectivityManager.registerNetworkCallback`，请求底层 Wi-Fi，规则需要 VPN 时同一个回调同时观察 VPN；移除默认 NOT_VPN 约束，不依赖默认网络。启动 / 注册需求改变时读取一次当前网络，定位或设置页权限返回时按事件重读，不轮询。回调对相同 SSID / BSSID 去重，单个 500ms 期限合并连接抖动；同 SSID 漫游仍匹配同一规则时不重新读取 / 设置属性。初始快照未完成、UNKNOWN_SSID、身份冲突或容量溢出均为“不确定”，暂停命令；只有确认的断开才作为退出，不把尚未收到回调当成断网。
+- 识别要求模块获准精确位置的始终访问、附近 Wi-Fi 权限并开启定位，不借 system_server 权限绕过用户选择；设置页快捷添加仅前台读取当前连接。系统事件触发的执行前重新核验权限，设置页返回通过已有可信动作通道请求新身份快照。勿扰每次读取 / 设置还单独检查模块包的通知策略访问授权，撤销后放弃无法证实的所有权，不强制恢复。
+- 勿扰只调用原生 `NotificationManager.setInterruptionFilter`，不写 `Policy` 或编辑自动规则对象；只读 `ZenModeConfig`，发现已启用自动规则或带条件的定时手动勿扰即跳过，避免原生 filter setter 暂停用户自动规则或丢失倒计时。铃声用 `AudioManager.get/setRingerModeInternal`，旋转用 `Settings.System.ACCELEROMETER_ROTATION`。三个属性各自保存原值、模块最后确认值、场景 ID 与手动否决。先读取并核验所有相关属性，再按勿扰 → 铃声 → 旋转交接；前项写入后重新核验后项，DND 原生铃声副作用保留最早快照，不误判为手动覆盖。A14 原生 delegate 会切换勿扰的铃声请求安全跳过，勿扰策略优先；不改 VolumePolicy 来强行实现冲突组合。
+- 家庭到公司直接比较新目标，不先全量恢复；相同目标不写入，新场景不管理的属性只在当前值仍等于模块确认值时恢复。手动变化后，该属性在整个连续匹配网络期间被否决；彻底离开后才重新武装。关闭功能 / 无动作规则时核验并释放仍拥有的状态；切换用户只放弃当前用户的旧记录。状态快照仅在进程内，重启 / system_server 重建重新读取当前网络与状态，不用旧磁盘快照恢复；因此不能保证跨重启恢复到上个进程曾记录的初值。
+- VPN 复用 `VpnAutoSwitchAccess` 的快照、授权、原生 runner / connection token 和精确 stop 校验。应用自动 VPN（包括停用后仍在退役的启动请求）优先，Wi-Fi 放弃竞争；始终开启 / 锁定、未知状态或外部替换会话均不改。可靠静默启停仅开放已有系统 IKEv2 profile 路径；其他客户端已在目标状态则不重复执行，缺少可靠且可恢复的静默控制合同则跳过，不打开客户端 UI、不尝试通用 VpnService 启动、不调用 Shell。已有应用自动旋转白名单不写全局旋转值，继续作为局部例外；按应用媒体音量不控制铃声模式，二者不竞争。
+
+业务成本：新增业务 Hook 0、服务 0、专用线程 0、扫描 / 轮询 0。存在有效规则时，一个网络回调、一个生命周期 / 系统状态 Receiver，以及按实际动作注册的一个 ContentObserver（0–2 个 URI）；全部关闭后释放这些业务注册，保留已安装 Feature 的一个冷配置观察者。复用原 BackgroundThread 与注册清理机制，旧网络回调通过 owner 身份失效；原生身份最多 16 个、标量租约 3 个、VPN 租约 1 个。Host 用 `WifiAutomationCoordinatorTest` 验证无规则零属性 / VPN 读取、1000 次同规则事件不增加读取与写入、相同目标交接零重复写入；这是调用行为证据，未测 Android Binder、常驻内存、延迟、CPU / GPU 或功耗，不宣称设备收益。
+
+证据入口：`WifiAutomaticSettingsTest`（权限外的身份 / 匹配 / 编解码与备份合同）、`WifiNetworkTrackerTest`（VPN 底层网络、未知与初始快照）、`WifiAutomationCoordinatorTest`（独立所有权 / 手动优先 / 原生副作用 / 故障 / 用户切换 / 重建 / VPN），以及 `PreferenceNavigationUiTest` 的实际页面编辑。fuxi CN A14 framework.jar 的策略授权、内部铃声方法和 services.jar 的 `mVolumePolicy` / 原生 RingerModeDelegate decode 已取证，fuxi TW 策略授权方法定义一致；原件及日志在仓库外 `forA14-ROM-index/wifiauto-*` / `wifi-ringer-native.txt`。
+
+Deep 验证范围：Full 4270 项的未受影响通过结果复用，修正异步对话框测试调度后，四个相关类 60 项回归通过；原生 Zen 配置保护加入后，`WifiAutomaticSettingsTest` 的 4 项（含实际 SDK 34 ZenModeConfig 自动 / 定时规则）通过。工具 724 项通过（5 项跳过），本地化 15 项、资源 11 项在最后文案更新后补验通过。最终 Develop / R8、fatal lint 和 Debug lint 通过；宿主专用非 SDK 反射的 lint 例外仅限两个 system_server 类，接口缺失仍安全跳过，不放宽全局门禁。官方 DexSQL 检查最终 APK 无 Hook API 定义、Manifest 设置入口无直接引用，且本 APK mapping 的 `System_WifiAutomatic → an1`、配置 / Options / Rule → `xu1 / vu1 / wu1` 的类型 / 调用 / 字段均无直接 Hook API 引用。APK SHA-256 `50a8ab6d9c7aaf296ba709b1e23533f62e92904b1a9f3c688fae9c528dbc82d2`；为本地未签名 Develop，不能当作正式发布或实机证据。
+
+待实机：Android 14 / HyperOS 的网络回调及 Location 授权实际裁剪、500ms 短断连交接、勿扰与原有自动规则 / ROM 铃声策略交互、IKEv2 的启动 / 断开读回时序、权限撤销、重启 / SS 重建以及关闭后的原生清理。双 Wi-Fi 同时连接且身份不同按不确定处理；没有原生值变化的同值手动重设无法凭状态事件区分。模块框架停用不提供进程内退出回调，不能承诺停用 / 重启时恢复旧快照。当前无连接的 ADB 设备，静态 ROM / Host / APK 证据均不代替设备验收。
+
+## 应用行为轻量规则（2026-10-30）
+
+设置入口为“系统 → 屏幕 → 应用行为”，四项默认关闭，首次启用需重启设备。复用 system_server Feature 单次安装、偏好发布、现有应用多选器、原生编辑器及设置搜索 / 备份目录；不扩展 GenericApp scope，不向每个应用进程安装 Hook。
+
+- 旋转：`ActivityRecord.getOrientation(int)` 的原生结果仅对白名单转换 USER / UNSPECIFIED 为对应 SENSOR，保留显式方向锁、BEHIND 与原生忽略值。传感器启停、应用离开与视频方向切换继续由 WM 管理，不写全局旋转配置。
+- 亮度：两项共用 `RootWindowContainer.handleNotObscuredLocked(WindowState, boolean, boolean)`，只在 WM 锁内、原生读取窗口请求期间改写 `screenBrightness`，`finally` 无条件恢复应用原值。优先级为精确 Activity 例外 → 用户固定值 / 跟随系统 → 应用请求上限 / 忽略 → 原生请求；不写系统亮度 / 自动亮度模式。主用户、默认屏幕、全屏应用之外保留原生行为。
+- 音量：`FocusRequester.handleFocusGainFromRequest / handleFocusGain / handleFocusLoss / release` 加 `AudioService.sendVolumeUpdate`，以长期 MEDIA / GAME 焦点界定使用场景；前台切换本身不改媒体音量。手动按键 / 音量 UI 变化覆盖待执行恢复；焦点死亡、旧 owner 迟到释放与关闭使旧任务失效。当前有其他媒体播放、通话、固定音量或用户不匹配时放弃恢复；焦点交接中其他媒体尚未停止仅允许一次 250ms 延后核验。
+- 成本：全关不安装这 7 个业务 Hook 或 2 个配置观察者；全开无新 Receiver、服务、传感器订阅、音频采样、轮询或专用线程。窗口路径只查不可变配置、缓存字段 / 方法并在目标变化时短暂改写字段；音量仅在焦点 / 手动音量事件查询路由与播放配置，复用系统 BackgroundThread，最多一个合并持久化期限。音量记忆按应用与输出路由类型隔离，最多 256 项，写入主用户 Settings.Secure 独立键，不进入模块备份。
+
+Host 证据入口为 `AppBehaviorPolicyTest`、`VolumeMemoryTest`、`SystemServerFeaturesWiringTest`、`SearchPreferencePageTest` 和 `PreferenceNavigationUiTest`；设备 CPU / GPU / 功耗、实际常驻内存与交互延迟尚未测量，不宣称性能提升数字。ROM 静态证据：fuxi CN services.jar `e9552126…` 的窗口 / 焦点 / 音量方法 decode 和字段定义，fuxi TW 方向 / 焦点签名及 munch ID 亮度入口对比；原始输出在仓库外 `forA14-ROM-index/appbehavior-*`。精确入口缺失由既有 Feature 错误隔离，窗口 / 音量 Hook 组安装失败回滚组内已装项。
+
+Deep 验证范围：Full 的 4245 项 JVM 范围复用未受影响通过结果，首次启用分类 / 页面数量修正后的相关类及新增 13 项窗口 / 音量回归补验通过；`CurrentPreferenceContractTest` 验证亮度值与场景例外通过原备份校验。724 项工具范围复用未受影响结果，本地化 15 项、资源 11 项和生成器 14 项补验通过；分页 / 矩阵确定性、文档与功能地图检查通过，必需独立故障注入 11/11 检出且临时 Worktree 清理通过。最终源码的 Develop / R8 / fatal lint 通过，Debug lint 通过；官方 DexSQL 复核最终 APK 无 Hook API 定义、设置入口及新增设置页 / 配置类无直接 Hook API 类型引用（同产物 mapping：`System_AppBehavior → hm1`、`AppBehaviorPolicy → v3`），APK SHA-256 `746376eb44447a56161e8a91e2d31ca165609912ea825c430dbe2aaa185958b6`。仅为本地未签名 Develop，不是正式候选或设备验收。
+
+待实机：快速切换 / 视频全屏方向锁、分屏 / PiP / 小窗、后台音乐焦点交接、静音与蓝牙路由、安全音量、进程死亡 / 重建、扫码 / 相机 / 支付码 Activity 例外与关闭恢复。音量不覆盖无长期媒体焦点的应用、不按每副同类型蓝牙设备单独记忆；切换设备沿用系统设备音量，直到下一次焦点获得。亮度仅约束标准窗口请求，不接管 ROM 专有 HBM / 阳光屏。当前没有 ADB 设备，不把 Host 或静态 ROM 证据写为设备验收。
+
+四项按各自作用域控制，仅共享配置表达与现有基础设施；当前无需引入统一自动化执行器。精确 Activity 例外仍是高级文本设置，未来若有实际使用反馈可复用 ActivitySelector 做入口改善，无需扩张运行时。
+
 工程执行策略仅在 A14 试点，分级与验证选择统一在 [TESTING](../TESTING.md#执行分级)；配置审计、测量和未验证范围见[试点证据](A14_EXECUTION_PILOT.md)。执行规则和验证路径的首轮验收保留在试点证据中；业务候选与本次结论以下方当前审计为准，历史试点不替代新候选验收。
+
+工程取向统一为 [Performance-First（性能优先）](../../AGENTS.md#产品与取舍)：正确性、安全、A14 兼容及宿主稳定是基础约束，取舍优先响应速度、帧稳定性、关键路径与持续运行成本，不再采用严格的线性排名。实施和量化依据统一见[优化门禁](../OPTIMIZATION_GATES.md#关键路径优化原则)；保留核心功能与既有交互合同，不可见 / 被遮挡 / 不活跃时停止无效工作，新增非必要视觉与动画可以让位于性能。政策变更本身不代表已有实现取得新的设备性能收益，具体结果按下方各批证据判断。
 
 任务启动与续接采用一次初始化、同一聊天持续继承上下文、按风险增量核验；重新发现仅用于新任务、实际写入冲突或上下文失效。main 合并、推送、发布及破坏性操作保留必要的实时来源和安全检查，不重跑任务发现；规则与技能入口已对齐，未新增状态管理机制或声称未经测量的耗时收益。
 
 已授权开发成果在必要验证后默认提交并推送任务工作分支，以远端完整 SHA 读回确认保存；main / Tag / Release 仍需相应授权。代理优先级、有限重试和网络故障恢复统一维护在 [Git 协作规范](../DEVELOPMENT.md#本地-git-网络与失败恢复)，本机代理配置仅留在仓库 Git 元数据中。
 
+## 全局输入、图像与资源成本审计（2026-10-30）
+
+以实际最新有效实现 `25ee8b58aefa6aed35b8bcd731cf2d83a2a38898` 为基线；真实远端 main 为 `863305ebd56351687b2e0c54313b7247e7020373`。本地全部分支均已纳入基线，有效 Worktree 无未提交修改，无遗漏未推送成果；失效 Worktree 注册未做清理。实施归 相关工程记录（以现行源码与回归为准）。覆盖八类源码入口及跨进程所有权筛查，重点调用链逐项复核；这不是所有功能均完成设备性能验收的声明。此前 Dock / 岛 / G4 / 遮挡优化保留，仅复核交叉成本，未重新实施；未使用 HyperOS 3 证据。
+
+等级 A 为可直接消除的确定性工作；B 须先做对照实验；C 为低收益、高风险或证据不足。P1 / P2 / P3 表示处理优先度，不表示已测用户延迟。每行保留调用链、触发、证据、方案与回归边界。
+
+| 等级 / 优先度 / 范围 | 当前成本与证据 | 决定、风险与回归 |
+| --- | --- | --- |
+| **A / P1，已实施：SystemUI 输入包装** | `StatusBarGesturesHook → statusBarHook.before → getArgs → getArg → getMember`；原拦截入口读整组参数后直接返回，不改变手势状态、消费或业务效果；原触摸入口的只读 `getArgs` 让 API 102 适配器复制数组并走 `proceed(args)`。每个原生事件均触发 | 删除无业务作用的拦截 Hook，权威触摸入口用 `getArg(0)`，不再读 member / 整组参数；仍在原生分发前观察。Host 120 次触摸的整组读取与重传各 **120→0**，native 仍 120 次。覆盖原生结果 / 异常、观察失败隔离、fatal 与事件字段；attach / detach、仲裁器和状态机不变。无新缓存 / 所有者 / 线程 |
+| **A / P1，已实施：状态栏与控制中心 DOWN** | `GestureMachine.dispatch → readBrightness → prepared Method.invoke → DisplayManager.getBrightness` 原来每个准备完成的 DOWN 都读取，即使只有音量 / 双击，或控制中心起点超出状态栏 | 在可开始且任一单指 / 多指动作可能调亮度时才读；120 次非亮度会话、120 次无效起点分别 **120→0** 次反射亮度调用。亮度配置仍在 DOWN 读取一次；后续加指可能切到亮度，不能仅依据 DOWN 时的手指数量跳过。保留首个 MOVE 起始值、失败回退、fatal、取消与配置快照；不声称 Host 调用次数就是设备 Binder 次数 |
+| **A / P2，已实施：设置应用图标** | `AppDataAdapter / 三类选择器适配器 → BitmapCachedLoader.loadBitmap → getApplicationInfo → getApplicationIcon(String)`；冷缓存每个应用图标再次按包名请求图标，Android 14 String 入口内部再次查询元数据 | 使用本次 `ApplicationInfo` 的原生图标重载，保留 disabled 标志并加入 String 入口的 `GET_SHARED_LIBRARY_FILES`，不缓存包元数据。Host 120 个冷图标的 String 请求 **120→0**，每项一次元数据读取、一次 info 图标加载；暖缓存两者均为零。活动图标优先、应用回退、像素生成、队列、弱目标、缓存容量及交叉淡入不变。缺失 / icon=0 回退和共享库标志有回归；PM 自身缓存会影响实际 Binder 成本 |
+| **B / P1：通知调色批处理** | `handle3thThemeColor → AppIconsManager.getAppIconBitmap → NotificationPaletteCache.resolve → WallpaperColors.fromBitmap → Monet ColorScheme`。已有每 Notification 单项弱 Bitmap + generation / uid / pkg / dark 缓存；同通知重复 inflation 已复用，新通知仍各自计算。Row 当前 entry 查 palette，原生 tint=0 恢复保留 | 暂不加共享缓存。对同应用批量新通知、同对象重绑、主题 / 用户切换及同 Bitmap 像素更新，先测图标身份命中、主线程 / 后台归属、调色次数与锁等待；有真实命中后再比较安装 owner 内小容量弱图像缓存。需覆盖并行 inflation、替换 / 失败发布、Row 复用、原生颜色；不能用合成同 Bitmap 的命中率代替 ROM 命中率 |
+| **A / P1，已实施：无天气格式时停止订阅 / 查询** | `SystemClockHooks → buildClockText / needsWeatherData → WeatherDataController`；天气开关启用后，原来无论四类有效格式是否使用 `tq` 都注册分钟广播并查询。基线在同一执行体仅接入需求参数的对照中，120 次无需求请求仍取用 ContentResolver / 尝试查询 120 次；关闭后仍有订阅、在途结果仍发布，各有反例 | 复用实际格式选择、隐藏及功能开关，在初始化和现有偏好发布时计算需求，不进入逐帧 / 分钟热路径。无需求时分钟与天气专属屏幕订阅为零，120 次请求的 ContentResolver 取用 / 查询尝试 **120→0**；取消在途发布，亮屏重新启用刷新一次，灭屏等亮屏，重复启用无重复工作。合并天气与时钟构造 Hook（两者同时启用时由两个回调变为一个）；保留初始化 1.8 秒延迟、弱 controller、application Context、跨 scope 查询互斥和缓存字符串。新增状态仅两个 primitive 标志，无新线程 / 轮询 / 缓存。四类格式、CC 原有格式规则、关闭 / 恢复、屏幕和替换回归已覆盖 |
+| **B / P2：仍有天气格式但失效 / 不可见 owner** | `weatherInfo` 由四类时钟共享；弱 updateTarget 失效不等于所有时钟停止消费。当前有格式需求且亮屏时仍按原节奏查询。`StepCounterController` 已有 View attach / detach、最后 owner 注销与屏幕取消 | 仍需核实所有实际 View 消费者和 controller 替换 / 销毁时序，确认没有输出后再加明确释放入口；不以 GC 或弱引用为空推断可停用。通知跨对象调色、偏好传播等 B 项保持原取证要求 |
+| **B / P2：偏好传播** | `StatusBarGesturesHook.statusBarObserver → configPublisher.publish → GestureConfigResolver.resolve` 对每个偏好通知都解析十个手势字段；其他功能已有按键过滤 / 不可变快照。频率是设置事件，不是每帧 | 先比较单键 / 批量设置的解析与发布次数，再决定精确键过滤 / 可合并发布是否值得。不得合并业务广播、丢失 null 全刷新或改变手势 DOWN 冻结语义；没有设置风暴样本，暂缓 |
+| **B / P2：设置列表 / 搜索 / ROM 页面** | `Helpers.getInstalledApps / getLaunchableApps → AppData.prepareForList → 四类 Adapter.ItemFilter`；已有预备小写字段、稳定分组、直接采用工作线程结果、图标有界 LRU + 单在途 + 2–4 可超时线程。过滤仍按每次查询 O(n)，`notifyDataSetChanged` 是 BaseAdapter / ListView 协议；ROM 辅助数据为离线工具，不进入 APK | 不为几百行引入数据库或把 ListView 当 RecyclerView 强改。用固定几百行 + 扩大集比较查询序列、键盘滚动与 PM 时间；仅在确有瓶颈后实验前缀增量搜索。需覆盖查询缩短、Locale / 选项 / 用户改变及陈旧结果隔离 |
+| **C / P2：全局内存与生命周期** | 筛查静态 Context / View / Bitmap、Handler / Job、owned preference observers、Hook / ClassLoader 缓存。`ReflectionCache.LoaderState` 有界且 loader 隔离，`XposedHelpers` 成员缓存仍可保留 Class / loader；控制中心旧 lease 失效与 runtime 清理；锁屏封面 owner / generation / 引用释放已实现 | 没有 HPROF dominator、loader churn 或持续增长证据，不机械 WeakReference 化。Launcher 重命名 observer 显式 onDestroy 注销；天气剩余工作单列 B。先做重复重建 / 插件重载后的 retain-chain、PSS / 线程数对照，再改实际保留链；禁止据静态强引用数报告泄漏修复 |
+| **C / P2：ROM 能力 / 异常路径** | Launcher 手势设置快照、Controls 几何 / 音频快照、通知 Monet 成员安装期解析、锁屏充电 caller scopes、Feature 单次安装与 loader lease 均已有冷 / 热分离。锁屏 `TapToUnlock` 在 MOVE 前放行；Launcher 前台包查询只在 DOWN，后续编辑 / occupied-cell 查询只在成功双击 | 不删除有 owner / 动态来源用途的查询，不重建 resolver。尚存局部反射与 Throwable 边界，但无目标 A14 重复失败热点，不能仅凭 catch 数量删除或永久负缓存。图标 loader 既有 Throwable 容错是独立失败语义问题，不借性能改动顺手重写。需目标缺失成员 / 错误频率及原生回退证据 |
+| **B / P1：资源、通知 / 媒体与 GPU 剩余成本** | Launcher 图标 / 文件夹 blur、锁屏封面、AudioVisualizer、控制中心材质与通知颜色；`getIdentifier` 多在安装 / inflate，通知标题 ID 已惰性保存；封面已有尺寸 / 参数 / generation 失效、单在途 / 取消发布。可见图片处理、文件夹原生 blur、媒体波形仍可能昂贵 | 先采主线程 / RenderThread / GPU 与图像分配；不能因资源名查询命中就建立全局缓存。保留原生材质、G4、封面裁切和波形合同。GPU、动画与视觉改动必须配当前 APK 的设备录屏，本轮没有修改视觉或动画 |
+
+**轻量成本预算与取证。** 不新增采样设施、监控服务、后台线程或持久化数据库。以下是同场景比较的验收预算，非实测 CPU / 内存数字；运行时按需取现有 Perfetto、Simpleperf 和 ADB（后续工程精简已移除 develop `FeatureInstallMetrics`），其余范围见[测量门禁](../OPTIMIZATION_GATES.md#轻量测量)。
+
+| 进程 / 模块 | 可验证成本预算与场景 |
+| --- | --- |
+| SystemUI 输入 | 每事件最多一次原生分发，观察不复制 / 重传参数；非亮度配置 DOWN 零亮度查询，可能亮度的有效 DOWN 仍一次。固定触摸轨迹采 UI 线程调度 / CPU、Java 分配与 GC、Binder slice；亮屏 / 锁屏 / 控制中心 / 多指各自对照 |
+| SystemUI 通知 / 媒体 / 状态监听 | 每通知相同图像输入最多一次调色；变化输入必须失效。批量通知记录调色 / inflation 次数、主线程时间、Bitmap / Graphics、RenderThread / GPU；屏灭任务取消与 listener、线程 / Job、provider 查询数分别验证。天气无消费者问题仍未关闭 |
+| Launcher 输入 / 图标 / 文件夹 | 不符合手势条件及时放行；保留当前编辑 / 目标状态核验。冷启动与快速滑动 / 文件夹开合 / 重建分别比较反射、PM / Binder、分配 / GC、帧时间及 blur GPU。既有 Dock / 岛逐帧几何、动态壁纸 / 波形成本沿用下节待验，不重复修改 |
+| system_server Controls / 事件 | 按键 / VPN / 偏好更新为事件驱动，Feature 单次安装；复核无目标功能时无业务 Hook / receiver / job。分别采按键、前台任务切换和屏灭 idle 的线程、Binder / 锁等待、CPU；不取消安全 / 会话核验换取次数减少 |
+| 设置进程列表 / 搜索 / 图标 | 冷图标每项一次显式应用元数据读取；暖缓存零 PM；保留 512 KiB–8 MiB 既有图标 LRU、128 队列与空闲线程退出。固定列表 / 搜索 / 返回重建，记录 PM、分配 / GC、主线程帧与 idle 线程。无新增驻留状态 |
+
+图标入口依据为 Android 14 的 [ApplicationPackageManager](https://github.com/aosp-mirror/platform_frameworks_base/blob/android14-release/core/java/android/app/ApplicationPackageManager.java)：String 重载再取元数据，info 重载继续走 `ApplicationInfo.loadIcon`；这不是 HyperOS 私有 API 或实机证据。
+
+仓库外证据入口：`customiuizer-a14-evidence/global-runtime-audit-20261030/`；保留基线 / 最终 diff、源码身份、前后 JUnit 与验证日志。旧实现先做等价回调提取再执行同一成本断言，8 项中 4 项出现预期反例，分别为 120 次冗余参数读取、非亮度读取、无效起点读取及包名图标请求；其他行为基线通过。Deep Full 为 464 套件 / 4,224 项，零失败 / 错误、2 项既定跳过，包含最终新增的 fatal 与共享库标志回归；全量工具覆盖并集 723 项、5 项既定跳过（文档锚点尚在写入时的一项失败，在文档完成后补验相关 13 项全部通过）；Develop / R8、fatal lint 通过，官方 DexSQL 核对 31 个映射设置入口 / 辅助类无直接 Hook API 引用、compileOnly API 未打包，API 102、SDK 34 / arm64 与 16 KiB 对齐通过。三项可各自回退（实现 + 对应行为回归），没有设置键 / 数据格式 / 持久缓存变化。
+
+天气需求续接基线为 `1dab7a72c26a2b7f15466d05e08e586b4046b8f5`，继续同一 Issue / 分支；证据位于仓库外 `customiuizer-a14-evidence/weather-demand-20261030/`。旧执行体保留查询行为，仅给对照接入需求参数，8 项中 3 项复现无需求查询、未释放订阅及失效发布；修后针对性 4 套件 / 95 项通过。Deep Full 465 套件 / 4,231 项，零失败 / 错误、2 项既定跳过；全量工具 724 项通过、5 项既定跳过，矩阵两个输出的确定性通过；Develop / R8 与 fatal lint、官方 DexSQL 最终 DEX API 隔离（31 个映射设置入口 / 辅助类）、SDK / ABI / 对齐检查通过；生命周期门禁仅扩展合法第三参数形态，仍以错误 owner 和缺失 fatal 的反例验证，未放宽所有权或异常要求。天气实现、时钟接入、行为回归与对应门禁为同一回退单位；无设置键 / 数据格式 / 视觉变化。
+
+本轮无 ADB 设备连接。Host 结果仅证明调用 / 参数数组路径和行为，不能推导 ART 实际分配、用户等待毫秒、CPU / GPU、功耗或续航。仍需 HyperOS 1 / Android 14 同设备、同开关 / 亮度 / 刷新率 / 应用集的基线与修后采样；ROM 与 APK 证据分别保存。
+
+后续最值得投入的三个方向：① 通知批量调色的线程 / 图像身份 / 锁等待取证，再判断小容量跨通知复用；② 仍有天气格式需求时的实际消费者生命周期，继续消除确认无输出的 provider / 回调工作；③ 设置冷列表与 Launcher 手势的 Perfetto / PM / 分配对照，确定真实主线程和 Binder 热点。现有岛几何、波形及 Dock GPU 设备归因继续保留原优先级，不以本轮 Host 次数宣称已经解决。
+
+## 持续运行成本与渲染管线审查（2026-10-30）
+
+本轮从实际最新有效代码 `68ae75fa0eec6c20b810ef6946e72889bc33e438` 继续，真实远端 main 为 `863305ebd56351687b2e0c54313b7247e7020373`，相差 15 个已纳入的有效提交；工作区干净，相关聊天空闲，无未推送改动。实施归 相关工程记录（以现行源码与回归为准）。审查覆盖 SystemUI、Launcher、system_server、媒体入口及全项目消息 / 锁 / 广播的静态筛查；不把入口覆盖、调用数量或旧版 trace 当作当前全功能性能验收。未使用 Dada / HyperOS 3 作为 A14 合同。
+
+| 优先级 / 路径 | 原有成本、当前决定与剩余工作 |
+| --- | --- |
+| P0 · `IslandStatusBarCompact` | PreDraw → `refreshGeometry` 保留原生几何变化检测；此前 `applyHiddenAlpha` 无条件遍历所有候选叶子。现按遮挡变化维护弱 View 的实际遮挡集合，只对该集合读写 Alpha；进入遮挡读取最新原生值，退出 / 移除 / detach 仅恢复仍归自己持有的值。同帧原生 Alpha 提交优先。过渡捕获与是否需要过渡的判断也只读遮挡集合，不维护清晰节点的 Alpha |
+| P0 · 几何监听保留 | `Geometry.changed()` 仍逐个读取 Matrix、bounds、clip、visibility、scroll、padding；变化后仍重扫遮挡并刷新自身位移基线。原生 RenderNode 属性动画、祖先裁切和窗口位移可绕过 layout；移除 PreDraw 或稳定后退出将漏掉恢复，未找到覆盖这些变化的更窄原生事件。因此不新增轮询或粗略稳定计数，也不宣称本轮消除了几何扫描 |
+| P1 · Dock 编辑动画 owner | `AnimationSet.getTransformation` → 原调用 → 全局附加字段表查询，原来每个无关 AnimationSet 都支付查询。现绑定 / 释放时发布局部不可变快照，每项仅弱持有 AnimationSet 与装饰 View；帧回调只读取快照。空集合直接返回，不读取 receiver / 参数，不访问附加字段表、不加锁；有 owner 时只按实例身份匹配，原生返回 / 异常 / 末帧时序不变。替换、清除 / 解绑时删项，变更时顺便清除死亡弱引用；存量随当前绑定而定，无历史记录或后台清理任务 |
+| P1 · Dock 全局 Hook 与 PreDraw 保留 | Hook 分发本身尚存在；full-width、Google blur 和玻璃仍需跟随祖先原生动画，每个实际宿主帧同步矩阵 / 可见性 / 合成透明度。窄 Hook 的临时安装 / 解除涉及末帧、失败与多个 owner 交接，当前没有设备录屏证明，暂不引入反复 Hook 安装或另一套常驻监听。现有无材质、零透明度及隐藏退出路径继续使用原取消逻辑 |
+| P1 · GPU / 材质 | `DockGlassOptics` 的平坦区域直接透射已由基线实现并有 Host 像素对照，本轮不重复改 Shader。边缘折射 / 光照仍较复杂；玻璃与原生 fallback 保持单可见填充。`DockGlassBackdrop` 保留单 RuntimeShader、每次新纹理一次 BitmapShader、uniform 比较、静态 viewport 复用、单在途捕获与有限恢复；绘制 / PreDraw 的矩阵准备、动态壁纸采集和输入 shader 替换仍有成本，尚无设备 GPU 排序依据 |
+| P1 · G4 / 吸入捕获 | G4 单位曲线惰性缓存，形变网格使用 owner 的复用数组与预计算表；`LauncherWindowAbsorption` 单在途有界捕获，安全 / HDR / 保护内容保留原生回退，HardwareBuffer 在 wrap 后关闭，替换 / 取消回收纹理。网格绘制 / 上传和 Surface 捕获仍需目标设备数据，未用 CPU 推断 GPU，也未降低精度或修改视觉参数 |
+| P2 · 安装 / 启动 | `FeatureInstallRegistry` 先检查开关 / 安装状态，再 `spec.create().install()`，保留单次安装和失败语义；SystemUI / Launcher 仍冷建阶段 Catalog，system_server 复用 registry。当时的 `FeatureInstallMetrics`（后续工程精简已移除）仅统计 Catalog 构造 / 注册的耗时与 ART 分配，**没有逐 Feature install 的测量**；不得据此给出 Feature 耗时排名。暂不改 Registry 或生产监控，下一步可在 Develop 的现有入口短时抓 Trace / Simpleperf 来定位，再决定是否需要局部安装分段 |
+| P2 · 反射 / ClassLoader | `XposedHelpers` 的成员与类缓存强持有 Class / loader，包括按 loader 的负缓存；当前没有 loader churn、对象保留链或随时间增长证据。插件 lease 失效不等于缓存或框架 Hook 已释放 loader。保留高性能缓存，不以 WeakReference 替换猜测泄漏；需重复插件重载的 HPROF / PSS 对照后再判断缓存与框架各自保留责任 |
+| P3 · Binder / 锁 / 唤醒 | 全项目筛查继续追到媒体会话复核、录音峰值、封面单在途 / 发布、Duo 网速有界投递及 system_server 安装 / VPN 事件。音轨与会话查询有来源 / 权限职责，已有缓存锁多为短状态 / 发布段；没有新 trace 能证明主线程阻塞热点，不按调用数量删除安全查询。保留现有广播合并、隐藏租约释放、有限 deadline 与原生失败回退；当前无法给出锁等待或 Binder 延迟排名 |
+
+两项源码修改可分别回退，不改变设置 / 数据格式、A14 ROM 成员签名、视觉参数和 API 102 边界；未新增轮询、线程、Binder 或业务唤醒。新增资源仅为现有 compact owner 内至多 128 项的遮挡引用集合，以及 Dock 当前绑定的不可变弱引用快照；detach / 清除时释放。Dock 只在绑定 / 释放的冷路径分配快照并加锁，不在帧回调更新集合。没有设备内存数据，不宣称净内存减少。
+
+修前冻结行为反例：相同测试输入 67 项中 3 项失败，未遮挡图标在 120 次稳定 PreDraw 中有 240 次 Alpha 读取，无 Dock owner 的 120 次动画原调用仍有 120 次 receiver 读取；Dock 编辑 owner 存在全局附加字段表。修后及完整验证结果以本轮仓库外 `customiuizer-a14-evidence/sustained-runtime-20261030/` 保存的源码补丁、JUnit 和日志为准。上述计数是 Host 工作量，不能换算为 ART 分配、CPU 时间、GPU 时间、帧率或续航。
+
+本轮按 Deep 验证：相同冻结输入的针对性 7 套件 / 106 项通过，未遮挡 Alpha 和空闲 Dock receiver 读取均为零；原生 Alpha、祖先变换 / clip、分支替换、过渡中断 / 末帧、隐藏恢复及 detach 有行为覆盖。Full 实跑 461 套件 / 4,212 项，零失败 / 错误、2 项既定跳过；再补多个编辑 owner 的隔离与最后释放回到空闲的反例，最终两套件 / 68 项通过。生产源码哈希未变，复用 Full 的未受影响结果并按用例替换最终针对性结果，并集 4,213 项，不将重叠执行相加。全量工具 723 项通过、5 项既定跳过；JDK 25 / Debug lint、Develop / R8 与 fatal lint、文档 / 地图及完整 diff 检查通过。同一未签名 APK（SHA-256 `cb699b01443029e6deee4c158b184fbbe6908ef9eaeaaf866470418fe1f0f17c`）由官方 DexSQL 复核 29 个映射设置入口 / 辅助类的直接 Hook API 引用为零、未打包 compileOnly API 定义、原 `setId/getId` 各一处、`replaceHook` 为零，SDK 34 / arm64 / 16 KiB 对齐通过。APK 工程 revision 为基线 `68ae75fa`，本轮输入由外部补丁 / 哈希关联并保留 APK 与同产物 mapping，未把脏工作区构建冒充 exact commit 产物。
+
+**设备验收缺口：** 当前 ADB 无连接设备，上一轮明确暂时无法连接；未安装、重启或签发正式包。适用范围仍仅 HyperOS 1 / Android 14 / SDK 34 / arm64-v8a / libxposed 102。所有下列场景的当前源码 CPU、分配 / GC、帧时间、调度、Binder、PSS 与设备支持的 GPU 指标均待验，旧 trace 仅用于选题；动画 / 视觉相关恢复行为仍须实机录屏，Host native graphics 不能代替。
+
+| 待验场景 | 复用的测量与验收重点 |
+| --- | --- |
+| 空闲且岛关闭；长时间计时；音乐叠计时 | 同设备 / ROM / 构建 / 亮度 / 刷新率配对，分别比较关闭、开启与遮挡位置；Perfetto / Simpleperf 区分主线程、RenderThread 和采集线程；关闭路径确认没有新增监听 / 唤醒 |
+| 快速点击 / 切页；Dock 编辑、展开 / 收起、解锁 | 单独录屏检查原生透明度、遮挡恢复、末帧 / 中断和重建；测量区间另抓 FrameTimeline / 调度，不把录屏负载混入 CPU 对照 |
+| 静态 / 动态壁纸上的玻璃 Dock 长期显示 | 固定壁纸及页面，玻璃 / 原生材质配对；已有静态采样为零、动态最多约 14.93 Hz 的预算继续复用；GPU 仅报告设备实际支持的计数 / 时间，RenderThread CPU 不代表 GPU |
+| 锁屏封面加载 / 切换 / 反复进入；SystemUI / Launcher 启动重建 | 复用封面单在途 / 回收与外部 trace（历史 FeaturePerf 日志已停止采集），分别记录分配 / GC / PSS、冷启动 catalog 与线程阻塞；插件重载另抓 loader 保留证据，不用一次 PSS 推断持续增长 |
+
+下一轮前三个投入方向：① 同构建计时 / 音乐 / 快速切换的 Perfetto 与录屏，确认几何扫描和波形各自占比；② Dock 动态壁纸的捕获 / GPU 对照及编辑末帧录屏，再决定临时 Hook 或材质简化是否值得；③ Develop 启动 / 重建和插件重载，补逐安装热点与 loader 保留链证据，再决定缓存 / Catalog 改动。
+
+**同聊天静态续接：Dock 参数提交与透明度重复遍历。** 从 `320ce950272fcf3a19f00b08a479f90960ea4b31` 继续，同一 相关工程记录（以现行源码与回归为准） / 分支。动态岛的逐帧几何检测仍有原生属性动画 / clip / 窗口移动的职责，未找到可以安全停用的完整事件替代；本批转向已经能证明的 Dock 重复工作，不新增监听或扩大缓存。
+
+| 路径 / 修改 | 修前反例与修后结果 |
+| --- | --- |
+| `DockGlassBackdrop.updateLensUniforms` | 原有缓存只能跳过全部 13 个标量都相同的帧；任一值变化便提交全部 7 组 uniform。现复用原有两个固定缓冲，逐组按 `toBits()` 比较，保持与 `contentEquals` 一致的 signed zero / 精确浮点语义；首次使用或替换 Shader 仍完整提交。120 帧、每帧 0.125 px 的水平移动：Host uniform 写入 840 → 121（sampleX 120 次、恒定 motion 首次 1 次）；半径单独变化时新增写入 7 → 1。停稳、density / origin、亚像素变化和 Shader 重建分别有断言；AGSL 数学、像素采样、纹理预算和路径不变 |
+| `LauncherDockBackground` 同步透明度 | 原 PreDraw 在玻璃采集、full-width 材质可见性和 Google blur opacity 中重复沿祖先链求值。现先完成 full-width 变换，再在**当前同步调用内**复用一个 primitive opacity；只有玻璃 / 全宽原生材质 / 已启用 Google blur 需要时才读取。`draw` 与原生编辑回调各自重新读取，生命周期入口保留按需现算，不跨帧缓存。原生材质夹具中 120 次稳定 PreDraw 的同一祖先 Alpha 读取 360 → 120；PreDraw 后将祖先 Alpha 从 0.5 改到 0.4，实际 draw 正确提交 92，并覆盖零透明度停用 / 恢复 |
+
+此续接按受影响合同采用 Standard：仅增量提交已有值并复用同步调用内的结果，没有新增 / 改动 Hook 安装、ROM 成员、跨线程 / owner 状态、Shader 算法、资源打包或 R8 边界。修前 / 修后使用相同冻结测试哈希：修前 31 项中 3 项失败，修后 12 套件 / 116 项零失败 / 错误 / 跳过；覆盖 Dock 几何、全宽、原生编辑末帧与取消、透明恢复、静态复用、纹理生命周期、材质轮廓和 Host native pixels。源码门禁 / Debug 编译、文档 / 地图与完整 diff 检查通过。原 Deep / 工具 / APK 证据只复用未受影响的合同，本批未重新全量 CI 或生成 APK，不将旧 APK 作为本批产物。
+
+本批证据为仓库外 `customiuizer-a14-evidence/dock-incremental-sync-20261030/` 的冻结测试、JUnit、源码哈希及补丁。新增计数 map / 参数记录仅存在于测试 shadow，生产没有新缓存、数组、线程、Binder 或任务；两项源码修改可分别回退，不改变设置 / 数据格式与既有回退。上述数字是 Host 方法调用 / native shader shadow 写入次数，不能作为 ART 分配、实机 CPU / GPU、帧时间或功耗收益。当前 HyperOS 1 / Android 14 的设备录屏与前后测量仍待验，前述三个设备取证方向保持优先。
+
+## 高收益筛选与 iOS 机制参考（2026-10-30）
+
+本轮以最新有效分支 `b7e79c591a2f611a7a492ac4148e26dcb2f03728` 为基线，已核对干净工作区、Worktree 与真实远端，未用较旧 main 代替；实施见 相关工程记录（以现行源码与回归为准）。按当前 Hook / system_server、时钟、媒体、动态岛和 Dock 入口筛选，不将入口审查称为全功能设备验收。
+
+| 优先级 / 成本来源 | 当前决定 |
+| --- | --- |
+| 优先落地：秒钟 ticker 每秒对隐藏 / 脱离的时钟更新时间、读取制式并刷新文字 | 使用原生 `View.isShown`，只在首个可见且启用秒钟的 listener 前准备共享时间，每轮一次；隐藏 listener 不校准、不刷新。原整秒 ticker、亮灭屏、弱 owner、配置和异常边界保留，复显在下一整秒恢复；不增加缓存、监听或任务 |
+| 静态续接已落地：Dock 平面内部仍执行完整折射及边缘光照 | 足够远离轮廓时直接按原坐标透射；只保留一次纹理采样与原自适应色调，跳过整段边缘光学，按面积、运算路径和色差上界验收，不以设备连接为前置条件 |
+| 后续大头：可见波形持续采集 / 绘制、动态壁纸采集及玻璃 GPU 成本 | 已有休眠、静态复用、有限恢复和最新预算削减；本轮不重复降频或叠加材质机制。最值得补的是同场景设备 CPU / 帧时间对照，以确定应替换哪条路径 |
+| 暂缓：媒体会话安全查询、跨进程 owner 复核及共享 Hook 再抽象 | 当前查询有来源变化 / 安全失效职责，未找到足以支持跨事件复用的稳定依据；不为取消必要核验引入缓存、IPC 协议或调度层。既有字段预解析、参数复制和单次安装修正继续复用 |
+
+参考已读取的 [Crescendo 私有声明](https://github.com/Yves000/Crescendo/blob/main/CRPrivate.h)、[动态岛](https://github.com/Yves000/Crescendo/blob/main/hooks/CRHooksDynamicIsland.x)与[输入 Hook](https://github.com/Yves000/Crescendo/blob/main/hooks/CRHooksSpringBoard.x)：复用原生 owner / 控件，可见性约束更新，布局期只做必要增量，输入占有及时释放。[SpringBoard 17 声明](https://github.com/MTACS/iOS-17-Runtime-Headers/tree/main/PrivateFrameworks/SpringBoard.framework)中的 Controller、FluidAnimator、SceneElement 分别体现窗口 / 抑制归属、过渡 actions / completion、激活 / 可见性 / invalidation 分离；这是声明层的设计启发，不能证明内部算法或收益。指定 Limneos 16.3 入口未能读取，使用现成 17 头文件作有限参考，不下载固件、不将其转成 A14 ABI。[VisibleIsland](https://github.com/ethxnn88/VisibleIsland/blob/main/Tweak.xm)复用系统岛窗口，但包含布局期重复原调用与机型读取，本轮不移植该路径，也不新增触摸 IPC。A14 继续沿用自己的单窗口、有限动画与安全合同。
+
+冻结行为测试的修前 / 修后证据保存在仓库外 `customiuizer-a14-evidence/high-yield-20261030/`：120 次隐藏 tick 的 Calendar 更新时间调用由 120 次降至零，4 项新增反例修前均失败、修后通过；混合可见性、复显和共享时间每轮一次有独立断言。此为 Host 调用次数，不代表设备 CPU / Binder / 功耗测量；原有亮屏一秒唤醒仍保留，不宣称完全取消 ticker。实际 HyperOS 控制中心显隐、隐藏后首帧秒数和主题 / 用户切换待设备验收。
+
+本轮按性能问题执行 Deep：相同测试源码哈希的修前 81 项中 4 项失败，修后 81 项通过；最终 Full 实跑 461 套件 / 4,209 项，零失败 / 错误、2 项既定跳过；全量工具 723 项通过、5 项既定跳过，JDK 25 / Debug lint、文档 / 地图与完整 diff 检查通过。未签名 Develop 的 R8 / fatal lint、SDK 34 / arm64 / API 102 / 16 KiB 和工程来源检查通过；官方 DexSQL 在同产物映射的 ticker 中确认两处 `View.isShown` 调用，29 个映射设置入口 / 辅助类的直接 Hook API 引用为零，未打包 compileOnly API 定义，原 setId / getId 各一次，replaceHook 为零。APK SHA-256 为 `94d1f2527fef7e55fdf7d4bcd04abe430d7e3ae037d1443c0623b28b5d3dea42`，工程 revision `b7e79c59` 对应基线，完整本轮输入由仓库外补丁 / 哈希关联。回退单位为本轮源码改动；未签名、未操作设备、未合并 main 或发布。
+
+静态续接 相关工程记录（以现行源码与回归为准） 从 `71aea531a3fb231d11a20fec09a0907b538a6af9` 继续。按用户明确的静态验收范围，不等待设备测量才能处理可证明的无效计算。当前波形请求最多 10 Hz、自驱插值最多 20 Hz，隐藏休眠与稳定值停帧已有实现；Dock 动态采集间隔至少 67 ms（最多约 14.93 Hz），单纹理最多 196,608 像素（按 RGBA8 像素量折合 0.75 MiB，不代表全部驻留图形内存），理论捕获输入上限约 293.44 万像素 / 秒，静态稳定后额外采样定时任务为零。本轮保持这些预算，不重复降频；优先取消每次实际绘制中平面内部的整段边缘光学。
+
+令面板宽高为 W/H、圆角 R、内部阈值 S=`max(bevel, 6 × max(2 × density, 1))`，适用连续面积为 `(W−2S)₊ × (H−2S)₊ − (4−π) × (R−S)₊²`。density=1 的 360×48 / 70 / 96 dp、圆角 16 / 22 / 30 dp 示例分别有 29.47% / 33.15% / 48.47% 面积适用；每个适用像素跳过 2 次显式 sqrt、1 次 refract、2 次 pow、3 次 exp，仍只采样一次。此处 t=1，折射偏移严格为零；六个 glow 长度和物理像素下限约束被省略的光照，在归一化 SDR 的实数模型中，每通道差异上界约 0.0001383，即 0.0353 个 8 位通道级。面积不含抗锯齿边缘，运算数不代表编译后指令数，GPU 分支策略与耗时不由本模型推出。
+
+该续接为单个 AGSL 字符串的纯数学分支；未修改 Hook、owner、采样 / 释放、安全、资源打包或 R8 边界，依受影响契约采用 Standard 的 Debug 编译、源码门禁和 6 个关联套件，共 47 项零失败 / 错误 / 跳过。冻结像素测试修前 4 项中新增 1 项失败，同测试哈希修后通过；原生 HWUI 对照覆盖五种高度 / density、窄条、彩色高频纹理及明暗输入，快速 / 完整路径差异不超过 1 个 8 位通道级，alpha 相同。原有亮 / 暗 / 细节壁纸预览的 Liquid 列相对修前已留存图像，RGB 逐像素差异为零，另有一次同 fixture 验证；这只证明 Host 像素。文档 / 功能地图和完整 diff 检查通过。证据为仓库外 `customiuizer-a14-evidence/dock-interior-static-20261030/` 的静态模型、冻结测试、JUnit 和像素差分；旧 Deep / APK 结果只覆盖原未变更的合同，此续接未生成新 APK 或宣称设备 GPU / 功耗收益。回退单位为此续接源码改动。
+
+## 全覆盖入口与逐批深入（2026-10-30）
+
+从已公开 r14.25.9 的 main `f60af6e12e52c044c4081e6e3483a451f948fea2` 继续；全覆盖入口始于 相关工程记录（以现行源码与回归为准），当前接续 相关工程记录（以现行源码与回归为准），分支 `codex/refinement-host-failure-boundaries`。先把全部功能域的当前入口、已有证据和未覆盖行为对齐，再按可独立回退的具体缺陷深入。下表的覆盖指目录 / owner / 已有回归可追溯，不表示每个开关或所有 ROM 已完成行为和设备验收；设置与安装全集继续使用功能地图、Feature catalog 和过程矩阵，不新建另一份功能数据库。
+
+| 功能域 | 当前覆盖入口及已有证据 | 下一层深入 / 待验 |
+| --- | --- | --- |
+| M00 / M01 目录与注册 | 功能地图、Feature catalog、ProcessRouter 与各宿主 Features；256 项过程矩阵由整合源码生成 | 安装全集与设置来源一致性；新增入口随源码更新，不以目录通过代替 ROM 行为 |
+| M02 声音与振动 | 音量键、波形、录音量程、媒体格式及声音设置的既有回归 | 音源切换、振动时段与长期设备成本；波形测量只保留原设备范围 |
+| M03 通知与状态栏 | M03 合同、通知安全、媒体事务、状态栏 Insets 与着色；第二行网速有界投递及多显示屏当前 owner、DUO / 岛波形关闭动画终态、录音弱尾音静音及同源读取恢复已补 Host 回归 | 真实消息接管 / 撤回、频道、认证、旋转与不同 ROM 合成；网速积压时的实际帧时间 / 唤醒成本待测 |
+| M04 锁屏与应用锁 | `SystemLockScreenHooks` / `SystemUILockScreenHooks`；PIN、充电样式 / 重复布局、封面与应用锁计时已有专项反例和回归 | 原生认证失败边界已补齐；信任来源 / 用户归属 / 认证分类、闹钟与解锁手势继续深入，充电实际样式 / 帧时间、主题与息屏另做设备闭环 |
+| M05 / M07 手势与动作 | 共享手势 owner、异常释放、音量键、全面屏导航、全局动作及 PiP | 取消、快速交接、边缘冲突与多显示屏组合；保留原生触发语义 |
+| M06 桌面与 Dock | Launcher 几何 / 图标所有权、POCO ABI、Dock 采样与材质、动态岛返回的既有专项 | DOCK 透明暂停 / 有界恢复及静态纹理复用已补回归；POCO 7601 实际合成、壁纸变换、快速手势和帧时间仍待设备 |
+| M08 / M10 维护与设置 | MaintenanceJournal、偏好原子发布、恢复、页面绑定、自动值 / 数值输入与设置页地图 | 真实进程中断恢复、备份 / 重置交接及无障碍；不重复改造已通过机制 |
+| M09 应用管理与安全中心 | `SettingsFeatures` / `SecurityCenterFeatures` / `PackageInstallerFeatures`；详情、排序、核心包保护、安装器、侧边栏及扫描范围已有回归 | 安装器 CN / TW 缺失边界、侧边栏重建、原生智能充电刷新；本批先修电池温度失败边界 |
+| M09 电话与输入法 | `PhoneFeatures` / `InputMethodFeatures`；来电显示 / 亮度 / 悬浮接听、音量光标、底部边距与 Gboard 属性入口均已定位 | 来电显示 / 亮度原生失败、悬浮接听失败回退与夜间边界已补专项；Gboard 横竖屏值 / 设置恢复与输入法插件重建已补 Host 回归；输入法外层结果已按完整安装反馈；真实布局和其他 Unit 安装入口继续待验 |
+| M09 其他进程 | `PowerKeeperFeatures` / `GuardProviderFeatures` / `MediaFeatures` / `GenericAppFeatures` 及 system_server 的 VPN / 闹钟 / 日志入口 | GuardProvider 无唯一目标 / 异常 / 空 Hook 结果已补齐；截图的完整准备 / 激活与动态格式已补回归；ContentValues / MIME / 图片头、壁纸 / 包 / 用户边界继续深入，VPN 需实机 |
+
+本批 M09 修正：电池温度 `handleMessage`、来电显示 `startUi` 与来电亮度 `onCreate` 的原生调用移至模块 UI 处理的异常隔离之外；原生恰好调用一次，失败立即传播原异常，不读取未完成 owner、不继续修改界面。成功后的温度、显示 / 取消通知与亮度行为保持。安装实际绑定可直接行为验证的回调工厂；共享日志已有致命异常传播能力，沿用而未另造隔离层。没有新 Hook、观察者、线程、任务、快照、ROM 签名或资源变更，按本批 diff 独立回退。
+
+Standard：原有语义的 8 项回调测试中，原生普通 / 致命失败后读取 owner 的两项断言失败，其他控制通过；修正后保留这些断言，另加真实温度刷新和安装绑定两项，10 项全部通过。关联 6 套件共 46 项、零失败 / 错误 / 跳过，JDK 25 编译与源码 / 热路径 / 偏好门禁通过；Feature catalog、语义、运行时约束、地图与偏好资源工具共 76 项通过，文档 / 地图 / 完整 diff 检查通过。证据在仓库外 `customiuizer-a14-evidence/host-failure-before.txt`、`host-failure-before.xml`、`host-failure-after.txt`、相关 JUnit 和 `host-failure-tools.txt`。这次是局部 after 回调修正，未复跑或宣称新的全量 Deep / APK / R8；没有签名、安装、发布或性能结论，真实来电与智能充电界面的 ROM 设备表现继续待验。
+
+本轮接续 相关工程记录（以现行源码与回归为准），base 为上批已推送 `ff87cb476f105d3b030b2a59d2cf2f24302daaa6`，保留同一分支及单一写入者。M04 的 `handleKeyguardDone` / `onFingerprintAuthenticated` 仅在原生成功返回后更新现有认证标志；原生普通 / 致命失败保留原异常、原标志和待处理内部标记，不再让失败满足“先认证一次”的既有条件。成功路径和原有认证方法分类保持，不把此修正写成整套信任解锁、多用户或强认证策略已验收。
+
+M09 悬浮接听只把前台信息作为可选准备：读取失败仍原样执行原生接听一次，真正原生异常不被回退重试；致命准备错误按共享边界传播。只在已确认前台为非桌面且原调用要求显示界面时改写第四参数，其余参数保留，其他路径不复制整组参数。来电亮度使用单份当前设置快照和本地分钟比较，遵循既有振动时段的 `相关工程记录（以现行源码与回归为准），base `7cf4ab85e0ca40bcf7f4aff958edcd66ed37fc83`）：A14 CN 的 miui-framework `InputMethodServiceInjector.addMiuiBottomView` 会从 `com.miui.phrase` 取得插件 Context 并更新 `sClassLoader`；官方 DexSQL 同时确认 MIUIFrequentPhrase 3.5.4 的 `updateGestureLineEnable(Context):void` 为静态方法，写入原生静态 boolean 字段。沿用这些现有目标，不扩展签名或 ROM 范围。原来的回调在原生失败后继续准备插件，并在解析 / 安装前就置为已完成；现在原生成功后才按实际工具 Class 复用 `HookInstallStateMachine`，预检可写静态 boolean、静态 void 方法及类初始化，取得 Hook 后才写标志并提交。缺类 / 空 Hook / 普通失败留待下一次成功的原生创建，致命错误传播并复位安装状态；重入不重复安装，重建只重置已有标志，同名但不同加载器的类独立安装。宿主类缺失的原有诊断保留。
+
+每个实际工具 Class 一份辅助状态，存在现有弱 Class 存储中，不持有 ClassLoader / View；Hook 按框架的原生类生命周期持有，没有新增全局强加载器集合、轮询、监听、线程或延迟任务。安装后首次写字段异常会撤销已取得的 Hook。插件替换的实际释放与长期成本未测，不宣称性能收益。外层 `hookAllMethods` 的共享 Unit 返回语义未在本批重构，其 Feature 结果仍需另作有具体安装点的审查。
+
+GuardProvider 仍用原排除包 / 双字符串 / 唯一目标匹配；无唯一目标返回 `FAILED_PERMANENT`，桥缺失、查询 / 解析错误或未取得 Hook 返回 `FAILED_TRANSIENT`，真正安装成功才返回 `INSTALLED`，Feature 原样传递结果并保留 finally 关闭桥。直接 / 包装致命错误不再被吞掉；目标回调仍每次返回新的可修改空 ArrayList。Gboard 只提取受测回调，原属性及原生异常语义保持，已覆盖独立横 / 竖屏 1 / 100、默认 0、无关属性、更新 / 恢复及仅横屏值启用；没有新增属性重载或扩大输入法包范围。
+
+本批 Deep：冻结源码的 22 项旧行为测试有 13 项失败（输入法 7、GuardProvider 6），相同测试哈希修后全部通过；追加未知 ABI、只读字段、桥缺失、安装绑定与缺宿主诊断控制。最终完整实跑 449 套件 / 4,132 项零失败 / 错误，2 项既定跳过，JDK 25 编译及 Debug lint 通过；最终全量工具 712 项零失败、5 项既定跳过。原工具运行中的唯一失败为 GuardProvider Feature 变更后地图来源哈希未更新；生成地图后仅详细地图校验头变化，4 类 / 689 个入口正文和 256 项过程矩阵保持。相关 65 项另行通过，两份输出确定性通过；提交冻结后的 Feature 语义 / 过程矩阵独立 mutation 以同目录收据为准。
+
+未签名 Develop 的 R8 / fatal lint、min / target SDK 34、arm64、API 102 静态作用域、工程 revision 和 ZIP 16 KiB 通过；最终 DEX 无 compileOnly API 定义，29 个映射设置入口 / 辅助类直接 API 引用为零，setId / getId 各一次归属同产物成员映射中的共享 HookInstallation，replaceHook 为零。APK 4,391,026 字节，SHA-256 `d979e261a327186ebb45ca1ef8a367100b82a64c5564489765304ba4ff9ebfcf`；工程 revision 为本批 base `7cf4ab85`，完整变更由输入哈希和补丁关联。回退单位为本批源码提交；官方 Smali、失败 / 成功 JUnit、全量日志、mapping 与 `apk-receipt.json` 保存在仓库外 `customiuizer-a14-evidence/ime-guard-20261030/`。本批无设备操作、签名、main 合并或公开发行；Gboard 实际取值、底部栏首次布局 / 旋转 / 重建、插件更新释放、GuardProvider 实际目标及设备成本继续待验。
+
+截图 / 输入法外层批（相关工程记录（以现行源码与回归为准），base `794964ec3d7d2f4fdeb3ae37b3caf908f834e575`）：截图旧入口先安装文件名 / 路径 Hook，随后才查保存方法；后续缺失或失败可能留下半套改写并报告成功，保存回调还捕获了安装时格式。现在先一次准备全部 SDK / 实际保存入口，沿用原排除包、日志字符串、至少七参数与第五参数 CompressFormat 的唯一匹配；CN / TW A14 的 MIUIScreenshot 1.4.113 / 1.4.122 官方查询均唯一命中同一完整签名。现有桥生命周期内 JPEG 也准备保存入口，支持页面原有动态格式选择；保存回调读当前格式。各回调的原有路径、质量、缩略图守卫、参数顺序与原生结果 / 异常语义保留；无唯一目标永久失败，桥 / 准备异常或 Hook 缺失按实际结果返回，Feature 原样传递并 finally 关闭桥。未知私有 ABI 保持原生；相比旧 JPEG 分支增加一次启用期查询和一个现有保存入口 Hook，不增加未启用资源或运行期扫描。
+
+`PreparedHookBatch` 仅供截图与输入法外层两个调用点，复用现有 Hook 句柄和 FeatureRegistry。每批一次尝试，每个回调保留原优先级及常量返回语义；一份 volatile 激活标志在所有句柄到齐后提交，安装期间和失败批次保持原生透传。失败逆序尝试释放所有已取得句柄；普通释放失败返回永久失败，原致命错误在完成清理尝试后继续传播，失败实例永不重新激活。每原生 Hook 多一个轻薄回调和一次标志读取，状态随原生回调持有，不保存 Activity / View / Bitmap，不持久保留安装列表，不新增线程、轮询或计时器，不宣称 CPU / 内存净收益。输入法先核对宿主、全部既有 addMiuiBottomView 重载和静态 ClassLoader 字段，完整安装才报告成功，保留缺类 / 缺入口诊断；插件的延迟激活仍复用上一批机制。全局 Unit 门面和其他安装点按各自合同继续审查。
+
+本批 Deep：同两份测试源码哈希下，修前 18 项中 14 项失败，修后通过；新增批次优先级、空常量、逆序回收、失败不复活、普通回收失败和直接 / 包装致命错误控制。Full 实跑 452 套件 / 4,157 项，唯一失败是旧源码检查仍查 changeFormatHook；保留原有透传前置断言，改查实际工厂并增加安装绑定，完整 6 关联套件 / 42 项重新通过。同产品输入的原始通过结果保留，去重验收为 452 / 4,157、零失败 / 错误、2 项既定跳过，原失败与替换 JUnit 分开留存；Debug 编译 / lint、源码 / 偏好 / 热路径检查通过。
+
+生成过程还复现了显式 install() 被误标为默认基类的缺口；3 项冻结抽取测试修前均失败，修后通过，保留 installHook 支持并让显式 install 控制入口证据。重建 256 行矩阵后只补齐 9 条安装实现记录，全部 ID / 开关 / phase / target / 准入 / 拒绝 / routing / scope 保持；地图仅来源校验头变化。最终工具 715 项零失败、5 项既定跳过，相关 40 项和两输出确定性通过；此抽取变更的必需独立 mutation 在提交冻结输入上按原配置验收，不改正式 main CI / 签名 / 发布门禁。
+
+未签名 Develop 的 R8 / fatal lint、min / target SDK 34、arm64、API 102 静态作用域、工程 revision 与 ZIP 16 KiB 通过；最终 DEX 无 compileOnly API 定义，29 个映射设置入口 / 辅助类直接 API 引用为零，setId / getId 各一次由同产物成员映射归属 HookInstallation，replaceHook 为零。APK 4,391,026 字节，SHA-256 `0d64073e4244075ff0ca54112e2d5a7b333823b2c6ead189cfedd075f41ae494`；revision `794964ec` 对应本批 base，完整输入由补丁 / 哈希关联。回退单位为本批源码提交；证据在仓库外 `customiuizer-a14-evidence/screenshot-install-20261030/`，包含修前 / Full / 替换报告、抽取反例、ROM 唯一候选、工具 / 确定性 / mutation 收据及同 APK mapping。没有设备操作、签名、main 合并或公开发行；原生保存、跨设置变更的单次截图事务、URI / MIME / 文件头、路径权限与用户 / 输入法重建仍待深入及同 APK 设备验收。
+
+Performance-First 网速批（相关工程记录（以现行源码与回归为准），base `4fe39c19a79c52d0ae5b7e3f7b43bd3df3188441`）：第二行网速旧回调每次发布都新建并投递一个主线程任务，主线程积压时会顺序提交已经过时的副本。改在原 dispatcher 内维护一份待投递 payload 和一个复用 Runnable；新序号替换待处理值，旧 / 重复序号不回退。投递中再更新只排一次后续主线程轮次，不在当前轮循环追赶；真正投递时才取现有多显示屏 registry 快照并沿用附着 / generation / secondRow 检查。原生 setter 恰好调用一次，失败不读未完成状态或产生副本任务；异步 UI 反射沿用共享 guarded，致命错误继续传播。
+
+范围与成本：沿用原生发布频率和已有 main Handler，不改采样、原生事件、隐藏数值锁存、文字 / 显隐 setter 或第二行视觉。CN A14 原生 `NetworkSpeedView` 已有文字相等及显隐比较守卫，故不增加另一份文字缓存。仅在既有 Hook 安装时按需建立进程所有者的投递器；每个来源事件仍生成原 payload，常态新增短锁同步，UI / 反射不持锁。容量为一个待处理值和一个待执行任务；消费、拒绝排队或异常均清除待处理数据，未启用时不激活投递器，不捕获 View / owner，不新增 Hook、观察者、线程、轮询、计时器或全局调度层。Host 受控积压 30 次的主线程任务从 30 降到 1，修后一次读取当前显示屏快照；逐次提交 / 消费的 100 次控制仍为 100 次投递。该计数不证明设备 CPU、帧率、电量或常态耗时净收益。
+
+同两份新增回归源码及既有 dispatcher 回归，共 17 项修前 7 项失败，修后全部通过；覆盖连续积压、常态交付、旧序号、投递中重入 / 跨线程生产、初次及后续排队拒绝、排队异常、普通 / 致命投递失败、替换 / 迟到 detach 与原生失败边界。静态检查保留原直接 post 支持，并核对有界队列的 main looper、实际 post、guarded dispatch、回调绑定和不捕获过期状态；相关工具 51 项通过。完整 Deep 实跑 454 套件 / 4,170 项，零失败 / 错误、2 项既定跳过；JDK 25 编译 / Debug lint、全量工具 721 项（5 项既定跳过）、文档 / 地图检查通过。冻结源码 `31150ce96271065b8f13f1804ee85c37e352a0da` 上两输出确定性与 11/11 必需独立 mutation 通过，Gate / Cleanup errors 均为零。
+
+未签名 Develop 的 R8 / fatal lint、min / target SDK 34、arm64、API 102 静态作用域及 ZIP 16 KiB 通过；最终 DEX 无 compileOnly API 定义，29 个映射设置入口 / 辅助类直接 API 引用为零，setId / getId 各一次由同产物成员映射归属 HookInstallation，replaceHook 为零。同产物 mapping / 官方 Smali 保留有界投递及实际绑定回调；APK 4,391,026 字节，SHA-256 `dc136f16bc0a39d10a9e8990b640a98e292b0c4b828a657058f901a952ad2cd4`，工程 revision `4fe39c19` 对应 base，验证输入哈希与上述源码提交关联。仓库外入口为 `customiuizer-a14-evidence/network-speed-performance-20261030/`，包含修前 / 修后 / Full JUnit、原生 A14 证据、工具 / 确定性 / mutation 收据及保存的同 APK / mapping。回退为上述源码提交；#92 按源码及回归范围收口。未操作设备、签名、合并 main 或公开发行；真实 ROM 主题 / 多显示屏重建、流量显隐和积压帧时间仍待同 APK 设备验收。
+
+Performance-First 充电样式批（相关工程记录（以现行源码与回归为准），base `93dbb2c785ee3ea55e397b952b4632d1394021e9`）：既有 `setNextIndication` after 和偏好刷新每次调用单 / 多行 setter，即使样式已经正确仍重复请求布局。沿用原 owner、原始样式字段、Hook 和偏好观察者，改用当前 View 的单行标志、有效行数上下限、横向滚动及 transformation 比较；全部满足原 setter 的结果才跳过。后续原生修改任一依赖会再次执行 setter，像素高度模式也能由行数 getter 的 -1 识别；多行模式保留原生最小行数。字号仍走原 SP / PX 与系统缩放路径，不另加换算或字号缓存。
+
+[Android 14 TextView](https://github.com/aosp-mirror/platform_frameworks_base/blob/android-14.0.0_r1/core/java/android/widget/TextView.java#L11063) 的单行 setter 同时协调输入标志及可编辑文本的自动长度过滤器，因此这些视图始终保留原 setter；普通展示文本才使用完整属性比较。CN A14 官方 Smali 确认 `KeyguardIndicationTextView` 直接继承 TextView、无单行 setter 重写；同一 ROM APK 身份与本批原生证据保留在仓库外。没有新增缓存、持有者、监听、任务、线程、Hook 或计时器；额外成本仅为当前原生属性读取，不增加保留内存及释放路径。原生提示调用 / 文本更新、成功后样式修复、原生失败传播和关闭 / 恢复语义保持。
+
+冻结新增行为测试及原有字体 / View 生命周期回归共 40 项，修前 5 项失败、修后全过；相关实际 5 套件 / 73 项零失败 / 错误 / 跳过。Android 34 Host 受控 100 次稳定多行 / 原单行样式，setter 和 requestLayout 均从 100 降到 0；实际 indication 回调的 100 次原生调用及文字变化仍全部保留，模块额外 setter / 布局请求同样为零。另覆盖原生行数 / 像素高度 / 滚动 / 变换修复、原最小行数、可编辑长度过滤器、输入标志、独立 owner 和关闭恢复。该计数仅证明 Host 重复提交 / 布局请求减少，不等于设备布局耗时、帧率、CPU 或功耗收益。
+
+Deep：JDK 25、Debug lint、完整 455 套件 / 4,180 项零失败 / 错误、2 项既定跳过。原工具合同以字符串禁用 maxLines，误拒绝读取当前原生边界；修正为拒绝赋值、复合赋值、前 / 后增减及 Java setter，保留 SP / 数值 / 唯一安装 / 原生 after 等原有约束，并增加读取正例与写入反例。工具验收 723 项、5 项既定跳过（全量通过，补充前置增减反例后完整相关 13 项再次通过；其他输入未变，原失败 / 全量 / 补验记录分别保留）。冻结源码 `ff8ffd43e10d0b62080894082a06f6392d9e0562` 上两输出确定性及 11/11 必需独立 mutation 通过，Gate / Cleanup errors 均为零。
+
+未签名 Develop 的 R8 / fatal lint、min / target SDK 34、arm64、API 102 静态作用域、ZIP 16 KiB 及工程来源通过；最终 DEX 的完整属性守卫、可编辑 / 输入类型回退和唯一 native setter 已按同产物 mapping / 官方 Smali 核对。compileOnly API 定义为零，29 个映射设置入口 / 辅助类直接 API 引用为零；setId / getId 各一次归属映射后的 HookInstallation，replaceHook 为零。APK 4,391,026 字节，SHA-256 `e010ed47402881c476767647327294526e32a1461b7d478a44cccd601d7db133`，工程 revision `93dbb2c7` 对应 base，输入哈希关联上述冻结源码。仓库外入口为 `customiuizer-a14-evidence/charging-style-performance-20261030/`，包含冻结回归、前后计数、Full JUnit、AOSP / A14 原生身份、工具 / 确定性 / mutation 收据及保存的同 APK / mapping。回退为上述源码提交，#93 按源码 / 回归范围收口；未操作设备、正式签名、合并 main 或公开发行。真实 ROM 字号 / 多行表现、主题和配置切换、充电刷新与设备帧时间仍待同 APK 设备验收。
+
+DOCK / DUO / 动态岛暂停交接批（相关工程记录（以现行源码与回归为准），base `dda6e26325cb3f574cf2029a351a5c64211ca647`）：DOCK 零 alpha 暂停原来会取消重试唤醒并清掉待处理标记，恢复时原生矩阵未变便不再补采；在途结果返回还会重新安排不可见唤醒。现在仅在既有 backdrop 增加 rendering 与 retryAt 两个标量，沿用同一回调及一个在途请求；透明期间保留一张纹理，结果只完成有限材质交接。恢复按原 64 / 160 / 400 ms 绝对时刻及剩余次数继续，不提前跳过 backoff、不重置耗尽预算；真正隐藏、来源替换、省电、失败退役及 release 清除旧期限并沿用原回收。采样仍只含壁纸，默认显示屏、容量、刷新率和原生材质单一所有权保持。
+
+用户追加要求静态壁纸尽量少采并保留效果。本批继续复用整张有界纹理，移动只更新映射，最后约 200 ms 保留一次合成器缩放收敛补采；稳定、无映射变化的短暂透明恢复均不重新采集。Host 专项实走 120 帧移动、300 帧稳定绘制、100 次透明恢复，合计 2 次采集（首帧 + 最后补采），稳定 / 恢复新增采集与定时唤醒均为零，玻璃可准备且使用同一纹理，真正隐藏后释放。恢复预算耗尽后 100 次透明往返仍共 4 次尝试、零新增唤醒；不以每帧采集、提高上限或保留隐藏缓存换取效果。该计数不是设备帧率 / CPU / 电量或实际玻璃观感结论。
+
+DUO 只在仍有过渡时复核原生动画开关；途中关闭则下一次真实绘制提交当前中心图案及最终过渡透明度，不再请求后续过渡帧，正常 180 ms 及原有快速变化期限保持。动态岛的实测五柱在关闭动画时直接同步既有 targets / energies，增益、静音及插值中关闭都交付最新值；未变化样本不重绘，不启动插值或轻量模拟时钟。正常插值、波形采样租约与速率、源事件、G4 / Dock 原生圆角矩形、布局和手势保持；没有新增 Hook、监听、线程、回调种类或全局状态。
+
+三份冻结回归共 13 项修前 8 项失败、修后全部通过；关联 9 套件 / 60 项零失败 / 错误 / 跳过，另增上述静态纹理复用控制。Deep 全新实跑 459 套件 / 4,194 项，零失败 / 错误、2 项既定跳过；JDK 25 编译 / Debug lint、工具全量 723 项（5 项既定跳过）、文档 / 地图检查均通过。当前改动集中于三个既有呈现 owner，Hook 声明、路由、生成器及验证器实现保持，原生 ABI 和各来源授权合同沿用已有证据。
+
+未签名 Develop 的 R8 / fatal lint、min / target SDK 34、arm64、API 102 静态作用域、工程来源及 ZIP 16 KiB 通过。按同 APK mapping / 官方 Smali 核对 DOCK 的 rendering / retryAt 与 DUO / 波形实际绘制方法中的动画开关守卫；compileOnly API 定义为零，29 个映射设置入口 / 辅助类直接 API 引用为零，setId / getId 各一次归属 HookInstallation，replaceHook 为零。APK 4,391,026 字节，SHA-256 `daf02f00cbd9fac2d64f1d4bc34f1ce7be5f09e5927578984a218895a44f7957`，工程 revision `dda6e263` 对应本批 base，冻结源码 / 测试哈希与本批提交关联。证据入口为仓库外 `customiuizer-a14-evidence/surface-pause-performance-20261030/`，含前后回归、静态采样计数、Full JUnit、工具 / 构建收据、最终 Smali 和保存的同 APK / mapping。回退单位为本批源码提交，#94 按源码及回归范围收口；未操作设备、正式签名、合并 main 或公开发行。真实 DOCK / DUO / 岛的材质、动画开关切换和设备帧时间仍待同 APK 验收。
+
+动态岛录音包络批（相关工程记录（以现行源码与回归为准），base `0919c9878b6d9e1a7298aa1acc521b33718bb919`）：真实峰值从较强信号降为约 0.005 的稳定弱尾音，再变为零时，0.006 显示差值过滤会让五个旧值一直残留；读取暂时不可用时虽输出新零帧，内部 bars 却仍保存原值，显式恢复同一 Binder 且电平未变便无法重新提交。现在只让真实零值绕过差值过滤，按原五样本顺序排空；读取失败的现有终止分支清空原 bars 并输出它，使保留数据与界面一致。普通遮挡仍保留包络，保留原 owner 标记以确保之后显式 stop 仍清除一次；没有新增字段、缓存、任务、监听、Hook、权限或恢复轮询。
+
+本批按 Standard 验证现有标量更新规则：owner / epoch、线程、取消、Binder 协议与身份、67 ms 目标周期、峰值格式、量化门槛和打包 / R8 边界保持；DOCK 低采样及 DUO 源码未改，上一批证据保留原范围。冻结新增回归及原 Meter 回归共 8 项，修前 2 项失败，修后连同原生峰值格式、来源 owner、波形增益 / 插值 / 可见性等完整 7 套件 / 31 项零失败 / 错误 / 跳过；JDK 25 编译、源码 / 偏好 / 热路径 / 语义、文档和地图检查通过。Host 弱尾音归零保留 5 次有限包络提交，之后 100 次电平读取零新增提交；读取失败后不自行重试，遮挡停止读取，显式恢复只启动原有一次当前租约。该计数不声明设备速度或功耗收益。
+
+证据在仓库外 `customiuizer-a14-evidence/recorder-envelope-recovery-20261030/`，包含冻结源码哈希、修前 / 修后 JUnit、Standard 日志、提交关联与实际计数。回退为本批源码提交，#95 按源码 / 回归范围收口。本批未重跑全量 Deep、构建新 APK / R8、操作设备、签名、合并 main 或公开发行；上一批 APK 保留原来源，不充当本批实现的产物。真实低音量录音、读数暂时失效后的同源恢复和同 APK 设备表现仍待验。
+
+Performance-First DOCK / 动态岛预算批（相关工程记录（以现行源码与回归为准），base `2e22460a6308e008119f0500de10556816706751`）：用户明确允许降低难以察觉的装饰精度与采样频率，优先处理较大的重复采集、整页纹理和逐帧网格工作。DOCK 动态壁纸间隔 34 → 67 ms，像素预算 393,216 → 196,608、边长上限 1024 → 768；频率与像素预算乘积约降至四分之一，不等同设备总开销下降比例。玻璃边缘取消亚像素 RGB 色散，纹理读取 3 → 1，主要折射与高光保留。静态壁纸仍复用整张纹理及真实映射，稳定后不轮询；首次及最后约 200 ms 收敛补采、透明恢复的剩余重试期限和有限预算保持。
+
+页面吸入单次捕获预算约 210 万 → 524,288 像素，宽上限请求 768、结果允许 1 像素取整余量，按四字节像素估算单纹理约 8 → 2 MiB、取消结果加当前捕获约 16 → 4 MiB（不含驱动对齐）。网格 48 → 16 行，98 → 34 顶点、96 → 32 三角形，缓存表随之缩小；曲率查表时间分辨率不变，保留原生进度、前后缘轨迹、窄口与不透明度交接。岛体端帽每侧 G4 32 → 16 段，沿用同一曲率族及物理端帽。FFT 请求 30 → 10 Hz 并服从更低 ROM 上限，录音 67 → 100 ms，五柱插值 33 → 50 ms；这些装饰频率不降低岛体手势或原生窗口响应频率。
+
+沿用现有捕获 worker、当前可见租约、缓存 / 在途上界及释放所有者，不新增设置、线程、监听、预热或常驻采集。默认上岛仍不捕获页面；安全 / HDR / protected 拒绝、等价首帧提交、隐藏原生窗口、取消回退、迟到结果与 deadline 合同保持。预算变化按本批整体回退；设备实际材质、快速手势 / 吸入观感、帧时间及耗电待同 APK 验收，不能把 Host / 预算计数写成实机性能收益。
+
+Deep：等价抽取原预算常量后，冻结新增预算回归 6 项在旧预算上全部失败，修改后保持同一测试哈希并全部通过；原生 Visualizer 安装另验 10 Hz 请求和更低 ROM 上限。既有测试仅按新周期推进虚拟时钟并更新已授权的 G4 段数合同，保留透明恢复、有限重试、静态零轮询、波形隐藏 / 静音、网格无折叠与不透明度交接等断言。完整新跑 461 套件 / 4,205 项，零失败 / 错误、2 项既定跳过；JDK 25 编译 / Debug lint、全量工具 723 项（5 项既定跳过）通过。前后原生 HWUI 玻璃预览保留主要折射与高光，对比仅覆盖去色散的 Shader，不代表降低捕获分辨率后的设备观感。
+
+未签名 Develop 的 R8 / fatal lint、min / target SDK 34、arm64、API 102 静态作用域、工程来源与 ZIP 16 KiB 通过。官方 DexSQL 结合同 APK mapping / Smali 核对降低后的捕获上限、单次玻璃纹理读取、G4 控制点、16 行网格表和波形周期；compileOnly API 定义为零，29 个映射设置入口 / 辅助类直接 API 引用为零，setId / getId 各一次归属 HookInstallation，replaceHook 为零。APK 4,391,026 字节，SHA-256 `33b6b47dde95648f286d6ab9fe8fb7cd5d346d88e056a3c17a254152923c8a6c`，工程 revision `2e22460a` 对应 base，完整应用输入由冻结哈希关联。文档 / 地图及完整 diff 检查通过；证据入口为仓库外 `customiuizer-a14-evidence/surface-major-cost-20261030/`，含前后预算回归、Full JUnit、工具 / 构建、前后玻璃预览、同 APK / mapping / Smali 与来源收据。#96 按源码及回归范围收口；未操作设备、正式签名、合并 main 或公开发行，设备待办继续开放。
+
+Issue 清理按实际验收范围：相关工程记录（以现行源码与回归为准） 的最小集成检索闭环已验证、推送并进入上述 main，已关闭；相关工程记录（以现行源码与回归为准） 至 相关工程记录（以现行源码与回归为准）、相关工程记录（以现行源码与回归为准）、相关工程记录（以现行源码与回归为准）、相关工程记录（以现行源码与回归为准）、相关工程记录（以现行源码与回归为准）、相关工程记录（以现行源码与回归为准） 已按各批源码及回归验收关闭，设备范围继续留在本页。#69–#84 中仍有明确设备验收待办的项目保留开放，旧候选的源码 / APK / 实机证据仍各自独立，不因发布成功扩大验收结论。
+
 ## 全分支整合与 VPN 入口
+
+r14.25.9 / 258 已由既有自动化流程正式发布：归档构建记录 与归档构建记录 全部成功。正式源码为 `f18a112cac62f1db63a0bbda3958681f33df483b`；[源码 Release](https://github.com/thetvplus/customiuizer-a14/releases/tag/r14.25.9) 与[Xposed Release](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/258-r14.25.9) 使用同一 APK / metadata，均为稳定 Latest。APK 4,395,077 字节，SHA-256 `ca953506bcc06f01a4d5b0ca169d524eb9134d15d346c1ceb86d0101175e64b1`；历史证书、SDK 34 / arm64、来源、R8 与资产收据按发布工作流验收，下载文档同步完成。外部证据入口为 `customiuizer-a14-evidence/release-r14-25-9-20261029/`。后续完成记录仅修改文档，不改变正式 APK 来源。POCO 实际外观、VPN 客户端行为与长期设备成本仍待验。
 
 2026-10-29 用户追加授权正式发布 r14.25.9 / 258，取代下文整合阶段仅本地交付的停止点。准备分支 `codex/release-r14-25-9` 从 main `0de45adc66b7ab5abeab30cda922d8ce04e3588d` 建立；全部现有本地 / 远端分支头已在 main 祖先链，活动 Worktree 无未提交修改。r14.25.8 未公开，按既有准备工具将其有效双语记录累计至 r14.25.9，保留 r14.25.7 及更早公开历史；版本号改为 258。应用逻辑沿用既有整合验证，本次仍必须取得新 exact main CI，随后由原自动化签名及双仓发布流程验收。POCO 实际外观、VPN 客户端连接及长期设备成本仍待实机；不扩大已有验证结论。最终公开状态以两仓 Release / metadata 和 Actions 收据为准。
 
@@ -140,7 +613,7 @@
 
 新增确认的静态缺口：哈希匹配的 POCO 7603 与 11739 中，`Utilities.isMiuiLauncher()` 均直接返回 false；`ShortcutMenuLayer.onLayout` 经原生 `isBlurSupported()` 判断才调用 `setContainerBlur`，修前模块的文件夹范围 / 新版独立门禁没有接管这条容器路径。两版 `setFolderIconBlur` 只设置图标的原生 View 混合、颜色与圆角，不设置背景模糊模式或采样半径。因此即使图标门禁已放开，仍可能没有底层采样容器，不能把设置器正常返回当成可见模糊。两版容器都使用 `shortcut_menu_layer_blur_radius`（样本默认 50 dp）、模式 2 与跨窗口采样；各自 `onDetachedFromWindow` 已调用 `clearAllBlur`，后者清除混合、背景模式、半径和跨窗口状态。对应完整描述符、Smali、资源及输入 / 源码摘要在仓库外 `customiuizer-a14-evidence/poco-blur-container-20261029/container-gap-proof.json`。
 
-上述能力取证时尚未改变功能源码或 APK；用户随后明确优先范围为桌面文件夹图标底板，已从 `c548a915fb7e23b51c41a829f7eadf2e0996407c` 接续 [Issue #84](https://github.com/thetvplus/customiuizer-a14/issues/84) / `codex/poco-folder-container` 实施原生容器补接。保留硬件、系统开启与原生默认图标策略，按完整 ABI 预检 4.39 及两份 5.39.40 容器、资源与清理接口后才安装；不全局伪装 MIUI，不加入截图、第三方模糊库或独立材质 / 动画 owner，不安装打开文件夹后的背景 Feature。原生挂载且硬件加速、尺寸有效的当前 ShortcutMenuLayer 在布局前准备模式 2 / 跨窗口采样，使用实际 View 资源半径；旧接口保留深浅混合色及原生多选时的 contain-below 设置。Android 14 原件中的 setPassWindowBlurEnabled 返回 boolean，按真实声明预检，不误按原工具调用中丢弃返回值的 void 假定。
+上述能力取证时尚未改变功能源码或 APK；用户随后明确优先范围为桌面文件夹图标底板，已从 `c548a915fb7e23b51c41a829f7eadf2e0996407c` 接续 相关工程记录（以现行源码与回归为准） / `codex/poco-folder-container` 实施原生容器补接。保留硬件、系统开启与原生默认图标策略，按完整 ABI 预检 4.39 及两份 5.39.40 容器、资源与清理接口后才安装；不全局伪装 MIUI，不加入截图、第三方模糊库或独立材质 / 动画 owner，不安装打开文件夹后的背景 Feature。原生挂载且硬件加速、尺寸有效的当前 ShortcutMenuLayer 在布局前准备模式 2 / 跨窗口采样，使用实际 View 资源半径；旧接口保留深浅混合色及原生多选时的 contain-below 设置。Android 14 原件中的 setPassWindowBlurEnabled 返回 boolean，按真实声明预检，不误按原工具调用中丢弃返回值的 void 假定。
 
 新增状态只保留一个当前 owner 的弱引用、原生输入标量及最多一个用于非主线程状态发布的主线程刷新；没有计时器、帧监听、Bitmap 或常驻捕获。半径、深浅 / 多选输入不变时复用准备结果，原生清理使缓存失效；状态关闭清理自己准备的容器，重开请求自然布局，临时未挂载 / 尺寸未就绪可随布局重试。旧 owner 留给自己的原生 detach 清理，迟到的布局 / 清理不能释放新 owner。原生布局 / 状态发布 / 清理失败仍保留调用次数和异常 / fatal 边界；部分写入失败停止新增门禁和黑色材质改写，保留清理责任并允许后续恢复。全部 Hook 同组回滚、门禁最后启用；4.39 的八个已验证范围与状态发布调用者补安装期去内联，MIUI 默认调用仍不安装容器或新增 Hook；安装失败只撤销已安装 Hook，已完成的去内联不由模块反向恢复，设备成本未测量。
 
@@ -156,7 +629,7 @@
 
 ### 锁屏充电提示恢复与原生失败隔离
 
-2026-10-29 继续精修，沿 `fe45d930` 保留上一轮 POCO / 时钟修复，本批由 [Issue #70](https://github.com/thetvplus/customiuizer-a14/issues/70) 跟踪，源码冻结为 `30bbaa1025ca89704d884078763d7bfc519d5761`。保持 r14.25.8 / 257 的本地候选身份，既有签名包仍对应原提交，不能当成本次修复的试用结果。
+2026-10-29 继续精修，沿 `fe45d930` 保留上一轮 POCO / 时钟修复，本批由 相关工程记录（以现行源码与回归为准） 跟踪，源码冻结为 `30bbaa1025ca89704d884078763d7bfc519d5761`。保持 r14.25.8 / 257 的本地候选身份，既有签名包仍对应原提交，不能当成本次修复的试用结果。
 
 已注册偏好监听原先直接忽略空键批量通知，充电提示的 owner 观察者也只接收三个单键，完整快照恢复后会保留旧字号 / 换行。现将该输入交给已有完整读取、原子发布与锁外分发路径，视图在自己的 UI 线程读最新偏好并恢复 / 重用原生样式；单键仍增量读取，初始两份快照仍静默，读取失败不删除有效配置、不分发伪恢复。没有新增监听、轮询、计时器或业务预热。
 
@@ -168,7 +641,7 @@
 
 ### PIN 乱序的原生失败与完整布局门禁
 
-2026-10-29 从 `7a019a851cb795c28fea7abe045c4663af984df0` 接续 [Issue #82](https://github.com/thetvplus/customiuizer-a14/issues/82) / `codex/pin-scramble-boundary`。旧回调捕获原生 onFinishInflate 异常后仍读取并重排键盘，最后才重抛；完整数字缺失、重复引用、后续行缺失或 mViews 与原生父子关系不符时，也可能先清空行再失败。此次先将原回调提取为实际安装使用的工厂，规范化回调体与原源码核对相同，再取得旧行为反例；不是仅测试未接入的辅助函数。
+2026-10-29 从 `7a019a851cb795c28fea7abe045c4663af984df0` 接续 相关工程记录（以现行源码与回归为准） / `codex/pin-scramble-boundary`。旧回调捕获原生 onFinishInflate 异常后仍读取并重排键盘，最后才重抛；完整数字缺失、重复引用、后续行缺失或 mViews 与原生父子关系不符时，也可能先清空行再失败。此次先将原回调提取为实际安装使用的工厂，规范化回调体与原源码核对相同，再取得旧行为反例；不是仅测试未接入的辅助函数。
 
 原生调用保持一次，异常立即原样传出，不再读取或改写失败的键盘。成功返回后，先核验矩阵范围、十个非空且互异的原数字 View、全部行与实际槽位，再执行原有 shuffle / 重排；准备不完整时保留原生结果和已有子 View。十个原 View 的点击、底行固定控制区与原生返回值均保留，不改认证 / 解锁策略、设置键、安装点或 Hook 数量。既有 XposedHelpers.log 已负责直接 / 包装致命错误的重抛，本轮复用并保留测试，不重复引入异常机制。新增 IdentityHashMap 最多十个临时键和三行局部引用，限功能开启后的原生 inflate 回调，结束释放，不增加常驻缓存 / 监听 / 任务。
 
@@ -180,7 +653,7 @@ fuxi CN `V816.0.19.0.UMCCNXM` 与 TW `V816.0.8.0.UMCTWXM` 的本地 SystemUI 原
 
 ### 应用锁 PIN 的完整准备与原生失败边界
 
-2026-10-29 从 `d5fcf67c70b4c1d5b549a013c6f5fdbe844583b1` 接续 [Issue #83](https://github.com/thetvplus/customiuizer-a14/issues/83) / `codex/applock-pin-boundary`。手机管家的应用锁使用独立数字键盘；旧实现收集一行就清空一行，后续行缺失、类型变化或额外控件可令前面行已被清空，原构造失败也仍会进入重排。先将原回调等价提取为实际安装使用的工厂，再取得旧行为反例。
+2026-10-29 从 `d5fcf67c70b4c1d5b549a013c6f5fdbe844583b1` 接续 相关工程记录（以现行源码与回归为准） / `codex/applock-pin-boundary`。手机管家的应用锁使用独立数字键盘；旧实现收集一行就清空一行，后续行缺失、类型变化或额外控件可令前面行已被清空，原构造失败也仍会进入重排。先将原回调等价提取为实际安装使用的工厂，再取得旧行为反例。
 
 原构造仍调用一次，失败立即原样传出，不读取未完成 owner。成功后先确认前四行各三枚非空且互异的原 View、父子归属与十枚数字完整，再执行原有 shuffle 和重排；准备不完整就保留原生界面。保留底行两侧控件、数字点击与四行之外的原生页脚，不修改认证策略、设置键或安装范围。准备仅使用四行引用、十枚数字及最多十二项临时身份表，回调结束释放，没有常驻缓存、监听或任务；既有 logger 的直接 / 包装 fatal 传播继续复用。
 
@@ -192,13 +665,13 @@ fuxi CN / TW 的 Android 14 / SDK 34 手机管家原件 SHA-256 分别为 `284a4
 
 ### 锁屏专辑封面居中与裁切
 
-2026-10-29 接续 [Issue #71](https://github.com/thetvplus/customiuizer-a14/issues/71)，本批仅修正既有 `drawAlbumArt` 的矩阵顺序：先缩放，再按目标像素坐标平移。旧实现将已计算的居中偏移再次乘以缩放比例，放大封面可移出可见区，缩小封面则偏向一侧。默认 / 覆盖继续使用 CENTER_CROP，适应继续完整居中留白；没有改动模糊流水线、缓存、异步发布或 View 所有权。
+2026-10-29 接续 相关工程记录（以现行源码与回归为准），本批仅修正既有 `drawAlbumArt` 的矩阵顺序：先缩放，再按目标像素坐标平移。旧实现将已计算的居中偏移再次乘以缩放比例，放大封面可移出可见区，缩小封面则偏向一侧。默认 / 覆盖继续使用 CENTER_CROP，适应继续完整居中留白；没有改动模糊流水线、缓存、异步发布或 View 所有权。
 
 Quick 验证新增 11 项 Android 14 原生 Canvas / Bitmap 像素回归，修前 10 项失败，修后与既有预算 / 代际 / 释放回归合计 3 套件 / 20 项零失败 / 错误、零跳过。覆盖横 / 竖封面、放大 / 缩小、两种裁切入口、方形封面铺满竖屏、单位缩放，以及灰度切回彩色和源位图不被修改；已目检目标尺寸下的留白与中部裁切。源码合同门禁通过，日志、同一测试输入摘要、JUnit 和修前 / 后 PNG 保留于仓库外 `customiuizer-a14-evidence/lockscreen-album-art-centering-20261029/`。本批没有重建 APK / R8 或签名，上一批 Deep 证据只在未变化范围复用；新代码的真实 HyperOS 锁屏合成与完整同 APK 验收仍待设备验证。
 
 ### 锁屏专辑封面输入失效与息屏交接
 
-2026-10-29 从 `4a2685a8cbc29da8c7a2d764dd8dc56346349ad3` 继续 [Issue #78](https://github.com/thetvplus/customiuizer-a14/issues/78) / `codex/lockscreen-art-inputs`，保留前轮 Dock 与动态岛成果。旧入口仅比较 Bitmap 对象身份，播放器复用同一位图时，灰度 / 裁切 / 模糊参数变化和原位像素更新会被忽略；从另一首歌回到已修改的原 Bitmap 时，旧缓存键又会命中旧像素。另有可控并发反例：旧可见任务已完成绘制、仍在提取颜色时，息屏收到新封面只暂存、不更新 generation，旧任务随后覆盖新来源对应的空结果。
+2026-10-29 从 `4a2685a8cbc29da8c7a2d764dd8dc56346349ad3` 继续 相关工程记录（以现行源码与回归为准） / `codex/lockscreen-art-inputs`，保留前轮 Dock 与动态岛成果。旧入口仅比较 Bitmap 对象身份，播放器复用同一位图时，灰度 / 裁切 / 模糊参数变化和原位像素更新会被忽略；从另一首歌回到已修改的原 Bitmap 时，旧缓存键又会命中旧像素。另有可控并发反例：旧可见任务已完成绘制、仍在提取颜色时，息屏收到新封面只暂存、不更新 generation，旧任务随后覆盖新来源对应的空结果。
 
 入口现在先比较已保存的像素 generation 与全部渲染参数，再更新 pending 输入；缓存键也包含 Bitmap generation。同对象同像素同参数的 30 次重复通知不重启 worker、不替换结果。新输入在息屏 / AOD 暂存前也作废并取消旧 generation，恢复时仍由既有单消费者处理最新输入。不增加 Bitmap 副本、缓存容量、监听、Hook、后台轮询或并行执行；仅增加 controller 保存的一个 Int 与每个既有缓存键的一个 Int。两目标帧字节预算、既有居中 / 裁切、颜色广播与 View 释放规则保持，旧缓存由原预算及 clear 释放。回退单位为此 controller、关联行为回归与本节。
 
@@ -208,7 +681,7 @@ Quick 验证新增 11 项 Android 14 原生 Canvas / Bitmap 像素回归，修�
 
 ### 锁屏专辑封面在途合并与息屏暂停
 
-2026-10-29 从 `8adeb71cb5f12880e7e17df59ed2760bda9ce232` 接续 [Issue #79](https://github.com/thetvplus/customiuizer-a14/issues/79) / `codex/lockscreen-art-flight`。旧 applyTo 在结果尚未发布时每次取消并重建相同请求；原生 AOD 生效既不使旧任务失效，也没有阻止 View 绑定重启处理 / 重显成品；亮屏对已有正确尺寸成品还会重复取缓存并提取颜色。七个新增行为用例中上述五项在旧代码实际失败，真实尺寸变化与原生亮屏早于共享屏幕广播两项为保留行为。
+2026-10-29 从 `8adeb71cb5f12880e7e17df59ed2760bda9ce232` 接续 相关工程记录（以现行源码与回归为准） / `codex/lockscreen-art-flight`。旧 applyTo 在结果尚未发布时每次取消并重建相同请求；原生 AOD 生效既不使旧任务失效，也没有阻止 View 绑定重启处理 / 重显成品；亮屏对已有正确尺寸成品还会重复取缓存并提取颜色。七个新增行为用例中上述五项在旧代码实际失败，真实尺寸变化与原生亮屏早于共享屏幕广播两项为保留行为。
 
 在途请求复用既有 CacheKey 的来源、像素 generation、参数与请求尺寸，仅相同且仍 active 的 job 合并；已失败 / 完成的任务不形成永久阻塞，尺寸或输入变化仍取消旧代。额外状态限 controller 一份纯标量请求键，无 Bitmap / Context / View 强引用，替换、clear 和原生息屏时清空；比较会临时构造请求键，不宣称零分配。取消与 generation 失效集中在同一入口，旧任务无结束回调改写新请求。原生息屏停止旧任务，View 绑定返回 false 并释放自有 Drawable，保留待恢复输入与现有两帧字节缓存；亮屏复用尺寸匹配的成品，缺结果时仍由原生入口恢复处理。共享 ScreenState 的额外息屏判断只保留在媒体入口，避免把原生亮屏恢复阻塞在可能迟到的共享广播之后；没有新增监听 / 计时器 / 线程，显示尺寸读取继续留在原工作线程。
 
@@ -218,7 +691,7 @@ Quick 验证新增 11 项 Android 14 原生 Canvas / Bitmap 像素回归，修�
 
 ### 锁屏封面清理与旧 View 的图片引用
 
-2026-10-29 从 `9e7337dc84accc44bf2fde563c6d43f56b057017` 接续 [Issue #80](https://github.com/thetvplus/customiuizer-a14/issues/80) / `codex/lockscreen-art-release`，此处 release 指资源释放，不是正式发行。尺寸键与已有 View 尺寸门禁保持。旧 clear 只取消任务、清 pending / 缓存，未自行清掉模块的两份附加静态 source / result 字段及当前 View 的模块 Drawable；直接清理后原生亮屏仍可从残留 source 重建。新 View 接管时，尚未挂载的旧 View 也没有 detach 来释放其附加 Drawable 引用。
+2026-10-29 从 `9e7337dc84accc44bf2fde563c6d43f56b057017` 接续 相关工程记录（以现行源码与回归为准） / `codex/lockscreen-art-release`，此处 release 指资源释放，不是正式发行。尺寸键与已有 View 尺寸门禁保持。旧 clear 只取消任务、清 pending / 缓存，未自行清掉模块的两份附加静态 source / result 字段及当前 View 的模块 Drawable；直接清理后原生亮屏仍可从残留 source 重建。新 View 接管时，尚未挂载的旧 View 也没有 detach 来释放其附加 Drawable 引用。
 
 clear 现沿既有 UI 调用链集中释放静态 source / result、当前自有 Drawable、缓存、pending 和弱 owner 入口；不回收宿主原 Bitmap，也不新增回调或线程。View 替换只提前释放尚未挂载的旧消费者，仍在窗口中的原生出场 View 保留图片到自己的 detach；宿主已替换的背景按 Drawable 身份保护，只有模块附加引用被移除。迟到的旧 detach 只处理自身，不能清理新消费者。不增加跨 View 注册表或 generation 层，保留原生交接、两帧字节预算、单次在途合并与 AOD 恢复。回退单位为本次 controller、关联行为回归与本节。
 
@@ -228,7 +701,7 @@ clear 现沿既有 UI 调用链集中释放静态 source / result、当前自有
 
 ### 锁屏封面发布前的最终尺寸复核
 
-2026-10-29 从 `4e416c9d101a365b5cdce19afe75aa05a9fd7125` 接续 [Issue #81](https://github.com/thetvplus/customiuizer-a14/issues/81) / `codex/lockscreen-art-publication`。既有 applyTo 尺寸门禁能阻止旧尺寸图片直接绑定，但任务处理期间 View 完成布局且未再次绑定时，提交只检查请求 generation，仍会先写入旧尺寸静态成品并发刷新广播，再由绑定入口拒绝并补做。主机确认的是过期发布，没有据此声称真实旧尺寸已上屏或出现闪烁。
+2026-10-29 从 `4e416c9d101a365b5cdce19afe75aa05a9fd7125` 接续 相关工程记录（以现行源码与回归为准） / `codex/lockscreen-art-publication`。既有 applyTo 尺寸门禁能阻止旧尺寸图片直接绑定，但任务处理期间 View 完成布局且未再次绑定时，提交只检查请求 generation，仍会先写入旧尺寸静态成品并发刷新广播，再由绑定入口拒绝并补做。主机确认的是过期发布，没有据此声称真实旧尺寸已上屏或出现闪烁。
 
 Main 提交前现读取当前弱 View 的最终正尺寸；不匹配时跳过旧成品 / 对应颜色广播，并由既有单消费者按当前尺寸准备，原 generation / 取消机制继续抑制迟到任务。未测量或无消费者时仍允许既有默认显示尺寸预备；尺寸改动后又回到原值时复用原任务。不增加尺寸监听、轮询、窗口、图片副本、缓存容量或动画器，实际默认显示信息仍在工作线程读取。旧尺寸绘制 / 取色可能已经完成，本次拒绝其发布，不把已发生的 CPU 工作算作消除；真实布局持续变化时只按完成时看到的当前尺寸衔接。回退单位为本次发布前尺寸复核、关联回归与本节。
 
@@ -238,7 +711,7 @@ Main 提交前现读取当前弱 View 的最终正尺寸；不匹配时跳过旧
 
 ### 默认 / 吸入返回成本与液体接触
 
-2026-10-29 接续 [Issue #72](https://github.com/thetvplus/customiuizer-a14/issues/72)，从 `20ccd608dffb60c13d53221e6e0c972cfea202b5` 保留前轮 POCO / 时钟、充电生命周期与专辑居中修复。核对两种 Home 返回共用任务 / 用户 / owner、单一 CLOSE_TO_HOME、有效几何和七轨弹簧参数检查；非有限 / 非正输入不留下部分改写或租约。吸入额外保留截图权限、安全 / HDR / protected、硬件 Surface、等价帧提交和原生隐藏门禁；默认不承担捕获工作。默认 84% 宽 / 86% 高与吸入独立落点、1.2 倍原生响应比例保持。
+2026-10-29 接续 相关工程记录（以现行源码与回归为准），从 `20ccd608dffb60c13d53221e6e0c972cfea202b5` 保留前轮 POCO / 时钟、充电生命周期与专辑居中修复。核对两种 Home 返回共用任务 / 用户 / owner、单一 CLOSE_TO_HOME、有效几何和七轨弹簧参数检查；非有限 / 非正输入不留下部分改写或租约。吸入额外保留截图权限、安全 / HDR / protected、硬件 Surface、等价帧提交和原生隐藏门禁；默认不承担捕获工作。默认 84% 宽 / 86% 高与吸入独立落点、1.2 倍原生响应比例保持。
 
 默认 Session 不再分配吸入专用网格、颜色、位置数组、Path / Paint、RectF 与交接状态；仅两个大数组的原始载荷为 1,176 字节 / 次。实际吸入 Session 持有唯一 Mesh，结束沿原 owner 释放，不新增 View / 窗口 / 计时器。首次真正捕获前在已有 worker 按需准备 6,860 字节的只读浮点表，由 Launcher ClassLoader 持有，不引用窗口或图像；每帧 49 次逐行幂运算改为插值，前缘颜色由 49 行缩为 8 行，重复 draw 复用同一裁切 Path。捕获数量、像素上界、四字节进度协议及提交 / 取消合同保持。这些是分配和运算事实，尚非设备 CPU / GPU 或续航测量。
 
@@ -254,7 +727,7 @@ Deep 完整回归 434 套件 / 3,924 项零失败 / 错误、2 项既定跳过�
 
 ### 默认回弹恢复、液面增强与不可见网格
 
-[Issue #72](https://github.com/thetvplus/customiuizer-a14/issues/72) 的后续反馈确认默认上岛观感缺少回弹。源码核对发现：默认宽度承接仍取原生页面进度，完成条件又把不存在吸入 response 当成已收敛；快页面可压缩并提前结束岛体。此前回归只对吸入断言延续收敛，默认提前结束被保留为旧预期；参数检查共用不能证明岛体运动一致。现默认也由已有 View 时钟的已用时间推进，并在正常页面完成后等待其 528–540 ms 承接结束。取消、无效通道仍立即终止，原生窗口落点 / 速度 / 阻尼保持，不新增时钟、弹簧对象或捕获资源。
+相关工程记录（以现行源码与回归为准） 的后续反馈确认默认上岛观感缺少回弹。源码核对发现：默认宽度承接仍取原生页面进度，完成条件又把不存在吸入 response 当成已收敛；快页面可压缩并提前结束岛体。此前回归只对吸入断言延续收敛，默认提前结束被保留为旧预期；参数检查共用不能证明岛体运动一致。现默认也由已有 View 时钟的已用时间推进，并在正常页面完成后等待其 528–540 ms 承接结束。取消、无效通道仍立即终止，原生窗口落点 / 速度 / 阻尼保持，不新增时钟、弹簧对象或捕获资源。
 
 液面深度由初轮 7.5% 增至最多岛高 12%，接触范围加宽，仍在同一 G4 填充和窗口内；挖孔限幅与轮廓共用深度常量，最小相机余量、简化与取消恢复保持。吸入完成等价帧交接后，只在保守包围盒满足既有完全隐去条件时跳过 49 行顶点更新；透明网格同时跳过颜色、裁切和绘制。可见尾部、进度反向或重新露出均完整重算。没有增加裁切层、材质 owner、数组或计时器，不按原生进度百分比猜测遮蔽。
 
@@ -333,7 +806,7 @@ Dock 的固定扩边取样在更大捏合位移下失去覆盖，已由修前失
 
 前轮衔接修复的证据在仓库外 `customiuizer-a14-evidence/island-continuity-20261028/`。该基线 Deep 的完整 `verify.py full`、Debug lint 和源码门禁通过；422 个套件、3,822 项 Host 测试零失败 / 错误，2 项既定跳过。全量工具 677 项通过、5 项既定跳过。修前失败、修后针对性与完整 JUnit 分别保留；60 / 90 / 120 Hz 的主机采样只验证曲线和生命周期，不证明设备帧率。主体形变参数及原生窗口飞行合同保持，接入点与前缘透明度按最新反馈调整。
 
-前轮 Dock / 文件夹 ROM 证据与候选在 `island-motion-20261028/`，设备基线在 `island-device-20261028/`。候选缺少对应实机录屏，松手细微闪动、动态接入点融合、吞并后回弹及音乐 / 秒表快速轮换仍待验，Dock 捏合 / 解锁与 POCO 模糊沿用待验状态。用户明确 ADB 未连接并跳过手机测试与收尾，本轮没有连接、安装、操作计时或更改手机设置。原设备临时秒表、常亮、采集文件和锁屏状态缺少最终读回，不能写作已恢复。
+前轮 Dock / 文件夹 ROM 证据与候选在 `island-motion-20261028/`，设备基线在 `island-device-20261028/`。候选缺少对应实机录屏，松手细微闪动、动态接入点融合、吞并后回弹及音乐 / 秒表快速轮换仍待验，Dock 捏合 / 解锁与 POCO 模糊沿用待验状态。该历史批次的设备证据不完整，不能据此扩展验收或环境恢复结论；原始使用状态与操作记录不公开。
 
 未改动的 Dock / POCO ROM 合同复用前轮证据：MIUI 类内 lambda / POCO Consumer 两个壁纸回调 ABI、独立 DEX 解析器与 DexSQL 核对的 MIUI 13 / POCO 12 个必需声明均无缺失；两个矩阵输出确定性及 11 / 11 必需独立 mutation 通过，无存活、门禁或清理错误。前轮完整 Host 与工具回归已重新执行，矩阵 / 工具输入未改，不因收口重跑该组 mutation。
 
@@ -616,7 +1089,7 @@ Toast 首次量宽在一次同步搜索内按需准备同一 TextPaint，未增�
 
 ## Dock 静态壁纸停止移动后补采
 
-2026-10-29 从最新有效 `5e06c1f3efda22eed8dafcacdace91af0d36e235` 接续，专项为 [Issue #77](https://github.com/thetvplus/customiuizer-a14/issues/77) / `codex/dock-static-backdrop`。前轮用户表示壁纸一般固定、不要求太实时，Dock 当时只完成评估。此次确认旧实现在连续 Matrix 变化和其后 450 ms 的原生绘制中仍可重复请求整屏壁纸，且原生绘制停止后缺少明确的最终补采；不据此认定用户此前所有磨砂回退均由该路径引起。
+2026-10-29 从最新有效 `5e06c1f3efda22eed8dafcacdace91af0d36e235` 接续，专项为 相关工程记录（以现行源码与回归为准） / `codex/dock-static-backdrop`。前轮用户表示壁纸一般固定、不要求太实时，Dock 当时只完成评估。此次确认旧实现在连续 Matrix 变化和其后 450 ms 的原生绘制中仍可重复请求整屏壁纸，且原生绘制停止后缺少明确的最终补采；不据此认定用户此前所有磨砂回退均由该路径引起。
 
 静态壁纸移动时沿用同一完整视口纹理，只更新真实坐标；最后一次矩阵 / 尺寸变化约 200 ms 后由现有单一回调补采一次，在途结果不能擦除新的移动截止时间。首帧及真正的壁纸替换仍按原速率门禁请求新像素，真实来源替换清掉旧 Bitmap / Shader，不复用身份未知的旧壁纸。合成器缩放可能在移动期间暂时显示旧采样，这是降低实时性换取少采样的明确代价；最后补采能否覆盖各 ROM 壁纸动画的终态仍待实机。保留动态壁纸最多 30 Hz、单纹理 393,216 像素 / 最长边 1,024、一个在途请求、有限恢复及隐藏 / 省电 / detach 释放；不增监听、Hook、缓存或第二时钟，不改光学 / 外轮廓。回退单位是 DockGlassBackdrop 调度、关联回归与两份既有说明。
 
@@ -657,7 +1130,7 @@ ROM ARTIFACT：DexSQL 0.1.1 对 fuxi CN / TW 相同 MiuiHome `RELEASE-4.39.30.86
 
 修前四项反例在旧生产代码实际失败；续审的未 attach host 反向持有反例也实际失败，修后 16 个关联套件 / 122 项通过，另有 Hook 各阶段失败回滚、fatal 清理、来源策略切换与原生触摸失败回归。最终 Deep 完整 Host 为 426 套件 / 3,858 项，零失败 / 错误、2 项既定跳过，Debug lint 与源码门禁通过；677 项工具测试通过、5 项既定跳过。原生所有权续修后重新覆盖完整 Host，最终新增反例已执行通过。未签名 Develop / R8 / fatal lint 与同产物 API 102 元数据、compileOnly 定义零泄漏、八个设置入口直接 Hook API 引用为零、setId / getId 成员 mapping、replaceHook 为零、SDK 34 / arm64 / 非调试及 ZIP / ELF 16 KiB 对齐检查通过。APK SHA-256 `02b11141eab37137331f92772310ab2bec700a3cf96ece7df6a67d79be9c1cd1`，嵌入的工程 revision 为基准 `4e690103`，完整源码哈希绑定已验证工作副本与最终提交，不作正式发行来源声明。既有暂存 Skill 的 CRLF 不属于本任务；验证使用从 HEAD 建立、包含本次新测试的独立 Git index，原暂存字节和真实 index 保留。
 
-ADB 无连接，没有安装、重启、修改手机设置或执行设备命令采样。屏外捕获次数与重复提交次数只是 Host 操作计数；CPU / ART 调用成本、GPU / RenderThread 纹理替换、帧时间 / 丢帧、Graphics / PSS / 长期内存及功耗均没有本轮前后设备数据。设备对照须固定 APK / ROM、刷新率、亮度、温度与操作轨迹，分别采集背景关 / 开、原生高斯 / 原生玻璃 / 液态、静态 / 动态壁纸、普通 / 全宽，覆盖静止、编辑 / 捏合 / 解锁、快速反向 / 中断、Home / 最近任务 / 文件夹 / 拖放，以及熄屏 / 亮屏、省电 / 恢复、Launcher 重建。动效必须录屏逐帧核对位置、速度、尺寸、alpha 和材质连续性；Perfetto / gfxinfo、CPU、GPU、PSS / Graphics 和功耗分别报告，不由 Host 数字换算。证据集中在仓库外 `customiuizer-a14-evidence/dock-full-review-20261028/`，不保存 ROM / APK / mapping / trace 入库。
+该批次缺少同 APK 的受控设备对照。屏外捕获次数与重复提交次数只是 Host 操作计数；CPU / ART 调用成本、GPU / RenderThread 纹理替换、帧时间 / 丢帧、Graphics / PSS / 长期内存及功耗均没有本轮前后设备数据。设备对照须固定 APK / ROM、刷新率、亮度、温度与操作轨迹，分别采集背景关 / 开、原生高斯 / 原生玻璃 / 液态、静态 / 动态壁纸、普通 / 全宽，覆盖静止、编辑 / 捏合 / 解锁、快速反向 / 中断、Home / 最近任务 / 文件夹 / 拖放，以及熄屏 / 亮屏、省电 / 恢复、Launcher 重建。动效必须录屏逐帧核对位置、速度、尺寸、alpha 和材质连续性；Perfetto / gfxinfo、CPU、GPU、PSS / Graphics 和功耗分别报告，不由 Host 数字换算。证据集中在仓库外 `customiuizer-a14-evidence/dock-full-review-20261028/`，不保存 ROM / APK / mapping / trace 入库。
 
 ## 动态岛全链路审查与关键路径优化
 
@@ -932,7 +1405,7 @@ Host 观测确认父窗口 129→60、原生高度 80→模块 129→ROM 96、�
 - 充电模式保持 1 默认、2 抑制已核实的充电唤醒并隐藏动画、3 只隐藏动画。已安装的 SystemUI 回调读取推送快照，回到默认后恢复原生动画判断；system_server 仍仅在模式 2 启动时安装，首次启用或从模式 3 切至 2 需要设备重启。应按模式语义区分行为，不能把模式 3 的亮屏判为模式 2 失效。
 - 高级设置中的“禁用系统完整性检查”按实际范围更名为“允许旧版 APK 签名方案”；强制深色文字明确为用户应用开关，温度文字明确为智能充电页。共享菜单、打开方式、截图、USB、应用安装 / 安全与侧边栏等原有开关、排除、权限及生命周期合同保留，未扩大停用或接管范围。
 
-Deep：完整 Host 3,745 项、零失败 / 错误、2 项既定跳过，Debug 编译与 lint 通过；最后的电源菜单标题读回门禁另作定向复验通过。工具 677 项通过，5 项既定跳过。同一代码源码 `f03a8d6574ed69fadcac12e4e475cdbb6db9a311` 的 Develop / R8、Release / R8 与两变体 fatal lint 均通过。已使用历史证书构建并保留数据覆盖安装 Release `r14.25.6`（255），4,277,457 字节，SHA-256 `ae61b6712c20a9cfc228faac11581377dc290ea3ee3677e09165eb62edf3cb33`；安装路径读回 hash 一致。最终 APK 为 SDK 34 / arm64 / API 102 静态作用域，Hook API 定义与同产物 mapping 对应设置入口的直接 API 引用均为零。APK / mapping 在同一证据的 `release-f03a8d65/`，来源与安装 / 重启 / VPN 收据为 `release-candidate.json`、`release-apk-gates.json` 和 `install-receipt.json`。原模块设置与测试前完全一致，临时开关、秒表、录音、测试应用、采集和手机临时文件已恢复 / 结束。设备已完整重启，Clash Meta 的 VPN 归属 UID 与连接状态读回确认；按约定停止，不继续功能测试，新的动画与各项实机效果由用户自测。
+历史设备候选仅具备当时记载的包身份与部分功能证据，不能扩展为后续实现的验收结果。个人使用状态和原始设备记录不公开；当前有效结论以上方待验范围为准。
 
 ## 2026-10-27 设备反馈续修
 
@@ -972,7 +1445,7 @@ fuxi 实机当前实时档、增益 450%、媒体音量 11/150。相同 session 
 
 对照 r14.25.5 的同一 560 ms 承接时钟，旧正向反弹峰约 397.3 ms，前一候选对称曲线为 434 ms；最新曲线前移到 336 ms、504 ms 时反弹归零。幅度在入场前按安全空间限幅，避免截平峰顶；普通内容切换保留零起始导数以支持连续反向。吸入上沿在前 14% 内锚定窄入口，页面自身不透明度先降至约 88%、末尾约 5%，始终乘 native alpha。一次提交回调不再随每帧重新注册和作废，串行捕获防止快速重入叠加 native 捕获工作。这些是源码 / 模型结论，未代替真机快速手势录屏。
 
-07:30:36 已结束本轮设备操作。手机保留数据覆盖安装的是源码 `2724b9eca3a6054bc47b88eadf993456e8b9902f` 的签名 Develop 工程候选（r14.25.6 / 255），4,280,542 字节，SHA-256 `b2c40f28e7e4bafa4fafd1ffbd75506149a52d3d26567ffb00c0990cda318b69`，安装路径读回一致，V2 证书与历史一致。设置 XML 完全一致，临时探针 / 采集文件已清理，Clash VPN 连接、设备 Dozing 读回；未开启常驻日志流。重启 SystemUI 后解锁层采集未稳定完成，未取得该候选动画录屏。此段之后的下滑优先级、Q 弹曲线、锚定 / 透明度 / 提交回调、完成反馈和暂停卡片缺口修复尚未安装，不能写成手机已含。
+历史设备候选仅具备当时记载的包身份与部分功能证据，不能扩展为后续实现的验收结果。个人使用状态和原始设备记录不公开；当前有效结论以上方待验范围为准。
 
 时钟已由用户明确为：文件夹内启动时钟，秒表 / 计时运行时直接上滑回桌面；计时岛存在，仅缺页面上岛动画。当轮配置已含 alarm / timer / stopwatch 与 live_return。CN / TW 与历史实机 Launcher APK 同为 `a6546d51d9220039ed7ac143de249e9014202cfafeafd715237eb49f8f5a3f7b`：`startAppToHomeAnim2` 在构造窗口参数前统一调用 `findClosingAnimTarget`，随后才解析 shortcut / 文件夹图标；本模块在该入口先选择有效岛目标。因此样本中“图标在文件夹”本身没有绕过上岛入口，仍不能排除实际手势时序 / 快照或交接准入漏触发。取证保留于同目录 `clock-folder-rom.json`；未改动文件夹图标所有权，根因及文件夹内 / 外快速手势录屏仍待下一设备窗口。
 
@@ -982,7 +1455,7 @@ fuxi 实机当前实时档、增益 450%、媒体音量 11/150。相同 session 
 
 ## 下一步
 
-优先完成上表的通知安全、Launcher 图标与状态栏设备闭环；复用已完成源码批次，不重新逐开关扫描。M00 / M01 目录校准、M02 声音振动、M03 通知、M05 / M07 手势、M06 Dock、M08 / M10 维护和设置已有回归；M04 锁屏 / 应用锁、M09 其他宿主的未覆盖行为按具体 owner 与证据另立任务，不凭旧计划推广重构。
+按上方全覆盖入口表逐批深入，下一批优先 M04 信任来源 / 用户归属 / 原生认证分类，以及 M09 截图 ContentValues 失败回退 / MIME 与文件头一致性、其他 Unit 安装入口的实际结果；通知安全、Launcher 图标与状态栏设备闭环独立保留。复用已完成源码批次，不重新逐开关扫描。M00 / M01 目录校准、M02 声音振动、M03 通知、M05 / M07 手势、M06 Dock、M08 / M10 维护和设置已有回归；M04 锁屏 / 应用锁、M09 其他宿主的未覆盖行为按具体 owner 与证据另立任务，不凭旧计划推广重构。
 
 保留 PrefMap 原子快照、PreferenceBootstrap、Feature 注册、ProcessRouter、ResourceHooks、按 ClassLoader 有界反射缓存及既有 owner scope。封面合并、缓存扩容、Baseline / Startup Profile 等只是候选，需具体复现或测量和独立回退单位；当前没有全面改造依据。
 

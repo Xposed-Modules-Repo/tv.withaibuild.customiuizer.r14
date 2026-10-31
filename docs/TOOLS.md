@@ -26,6 +26,8 @@
 
 `feature-semantics/` 和 `rom-contracts/` 是当前校验输入；进程矩阵是源码生成物。ROM 原件、APK、mapping、日志、临时评估和设备原始证据放忽略目录或仓库外，不建立重复的状态报告或未接入工具的证据模板。
 
+`rom_inventory.py` 的 APK Manifest 复用 `rom_catalog.manifest_attributes` 的离线读取，JAR ABI 继续直接读取 class；不依赖可选 pyaxmlparser，不启动无效 javap 或无人使用的 JADX 路径。只有 Manifest 读取失败时可使用已有 apkanalyzer 回退。最终 APK 的 DEX / Smali 取证仍使用官方 DexSQL。
+
 离线工具不因缺少 CI 调用就视为无用；移除前核对调用方、输入输出及替代入口。Python 测试保留真实工具行为、生成结果、资源与必要的运行时接入约束，避免重复实现 Kotlin 业务或仅检查测试方法名。
 
 ## 辅助数据按需查询

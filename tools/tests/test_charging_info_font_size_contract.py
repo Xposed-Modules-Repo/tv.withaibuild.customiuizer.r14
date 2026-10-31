@@ -3,6 +3,7 @@ import re
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
+from tools.settings_schema import read_element
 from pathlib import Path
 
 
@@ -27,7 +28,9 @@ class ChargingInfoFontSizeContractTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
-        cls.xml_text = CHARGING_XML.read_text(encoding="utf-8")
+        ET.register_namespace("android", NS["android"])
+        ET.register_namespace("miuizer", NS["miuizer"])
+        cls.xml_text = ET.tostring(read_element(CHARGING_XML), encoding="unicode")
         cls.kt_text = LOCKSCREEN_HOOKS.read_text(encoding="utf-8")
         cls.features_text = SYSTEM_UI_FEATURES.read_text(encoding="utf-8")
 
@@ -76,11 +79,21 @@ class ChargingInfoFontSizeContractTest(unittest.TestCase):
             ("textScaleX", "must not use textScaleX"),
             (".scaleX", "must not use scaleX"),
             (".scaleY", "must not use scaleY"),
-            ("maxLines", "must not set maxLines"),
             ("setLineSpacing", "must not set line spacing"),
         ]
         for token, msg in forbidden:
             self.assertNotIn(token, kt_text, msg)
+
+        # Reading effective native bounds is necessary to avoid redundant styling. Keep the
+        # prohibition on writes, including the equivalent Java setter and compound assignments.
+        gap = r"(?:\s|/\*.*?\*/|//[^\n]*(?:\n|$))*"
+        self.assertNotRegex(
+            kt_text,
+            re.compile(r"\bmaxLines" + gap + r"(?:=(?!=)|[+\-*/%]=|\+\+|--)"
+                       r"|\bsetMaxLines" + gap + r"\("
+                       r"|(?:\+\+|--)" + gap + r"(?:\w+" + gap + r"\." + gap + r")*maxLines\b", re.S),
+            "must not set maxLines",
+        )
 
         # COMPLEX_UNIT_PX is allowed only inside restoreChargingInfoTextSize,
         # where it restores the exact original pixel size. Custom sizing must
@@ -119,6 +132,19 @@ class ChargingInfoFontSizeContractTest(unittest.TestCase):
         body = match.group(0)
         self.assertIn("17..40", body)
         self.assertIn("raw / 2f", body)
+
+    def test_native_max_lines_reads_are_allowed(self) -> None:
+        kt = self.kt_text + "\nval same = view.maxLines == Int.MAX_VALUE\nval limit = view.getMaxLines()"
+        self._assert_contract(self.xml_text, kt, self.features_text)
+
+    def test_native_max_lines_writes_are_rejected_by_the_bounds_contract(self) -> None:
+        for write in ("view.maxLines = 1", "maxLines\n= 1", "view.maxLines += 1",
+                      "view.maxLines--", "view.setMaxLines(1)", "setMaxLines (1)",
+                      "view.maxLines /* bound */ = 1", "view.maxLines // bound\n = 1",
+                      "++view.maxLines", "--maxLines", "++owner.view.maxLines"):
+            with self.subTest(write=write):
+                with self.assertRaisesRegex(AssertionError, "must not set maxLines"):
+                    self._assert_contract(self.xml_text, self.kt_text + "\n" + write, self.features_text)
 
     # ---- mutation tests (in-memory / temporary text) ----
 

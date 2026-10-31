@@ -46,10 +46,13 @@ import miui.process.ForegroundInfo
 import miui.process.ProcessManager
 import org.luckypray.dexkit.query.FindMethod
 import org.luckypray.dexkit.query.matchers.MethodMatcher
-import org.luckypray.dexkit.result.MethodData
 import tv.withaibuild.customiuizer.MainModule
 import tv.withaibuild.customiuizer.R
 import tv.withaibuild.customiuizer.mods.utils.HookDiagnostics
+import tv.withaibuild.customiuizer.mods.utils.FeatureInstallResult
+import tv.withaibuild.customiuizer.mods.utils.PreparedHookBatch
+import tv.withaibuild.customiuizer.mods.utils.HookInstallStateMachine
+import tv.withaibuild.customiuizer.mods.utils.HookerClassHelper.CustomMethodUnhooker
 import tv.withaibuild.customiuizer.mods.utils.FatalErrors
 import tv.withaibuild.customiuizer.mods.utils.HookerClassHelper
 import tv.withaibuild.customiuizer.mods.utils.HookerClassHelper.MethodHook
@@ -59,14 +62,12 @@ import tv.withaibuild.customiuizer.utils.Helpers
 import java.lang.ref.WeakReference
 import java.lang.reflect.Field
 import java.lang.reflect.Method
+import java.lang.reflect.Modifier
 import java.net.HttpURLConnection
 import java.net.URLConnection
-import java.text.SimpleDateFormat
 import java.util.ArrayList
-import java.util.Date
+import java.util.Calendar
 import java.util.HashMap
-import java.util.Locale
-import java.util.TimeZone
 import tv.withaibuild.customiuizer.utils.HookUtils
 
 object Various {
@@ -987,51 +988,50 @@ object Various {
     }
 
     @JvmStatic
-    fun DisableDefraudAppsCheck(lpparam: PackageReadyParam) {
+    fun DisableDefraudAppsCheck(lpparam: PackageReadyParam): FeatureInstallResult {
         val bridge = XposedHelpers.bridge
         if (bridge == null) {
             HookDiagnostics.recordDexKit("com.miui.guardprovider", "AntiDefraudAppManager", exceptionType = "bridge-null")
-            return
+            return FeatureInstallResult.FAILED_TRANSIENT
         }
-        var methodData: MethodData? = null
-        try {
-            methodData = bridge.findMethod(
-                FindMethod.create()
-                    .excludePackages("tmsdk", "tmsdkobf", "xcrash", "com.tencent", "com.xiaomi")
-                    .matcher(MethodMatcher.create().usingStrings("getUnSystemAppList error", "AntiDefraudAppManager"))
-            ).singleOrNull()
+        return installDefraudAppsHook(
+            resolve = {
+                bridge.findMethod(
+                    FindMethod.create()
+                        .excludePackages("tmsdk", "tmsdkobf", "xcrash", "com.tencent", "com.xiaomi")
+                        .matcher(MethodMatcher.create().usingStrings("getUnSystemAppList error", "AntiDefraudAppManager"))
+                ).singleOrNull()?.getMethodInstance(lpparam.classLoader)
+            },
+            install = { method, hook -> ModuleHelper.hookMethod(method, hook) != null },
+        )
+    }
+
+    internal fun installDefraudAppsHook(
+        resolve: () -> Method?,
+        install: (Method, MethodHook) -> Boolean,
+    ): FeatureInstallResult {
+        val method = try {
+            resolve()
         } catch (t: Throwable) {
+            FatalErrors.unwrapAndRethrowIfFatal(t)
             HookDiagnostics.recordDexKit("com.miui.guardprovider", "AntiDefraudAppManager", exceptionType = t.javaClass.name)
-            return
+            return FeatureInstallResult.FAILED_TRANSIENT
         }
-
-        if (methodData == null) {
+        if (method == null) {
             HookDiagnostics.recordDexKit("com.miui.guardprovider", "AntiDefraudAppManager", noMatch = true)
-            return
+            return FeatureInstallResult.FAILED_PERMANENT
         }
+        return try {
+            if (install(method, defraudAppsResultHook())) FeatureInstallResult.INSTALLED else FeatureInstallResult.FAILED_TRANSIENT
+        } catch (t: Throwable) {
+            FatalErrors.unwrapAndRethrowIfFatal(t)
+            HookDiagnostics.recordDexKit("com.miui.guardprovider", "AntiDefraudAppManager", exceptionType = t.javaClass.name)
+            FeatureInstallResult.FAILED_TRANSIENT
+        }
+    }
 
-        val fakeUserAppsHook = object : MethodHook() {
-                override fun intercept(chain: XposedInterface.Chain): Any? {
-                    var skipped = false
-                    var result: Any? = null
-                    var throwable: Throwable? = null
-                    try {
-                        skipped = true; result = ArrayList<Any?>(); throwable = null
-
-                        if (skipped) { return XposedHelpers.throwOrReturn(throwable, result) }
-                        result = chain.proceed()
-                    } catch (t: Throwable) {
-                        throwable = t
-                        result = null
-                    }
-                    return XposedHelpers.throwOrReturn(throwable, result)
-                }
-            }
-            try {
-                val method = methodData.getMethodInstance(lpparam.classLoader)
-                ModuleHelper.hookMethod(method, fakeUserAppsHook)
-            } catch (ign: Throwable) {
-            }
+    internal fun defraudAppsResultHook() = object : MethodHook() {
+        override fun intercept(chain: XposedInterface.Chain): Any? = ArrayList<Any?>()
     }
 
     @JvmStatic
@@ -1058,33 +1058,28 @@ object Various {
                 return
             }
             val finalFieldName = fieldName
-            ModuleHelper.findAndHookMethod(HandlerClass, "handleMessage", Message::class.java, object : MethodHook() {
-                override fun intercept(chain: XposedInterface.Chain): Any? {
-                    var result: Any?
-                    var throwable: Throwable? = null
-                    try {
-                        result = chain.proceed()
-                    } catch (t: Throwable) {
-                        throwable = t
-                        result = null
-                    }
-                    try {
-                        val thisObject = chain.thisObject
+            ModuleHelper.findAndHookMethod(HandlerClass, "handleMessage", Message::class.java, batteryTemperatureHook(finalFieldName))
+        }
+    }
 
-                        val msg = chain.getArg(0) as Message
-                        if (msg.what == 1) {
-                            val wk = XposedHelpers.getObjectField(thisObject, finalFieldName) as? WeakReference<*>
-                            val frag = wk?.get()
-                            if (frag == null) return XposedHelpers.throwOrReturn(throwable, result)
-                            updateBatteryTemperature(frag)
-                        }
+    internal fun batteryTemperatureHook(referenceField: String) = object : MethodHook() {
+        override fun intercept(chain: XposedInterface.Chain): Any? {
+            val result = chain.proceed()
+            try {
+                val thisObject = chain.thisObject
 
-                    } catch (t: Throwable) {
-                        XposedHelpers.log(t)
-                    }
-                    return XposedHelpers.throwOrReturn(throwable, result)
+                val msg = chain.getArg(0) as Message
+                if (msg.what == 1) {
+                    val wk = XposedHelpers.getObjectField(thisObject, referenceField) as? WeakReference<*>
+                    val frag = wk?.get()
+                    if (frag == null) return result
+                    updateBatteryTemperature(frag)
                 }
-            })
+
+            } catch (t: Throwable) {
+                XposedHelpers.log(t)
+            }
+            return result
         }
     }
 
@@ -1212,138 +1207,123 @@ object Various {
 
     @JvmStatic
     fun AnswerCallInHeadUpHook(lpparam: PackageReadyParam) {
-        ModuleHelper.findAndHookMethod("com.android.incallui.InCallPresenter", lpparam.classLoader, "answerIncomingCall", Context::class.java, String::class.java, Int::class.javaPrimitiveType!!, Boolean::class.javaPrimitiveType!!, object : MethodHook() {
-            override fun intercept(chain: XposedInterface.Chain): Any? {
-                var result: Any? = null
-                var throwable: Throwable? = null
-                val args = XposedHelpers.getArgsArray(chain)
-                try {
-                    val showUi = args[3] as Boolean
-                    if (showUi) {
-                        val foregroundInfo = ProcessManager.getForegroundInfo()
-                        if (foregroundInfo != null) {
-                            val topPackage = foregroundInfo.mForegroundPackageName
-                            if (topPackage != "com.miui.home") {
-                                args[3] = false
-                            }
-                        }
-                    }
+        ModuleHelper.findAndHookMethod("com.android.incallui.InCallPresenter", lpparam.classLoader, "answerIncomingCall", Context::class.java, String::class.java, Int::class.javaPrimitiveType!!, Boolean::class.javaPrimitiveType!!, answerCallInHeadUpHook())
+    }
 
-                    result = chain.proceed(args)
-                } catch (t: Throwable) {
-                    throwable = t
-                    result = null
-                }
-                return XposedHelpers.throwOrReturn(throwable, result)
+    internal fun answerCallInHeadUpHook(
+        foregroundPackage: () -> String? = { ProcessManager.getForegroundInfo()?.mForegroundPackageName },
+    ) = object : MethodHook() {
+        override fun intercept(chain: XposedInterface.Chain): Any? {
+            if (chain.getArg(3) != true) return chain.proceed()
+            val topPackage = try {
+                foregroundPackage()
+            } catch (t: Throwable) {
+                XposedHelpers.log(t)
+                return chain.proceed()
             }
-        })
+            if (topPackage == null || topPackage == "com.miui.home") return chain.proceed()
+            val args = try {
+                XposedHelpers.getArgsArray(chain)
+            } catch (t: Throwable) {
+                XposedHelpers.log(t)
+                return chain.proceed()
+            }
+            args[3] = false
+            return chain.proceed(args)
+        }
     }
 
     @JvmStatic
     fun ShowCallUIHook(lpparam: PackageReadyParam) {
         installVariousSnapshot()
-        ModuleHelper.hookAllMethods("com.android.incallui.InCallPresenter", lpparam.classLoader, "startUi", object : MethodHook() {
-            override fun intercept(chain: XposedInterface.Chain): Any? {
-                var result: Any?
-                var throwable: Throwable? = null
-                try {
-                    result = chain.proceed()
-                } catch (t: Throwable) {
-                    throwable = t
-                    result = null
-                }
-                try {
-                    val thisObject = chain.thisObject
+        ModuleHelper.hookAllMethods("com.android.incallui.InCallPresenter", lpparam.classLoader, "startUi", showCallUiHook())
+    }
 
-                    if (!(result as Boolean) || chain.getArg(0).toString() != "INCOMING") { return XposedHelpers.throwOrReturn(throwable, result) }
-                    val mContext = XposedHelpers.getObjectField(thisObject, "mContext") as Context
-                    if (variousConfig.showCallUi == 3) {
-                        val topPackage = Settings.Global.getString(mContext.contentResolver, Helpers.modulePkg + ".foreground.package")
-                        if (topPackage != null && topPackage != "com.miui.home") {
-                            return XposedHelpers.throwOrReturn(throwable, result)
-                        }
+    internal fun showCallUiHook() = object : MethodHook() {
+        override fun intercept(chain: XposedInterface.Chain): Any? {
+            val result = chain.proceed()
+            try {
+                val thisObject = chain.thisObject
+
+                if (!(result as Boolean) || chain.getArg(0).toString() != "INCOMING") { return result }
+                val mContext = XposedHelpers.getObjectField(thisObject, "mContext") as Context
+                if (variousConfig.showCallUi == 3) {
+                    val topPackage = Settings.Global.getString(mContext.contentResolver, Helpers.modulePkg + ".foreground.package")
+                    if (topPackage != null && topPackage != "com.miui.home") {
+                        return result
                     }
-
-                    if (variousConfig.showCallUi == 1) {
-                        val fullScreen = Settings.Global.getInt(mContext.contentResolver, Helpers.modulePkg + ".foreground.fullscreen", 0)
-                        if (fullScreen == 1) { return XposedHelpers.throwOrReturn(throwable, result) }
-                    }
-
-                    XposedHelpers.callMethod(thisObject, "showInCall", false, false)
-                    val mStatusBarNotifier = XposedHelpers.getObjectField(thisObject, "mStatusBarNotifier")
-                    if (mStatusBarNotifier != null) XposedHelpers.callMethod(mStatusBarNotifier, "cancelInCall")
-                    result = true; throwable = null
-
-                } catch (t: Throwable) {
-                    XposedHelpers.log(t)
                 }
-                return XposedHelpers.throwOrReturn(throwable, result)
+
+                if (variousConfig.showCallUi == 1) {
+                    val fullScreen = Settings.Global.getInt(mContext.contentResolver, Helpers.modulePkg + ".foreground.fullscreen", 0)
+                    if (fullScreen == 1) { return result }
+                }
+
+                XposedHelpers.callMethod(thisObject, "showInCall", false, false)
+                val mStatusBarNotifier = XposedHelpers.getObjectField(thisObject, "mStatusBarNotifier")
+                if (mStatusBarNotifier != null) XposedHelpers.callMethod(mStatusBarNotifier, "cancelInCall")
+
+            } catch (t: Throwable) {
+                XposedHelpers.log(t)
             }
-        })
+            return result
+        }
     }
 
     @JvmStatic
     fun InCallBrightnessHook(lpparam: PackageReadyParam) {
         installVariousSnapshot()
-        ModuleHelper.findAndHookMethod("com.android.incallui.InCallActivity", lpparam.classLoader, "onCreate", Bundle::class.java, object : MethodHook() {
-            override fun intercept(chain: XposedInterface.Chain): Any? {
-                var result: Any?
-                var throwable: Throwable? = null
-                try {
-                    result = chain.proceed()
-                } catch (t: Throwable) {
-                    throwable = t
-                    result = null
-                }
-                try {
-                    val thisObject = chain.thisObject
+        ModuleHelper.findAndHookMethod("com.android.incallui.InCallActivity", lpparam.classLoader, "onCreate", Bundle::class.java, inCallBrightnessHook(lpparam.classLoader))
+    }
 
-                    val act = thisObject as Activity
+    internal fun inCallBrightnessHook(
+        classLoader: ClassLoader,
+        currentTime: () -> Calendar = { Calendar.getInstance() },
+    ) = object : MethodHook() {
+        override fun intercept(chain: XposedInterface.Chain): Any? {
+            val result = chain.proceed()
+            try {
+                val thisObject = chain.thisObject
 
-                    val opt = variousConfig.callUiBrightType
-                    if (opt == 1 || opt == 2) {
-                        val presenter = XposedHelpers.callStaticMethod(XposedHelpers.findClass("com.android.incallui.InCallPresenter", lpparam.classLoader), "getInstance")
-                        if (presenter == null) {
-                            XposedHelpers.log("InCallBrightnessHook", "InCallPresenter is null")
-                            return XposedHelpers.throwOrReturn(throwable, result)
-                        }
+                val act = thisObject as Activity
 
-                        val state = XposedHelpers.callMethod(presenter, "getInCallState").toString()
-                        if (opt == 1 && state != "INCOMING") { return XposedHelpers.throwOrReturn(throwable, result) }
-                        else if (opt == 2 && state != "OUTGOING" && state != "PENDING_OUTGOING") { return XposedHelpers.throwOrReturn(throwable, result) }
+                val cfg = variousConfig
+                val opt = cfg.callUiBrightType
+                if (opt == 1 || opt == 2) {
+                    val presenter = XposedHelpers.callStaticMethod(XposedHelpers.findClass("com.android.incallui.InCallPresenter", classLoader), "getInstance")
+                    if (presenter == null) {
+                        XposedHelpers.log("InCallBrightnessHook", "InCallPresenter is null")
+                        return result
                     }
 
-                    val cfg = variousConfig
-                    val checkNight = cfg.callUiBrightNight
-                    if (checkNight) {
-                        val start_hour = cfg.callUiBrightNightStartHour
-                        val start_minute = cfg.callUiBrightNightStartMinute
-                        val end_hour = cfg.callUiBrightNightEndHour
-                        val end_minute = cfg.callUiBrightNightEndMinute
-
-                        val formatter = SimpleDateFormat("H:m", Locale.ENGLISH)
-                        formatter.timeZone = TimeZone.getDefault()
-                        val start = formatter.parse("$start_hour:$start_minute")
-                        val end = formatter.parse("$end_hour:$end_minute")
-                        val now = formatter.parse(formatter.format(Date()))
-                        if (start == null || end == null || now == null) { return XposedHelpers.throwOrReturn(throwable, result) }
-
-                        val isNight = if (start.before(end)) now.after(start) && now.before(end) else now.before(end) || now.after(start)
-                        if (isNight) { return XposedHelpers.throwOrReturn(throwable, result) }
-                    }
-
-                    val params = act.window.attributes
-                    val brightness = variousConfig.callUiBrightVal
-                    if (brightness == 0) { return XposedHelpers.throwOrReturn(throwable, result) }
-                    params.screenBrightness = brightness / 100f
-                    act.window.setAttributes(params)
-
-                } catch (t: Throwable) {
-                    XposedHelpers.log(t)
+                    val state = XposedHelpers.callMethod(presenter, "getInCallState").toString()
+                    if (opt == 1 && state != "INCOMING") { return result }
+                    else if (opt == 2 && state != "OUTGOING" && state != "PENDING_OUTGOING") { return result }
                 }
-                return XposedHelpers.throwOrReturn(throwable, result)
+
+                if (cfg.callUiBrightNight) {
+                    val start = cfg.callUiBrightNightStartHour * 60 + cfg.callUiBrightNightStartMinute
+                    val end = cfg.callUiBrightNightEndHour * 60 + cfg.callUiBrightNightEndMinute
+                    // Same convention as vibration periods: [start, end), equal means all day.
+                    val isNight = if (start == end) true else {
+                        val now = currentTime()
+                        val minute = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
+                        if (start < end) minute >= start && minute < end else minute >= start || minute < end
+                    }
+                    if (isNight) return result
+                }
+
+                val params = act.window.attributes
+                val brightness = cfg.callUiBrightVal
+                if (brightness == 0) { return result }
+                params.screenBrightness = brightness / 100f
+                act.window.setAttributes(params)
+
+            } catch (t: Throwable) {
+                XposedHelpers.log(t)
             }
-        })
+            return result
+        }
     }
 
     @JvmStatic
@@ -1472,82 +1452,117 @@ object Various {
     @JvmStatic
     fun GboardPaddingHook(lpparam: PackageReadyParam) {
         installVariousSnapshot()
-        ModuleHelper.findAndHookMethod(XposedHelpers.findClass("android.os.SystemProperties", lpparam.classLoader), "get", String::class.java, object : MethodHook() {
-            override fun intercept(chain: XposedInterface.Chain): Any? {
-                var skipped = false
-                var result: Any? = null
-                var throwable: Throwable? = null
-                try {
-                    val key = chain.getArg(0) as String
-                    if (key == "ro.com.google.ime.kb_pad_port_b") {
-                        val opt = variousConfig.gboardPaddingPort
-                        if (opt > 0) { skipped = true; result = opt.toString(); throwable = null }
-                    } else if (key == "ro.com.google.ime.kb_pad_land_b") {
-                        val opt = variousConfig.gboardPaddingLand
-                        if (opt > 0) { skipped = true; result = opt.toString(); throwable = null }
-                    }
+        ModuleHelper.findAndHookMethod(XposedHelpers.findClass("android.os.SystemProperties", lpparam.classLoader), "get", String::class.java, gboardPaddingHook())
+    }
 
-                    if (skipped) { return XposedHelpers.throwOrReturn(throwable, result) }
-                    result = chain.proceed()
-                } catch (t: Throwable) {
-                    throwable = t
-                    result = null
+    internal fun gboardPaddingHook() = object : MethodHook() {
+        override fun intercept(chain: XposedInterface.Chain): Any? {
+            var skipped = false
+            var result: Any? = null
+            var throwable: Throwable? = null
+            try {
+                val key = chain.getArg(0) as String
+                if (key == "ro.com.google.ime.kb_pad_port_b") {
+                    val opt = variousConfig.gboardPaddingPort
+                    if (opt > 0) { skipped = true; result = opt.toString(); throwable = null }
+                } else if (key == "ro.com.google.ime.kb_pad_land_b") {
+                    val opt = variousConfig.gboardPaddingLand
+                    if (opt > 0) { skipped = true; result = opt.toString(); throwable = null }
                 }
-                return XposedHelpers.throwOrReturn(throwable, result)
+
+                if (skipped) { return XposedHelpers.throwOrReturn(throwable, result) }
+                result = chain.proceed()
+            } catch (t: Throwable) {
+                throwable = t
+                result = null
             }
-        })
+            return XposedHelpers.throwOrReturn(throwable, result)
+        }
     }
 
     @JvmStatic
-    fun FixInputMethodBottomMarginHook(lpparam: PackageReadyParam) {
-        val InputMethodServiceInjectorClass = XposedHelpers.findClassIfExists("android.inputmethodservice.InputMethodServiceInjector", lpparam.classLoader)
-        ModuleHelper.hookAllMethods(InputMethodServiceInjectorClass, "addMiuiBottomView", object : MethodHook() {
-            private var isHooked = false
-            override fun intercept(chain: XposedInterface.Chain): Any? {
-                var result: Any?
-                var throwable: Throwable? = null
-                try {
-                    result = chain.proceed()
-                } catch (t: Throwable) {
-                    throwable = t
-                    result = null
-                }
-                try {
-                    val thisObject = chain.thisObject
+    fun FixInputMethodBottomMarginHook(lpparam: PackageReadyParam): FeatureInstallResult =
+        installInputMethodOuterHooks(XposedHelpers.findClassIfExists("android.inputmethodservice.InputMethodServiceInjector", lpparam.classLoader))
 
-                    if (isHooked) { return XposedHelpers.throwOrReturn(throwable, result) }
-                    val sClassLoader = XposedHelpers.getStaticObjectField(InputMethodServiceInjectorClass, "sClassLoader") as ClassLoader?
-                    if (sClassLoader != null) {
-                        isHooked = true
-                        val InputMethodUtil = XposedHelpers.findClassIfExists("com.miui.inputmethod.InputMethodUtil", sClassLoader)
-                        if (InputMethodUtil != null) {
-                            XposedHelpers.setStaticBooleanField(InputMethodUtil, "sIsGestureLineEnable", false)
-                            ModuleHelper.findAndHookMethod(InputMethodUtil, "updateGestureLineEnable", Context::class.java, object : MethodHook() {
-                                override fun intercept(chain: XposedInterface.Chain): Any? {
-                                    var skipped = false
-                                    var result: Any? = null
-                                    var throwable: Throwable? = null
-                                    try {
-                                        XposedHelpers.setStaticBooleanField(InputMethodUtil, "sIsGestureLineEnable", false)
-                                        skipped = true; result = null; throwable = null
-
-                                        if (skipped) { return XposedHelpers.throwOrReturn(throwable, result) }
-                                        result = chain.proceed()
-                                    } catch (t: Throwable) {
-                                        throwable = t
-                                        result = null
-                                    }
-                                    return XposedHelpers.throwOrReturn(throwable, result)
-                                }
-                            })
-                        }
-                    }
-
-                } catch (t: Throwable) {
-                    XposedHelpers.log(t)
-                }
-                return XposedHelpers.throwOrReturn(throwable, result)
+    internal fun installInputMethodOuterHooks(
+        injector: Class<*>?,
+        installHook: (Method, MethodHook) -> CustomMethodUnhooker? = ModuleHelper::hookMethod,
+    ): FeatureInstallResult {
+        if (injector == null) {
+            ModuleHelper.hookAllMethods(injector, "addMiuiBottomView", HookerClassHelper.DO_NOTHING)
+            return FeatureInstallResult.FAILED_PERMANENT
+        }
+        val methods = try {
+            val entries = injector.declaredMethods.filter { it.name == "addMiuiBottomView" }
+            if (entries.isEmpty()) {
+                ModuleHelper.hookAllMethods(injector, "addMiuiBottomView", HookerClassHelper.DO_NOTHING)
+                return FeatureInstallResult.FAILED_PERMANENT
             }
-        })
+            val field = XposedHelpers.findField(injector, "sClassLoader")
+            if (!Modifier.isStatic(field.modifiers) || !ClassLoader::class.java.isAssignableFrom(field.type)) {
+                return FeatureInstallResult.FAILED_PERMANENT
+            }
+            entries
+        } catch (missing: NoSuchFieldError) {
+            XposedHelpers.log(missing)
+            return FeatureInstallResult.FAILED_PERMANENT
+        } catch (t: Throwable) {
+            FatalErrors.unwrapAndRethrowIfFatal(t)
+            XposedHelpers.log(t)
+            return FeatureInstallResult.FAILED_TRANSIENT
+        }
+        val callback = inputMethodBottomMarginHook(injector)
+        return PreparedHookBatch(installHook).install(methods.map { it to callback })
+    }
+
+    internal fun inputMethodBottomMarginHook(
+        injector: Class<*>,
+        resolveUtil: (ClassLoader) -> Class<*>? = { XposedHelpers.findClassIfExists("com.miui.inputmethod.InputMethodUtil", it) },
+        installUtil: (Class<*>) -> CustomMethodUnhooker? = {
+            ModuleHelper.findAndHookMethod(it, "updateGestureLineEnable", Context::class.java, inputMethodGestureLineHook(it))
+        },
+    ) = object : MethodHook() {
+        override fun intercept(chain: XposedInterface.Chain): Any? {
+            val result = chain.proceed()
+            ModuleHelper.guarded {
+                val loader = XposedHelpers.getStaticObjectField(injector, "sClassLoader") as? ClassLoader ?: return@guarded
+                val util = resolveUtil(loader) ?: return@guarded
+                // State holds no Class/loader/View: the existing weak class-owned store owns it.
+                val state = synchronized(util) {
+                    (XposedHelpers.getAdditionalStaticField(util, "customiuizer.ime.gestureLineInstall") as? HookInstallStateMachine)
+                        ?: HookInstallStateMachine().also {
+                            XposedHelpers.setAdditionalStaticField(util, "customiuizer.ime.gestureLineInstall", it)
+                        }
+                }
+                val installedNow = state.install {
+                    ModuleHelper.guarded(false) prepare@{
+                        val field = XposedHelpers.findField(util, "sIsGestureLineEnable")
+                        val update = XposedHelpers.findMethodExact(util, "updateGestureLineEnable", Context::class.java)
+                        if (field.type != Boolean::class.javaPrimitiveType || !Modifier.isStatic(field.modifiers) || Modifier.isFinal(field.modifiers) ||
+                            !Modifier.isStatic(update.modifiers) || update.returnType != Void.TYPE) return@prepare false
+                        field.getBoolean(null) // Complete static initialization/access before installing.
+                        val handle = installUtil(util) ?: return@prepare false
+                        try {
+                            field.setBoolean(null, false)
+                        } catch (t: Throwable) {
+                            try { handle.unhook() } catch (cleanup: Throwable) { XposedHelpers.log(cleanup) }
+                            throw t
+                        }
+                        true
+                    }
+                }
+                if (!installedNow && state.state == HookInstallStateMachine.State.INSTALLED) {
+                    XposedHelpers.setStaticBooleanField(util, "sIsGestureLineEnable", false)
+                }
+            }
+            return result
+        }
+    }
+
+    internal fun inputMethodGestureLineHook(util: Class<*>) = object : MethodHook() {
+        override fun intercept(chain: XposedInterface.Chain): Any? {
+            XposedHelpers.setStaticBooleanField(util, "sIsGestureLineEnable", false)
+            return null
+        }
     }
 }

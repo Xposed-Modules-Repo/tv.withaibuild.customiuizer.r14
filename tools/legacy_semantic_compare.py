@@ -36,32 +36,27 @@ def canonical(key: str) -> str:
 
 def parse_prefs(xml_dir: Path) -> dict[str, dict]:
     prefs: dict[str, dict] = {}
-    for path in sorted(xml_dir.glob("prefs_*.xml")):
-        text = path.read_text(encoding="utf-8")
-        for m in XML_PREF_RE.finditer(text):
-            key = canonical(m.group("key"))
-            attrs = {a.group("name"): a.group("value") for a in ATTR_RE.finditer(m.group("body"))}
-            attrs.update(
-                {
-                    "miuizer:" + a.group("name"): a.group("value")
-                    for a in MIUIZER_ATTR_RE.finditer(m.group("body"))
-                }
-            )
-            prefs[key] = {
-                "xml_key": m.group("key"),
-                "file": path.name,
-                "tag": m.group("tag").split(".")[-1],
-                "default": attrs.get("defaultValue"),
-                "entries": attrs.get("entries"),
-                "entryValues": attrs.get("entryValues"),
-                "dependency": attrs.get("dependency"),
-                "title": attrs.get("title"),
-                "minValue": attrs.get("miuizer:minValue"),
-                "maxValue": attrs.get("miuizer:maxValue"),
-                "stepValue": attrs.get("miuizer:stepValue"),
-                "displayDividerValue": attrs.get("miuizer:displayDividerValue"),
-                "negativeShift": attrs.get("miuizer:negativeShift"),
+    try:
+        from tools.settings_schema import preference_sources, read_element, ANDROID_NS, AUTO_NS
+    except ModuleNotFoundError:
+        from settings_schema import preference_sources, read_element, ANDROID_NS, AUTO_NS
+    for path in preference_sources(xml_dir):
+        for node in read_element(path).iter():
+            full_key = node.get("{" + ANDROID_NS + "}key")
+            if not full_key:
+                continue
+            attrs = {}
+            for name, value in node.attrib.items():
+                if name.startswith("{" + ANDROID_NS + "}"):
+                    attrs[name.split("}", 1)[1]] = value
+                elif name.startswith("{" + AUTO_NS + "}"):
+                    attrs["miuizer:" + name.split("}", 1)[1]] = value
+            prefs[canonical(full_key)] = {
+                "xml_key": full_key, "file": path.name, "tag": node.tag.split(".")[-1],
+                **{name: attrs.get(name) for name in ("defaultValue", "entries", "entryValues", "dependency", "title")},
+                **{name: attrs.get("miuizer:" + name) for name in ("minValue", "maxValue", "stepValue", "displayDividerValue", "negativeShift")},
             }
+            prefs[canonical(full_key)]["default"] = prefs[canonical(full_key)].pop("defaultValue")
     return prefs
 
 

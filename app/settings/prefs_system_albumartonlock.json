@@ -1,0 +1,55 @@
+{
+  "type": "screen",
+  "attributes": {},
+  "children": [
+    {
+      "type": "toggle",
+      "attributes": {
+        "android:key": "pref_key_system_albumartonlock",
+        "android:title": "@string/enable_mod",
+        "android:defaultValue": "false"
+      }
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/prefs_group_style",
+        "android:dependency": "pref_key_system_albumartonlock",
+        "app:dynamic": "true"
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_albumartonlock_gray",
+            "android:title": "@string/system_albumartonlock_gray_title",
+            "android:defaultValue": "false"
+          }
+        },
+        {
+          "type": "slider",
+          "attributes": {
+            "android:key": "pref_key_system_albumartonlock_blur",
+            "android:title": "@string/system_albumartonlock_blur_title",
+            "android:defaultValue": "0",
+            "app:minValue": "0",
+            "app:maxValue": "30",
+            "app:stepValue": "1",
+            "app:format": "%d",
+            "app:offtext": "@string/array_noblur"
+          }
+        },
+        {
+          "type": "choice",
+          "attributes": {
+            "android:key": "pref_key_system_albumartonlock_scale",
+            "android:title": "@string/system_albumartonlock_scale_title",
+            "android:entries": "@array/albumartscale",
+            "android:entryValues": "@array/albumartscale_val",
+            "android:defaultValue": "1"
+          }
+        }
+      ]
+    }
+  ]
+}

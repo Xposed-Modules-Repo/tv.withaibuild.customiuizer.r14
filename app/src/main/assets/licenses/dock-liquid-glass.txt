@@ -1,7 +1,9 @@
-Dock liquid glass optics
+Dock glass design references
 
-The SDF bevel and inward refraction model in DockGlassOptics.kt is adapted and
-reimplemented for the fuxi wallpaper compositor source, without the upstream library.
+The former custom Dock renderer adapted the SDF bevel and inward refraction model
+for the fuxi wallpaper compositor source, without the upstream library. That renderer
+has been removed; the current Dock uses Launcher material or a simple translucent
+panel. This notice preserves the attribution for the Dock's design references.
 Reference: QWEA0/Liquid-Glass-Android, revision 16afe4d8b5d08a370d3f8c50b08d7f5c6eb5da4d
 https://github.com/QWEA0/Liquid-Glass-Android
 
@@ -29,6 +31,7 @@ SOFTWARE.
 
 Additional implementation study: user-provided AyuGram vanilla-AyuGram-full-20261005.apk,
 SHA-256 2ce48d69be32a6374c0168b27a0f063612ce82be0c5f9ebb7a31c5952d12f883.
-LiquidGlassEffect and GlassEngine informed the standard Snell-law surface mapping and
-source/position-driven invalidation. This module uses its own shared G4 normal field,
-bounded wallpaper texture and lifecycle; no AyuGram APK resources or library are bundled.
+LiquidGlassEffect and GlassEngine informed the retired renderer's standard Snell-law
+surface mapping and source/position-driven invalidation. The current Dock has no
+custom wallpaper texture or capture lifecycle. No AyuGram APK resources or library
+are bundled.

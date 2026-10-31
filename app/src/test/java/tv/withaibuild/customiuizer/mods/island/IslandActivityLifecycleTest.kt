@@ -35,7 +35,8 @@ import java.lang.reflect.Proxy
 import java.time.Duration
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34], qualifiers = "w1080dp-h2400dp-mdpi", shadows = [IslandLaunchPackageManagerShadow::class])
+@Config(sdk = [34], qualifiers = "w1080dp-h2400dp-mdpi", shadows = [IslandLaunchPackageManagerShadow::class, IslandLifecycleFrameShadow::class],
+    instrumentedPackages = ["tv.withaibuild.customiuizer.mods.island.IslandWaveView"])
 @org.robolectric.annotation.GraphicsMode(org.robolectric.annotation.GraphicsMode.Mode.NATIVE)
 class IslandActivityLifecycleTest {
     @Test fun refreshingTheSameLiveClockReusesOnlyItsCurrentOwnersPreparedIcon() {

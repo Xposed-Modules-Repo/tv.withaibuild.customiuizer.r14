@@ -12,11 +12,12 @@ import android.util.Pair
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewStub
-import android.widget.AdapterView
-import android.widget.BaseAdapter
-import android.widget.ListView
-import android.widget.TextView
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import tv.withaibuild.customiuizer.ui.NetworkSelectionRow
+import tv.withaibuild.customiuizer.ui.SettingsNetworkList
+import tv.withaibuild.customiuizer.ui.settingsView
 import android.widget.Toast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,21 +29,17 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import tv.withaibuild.customiuizer.R
 import tv.withaibuild.customiuizer.SubFragment
-import tv.withaibuild.customiuizer.applyGroupedListRow
 import tv.withaibuild.customiuizer.mods.GlobalActions
 import tv.withaibuild.customiuizer.mods.utils.ModuleHelper
 import tv.withaibuild.customiuizer.utils.AppHelper
-import tv.withaibuild.customiuizer.utils.PrefPair
 import tv.withaibuild.customiuizer.mods.utils.FatalErrors
 
 class BTList : SubFragment() {
 
     private val fetchInterval = 15 * 1000
     private var key: String? = null
-    private var listView1: ListView? = null
-    private var listView2: ListView? = null
-    private var btAdapter1: BTAdapter? = null
-    private var btAdapter2: BTAdapter? = null
+    private var rows by mutableStateOf<List<NetworkSelectionRow>>(emptyList())
+    private var loading by mutableStateOf(false)
     private val btList = mutableListOf<Pair<String, String>>()
     private var addresses = LinkedHashSet<String>()
 
@@ -57,15 +54,13 @@ class BTList : SubFragment() {
             val deviceList = intent.getParcelableArrayListExtra<BluetoothDevice>("device_list")
             btList.clear()
             deviceList?.forEach { btList.add(Pair(it.address, it.name)) }
-            btAdapter1?.notifyDataSetChanged()
-            btAdapter2?.notifyDataSetChanged()
+            refreshRows()
             updateProgressBar()
             if (isOrderedBroadcast) setResultCode(GlobalActions.ACTION_HANDLED)
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        padded = false
         super.onCreate(savedInstanceState)
     }
 
@@ -74,52 +69,6 @@ class BTList : SubFragment() {
 
         key = requireArguments().getString("key")
         addresses = LinkedHashSet(AppHelper.getStringSetOfAppPrefs(key, LinkedHashSet()))
-
-        val ctx = requireContext()
-        btAdapter1 = BTAdapter(ctx, true)
-        btAdapter2 = BTAdapter(ctx, false)
-
-        val view = requireView()
-        listView1 = view.findViewById(android.R.id.text1)
-        listView2 = view.findViewById(android.R.id.text2)
-
-        @SuppressLint("CutPasteId")
-        val locationStub: ViewStub? = view.findViewById(R.id.fetch_devices)
-        locationStub?.layoutResource = R.layout.pref_item
-        locationStub?.inflate()
-
-        @SuppressLint("CutPasteId")
-        val location: View? = view.findViewById(R.id.fetch_devices)
-        location?.findViewById<TextView>(android.R.id.title)?.text = getString(R.string.bt_fetch_devices_title)
-        location?.findViewById<TextView>(android.R.id.summary)?.text = getString(R.string.bt_fetch_devices_summ)
-        location?.let { applyGroupedListRow(it, 0, 1) }
-        location?.setOnClickListener {
-            btList.clear()
-            btAdapter1?.notifyDataSetChanged()
-            btAdapter2?.notifyDataSetChanged()
-            updateProgressBar()
-            fetchCachedDevices()
-        }
-
-        listView1?.adapter = btAdapter1
-        listView1?.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
-            val sr = btAdapter1?.getItem(position) ?: return@OnItemClickListener
-            addresses = LinkedHashSet(AppHelper.getStringSetOfAppPrefs(key, LinkedHashSet()))
-            AppHelper.removeStringPair(addresses, sr.first)
-            AppHelper.appPrefs!!.edit().putStringSet(key, if (addresses.isEmpty()) null else addresses).apply()
-            btAdapter1?.notifyDataSetChanged()
-            btAdapter2?.notifyDataSetChanged()
-        }
-
-        listView2?.adapter = btAdapter2
-        listView2?.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
-            val sr = btAdapter2?.getItem(position) ?: return@OnItemClickListener
-            addresses = LinkedHashSet(AppHelper.getStringSetOfAppPrefs(key, LinkedHashSet()))
-            AppHelper.addStringPair(addresses, sr.first, sr.second)
-            AppHelper.appPrefs!!.edit().putStringSet(key, addresses).apply()
-            btAdapter1?.notifyDataSetChanged()
-            btAdapter2?.notifyDataSetChanged()
-        }
 
         if (BluetoothAdapter.getDefaultAdapter()?.isEnabled == false) {
             Toast.makeText(requireActivity(), R.string.request_bt, Toast.LENGTH_SHORT).show()
@@ -134,8 +83,8 @@ class BTList : SubFragment() {
     }
 
     fun updateProgressBar() {
-        view?.findViewById<View>(R.id.progress_bar)?.visibility =
-            if (BluetoothAdapter.getDefaultAdapter()?.isEnabled == true && btList.isEmpty()) View.VISIBLE else View.GONE
+        loading = BluetoothAdapter.getDefaultAdapter()?.isEnabled == true && btList.isEmpty()
+        refreshRows()
     }
 
     private fun registerReceivers() {
@@ -181,64 +130,30 @@ class BTList : SubFragment() {
         registerReceivers()
     }
 
-    private inner class BTAdapter(context: Context, private val isSelected: Boolean) : BaseAdapter() {
-        private val mInflater: LayoutInflater = LayoutInflater.from(context)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View = settingsView {
+        SettingsNetworkList(getString(R.string.bt_fetch_devices_title),
+            getString(R.string.bt_fetch_devices_summ), { btList.clear(); updateProgressBar(); fetchCachedDevices() },
+            getString(R.string.bt_category1), getString(R.string.bt_category2), rows, loading, ::toggleNetwork)
+    }
 
-        override fun getCount(): Int = if (isSelected) addresses.size else btList.size
-
-        override fun getItem(position: Int): Pair<String, String>? {
-            return if (isSelected) {
-                if (addresses.isEmpty()) return null
-                val network = addresses.elementAt(position).split("|", limit = 2)
-                Pair(network[0], if (network.size > 1) network[1] else "")
-            } else {
-                btList[position]
-            }
+    @SuppressLint("MissingPermission")
+    private fun refreshRows() {
+        val current = try { BluetoothAdapter.getDefaultAdapter()?.bondedDevices?.map { it.address }?.toSet() ?: emptySet() } catch (_: SecurityException) { emptySet() }
+        val selectedRows = addresses.map {
+            val parts = it.split("|", limit = 2)
+            NetworkSelectionRow(parts[0], parts.getOrElse(1) { "" }, selected = true, current = parts[0] in current)
         }
-
-        override fun getItemId(position: Int): Long = position.toLong()
-
-        @SuppressLint("MissingPermission")
-        override fun isEnabled(position: Int): Boolean {
-            return isSelected || !PrefPair.containsFirst(addresses, getItem(position)?.first ?: "")
+        val known = selectedRows.mapTo(HashSet()) { it.id }
+        rows = selectedRows + btList.distinctBy { it.first }.filter { it.first !in known }.map {
+            NetworkSelectionRow(it.first, it.second.orEmpty(), current = it.first in current)
         }
+    }
 
-        @SuppressLint("MissingPermission")
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-            val row: View = if (convertView != null) {
-                convertView
-            } else {
-                mInflater.inflate(R.layout.pref_item, parent, false)
-            }
-            applyGroupedListRow(row, position, count)
-
-            val itemTitle: TextView = row.findViewById(android.R.id.title)
-            val itemSumm: TextView = row.findViewById(android.R.id.summary)
-            val sr = getItem(position) ?: return row
-            itemTitle.text = sr.second
-            itemSumm.text = sr.first
-
-            if (isEnabled(position)) {
-                row.isEnabled = true
-
-                val bonded = BluetoothAdapter.getDefaultAdapter()?.bondedDevices
-                val isBonded = bonded?.any { it.address == sr.first } == true
-
-                itemTitle.setTextColor(
-                    resources.getColor(
-                        if (isBonded) R.color.highlight_normal_light else R.color.preference_primary_text_color,
-                        activity?.theme
-                    )
-                )
-                itemTitle.alpha = 1.0f
-                itemSumm.alpha = 1.0f
-            } else {
-                row.isEnabled = false
-                itemTitle.setTextColor(resources.getColor(R.color.preference_secondary_text_color, activity?.theme))
-                itemTitle.alpha = 0.5f
-                itemSumm.alpha = 0.5f
-            }
-            return row
-        }
+    private fun toggleNetwork(row: NetworkSelectionRow) {
+        addresses = LinkedHashSet(AppHelper.getStringSetOfAppPrefs(key, LinkedHashSet()))
+        if (row.selected) AppHelper.removeStringPair(addresses, row.id)
+        else AppHelper.addStringPair(addresses, row.id, row.name)
+        AppHelper.appPrefs?.edit()?.putStringSet(key, addresses.takeIf { it.isNotEmpty() })?.apply()
+        refreshRows()
     }
 }

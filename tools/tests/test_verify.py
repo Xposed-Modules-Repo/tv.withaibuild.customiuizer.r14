@@ -217,7 +217,7 @@ class VerifyProcessOutputTests(unittest.TestCase):
 
 
 class VerifyJvmTargetTests(unittest.TestCase):
-    def check_config(self, build, daemon_version=25):
+    def check_config(self, build, daemon_version=27):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             (root / "gradle").mkdir()
@@ -233,18 +233,18 @@ class VerifyJvmTargetTests(unittest.TestCase):
             ):
                 return _verify.check_static_rules()
 
-    def test_trial_keeps_jdk25_and_aligned_java_kotlin25(self):
+    def test_build_uses_jdk27_and_aligned_java_kotlin26(self):
         self.assertEqual(0, self.check_config(_verify.read_build_gradle()))
 
-    def test_each_output_target_must_remain25(self):
+    def test_each_output_target_must_remain26(self):
         build = _verify.read_build_gradle()
         for setting in ("sourceCompatibility", "targetCompatibility", "jvmTarget"):
             with self.subTest(setting=setting):
                 if setting == "jvmTarget":
-                    changed = build.replace("JvmTarget.JVM_25", "JvmTarget.JVM_21")
+                    changed = build.replace("JvmTarget.JVM_26", "JvmTarget.JVM_21")
                 else:
                     changed = build.replace(
-                        f"{setting} = JavaVersion.VERSION_25",
+                        f"{setting} = JavaVersion.VERSION_26",
                         f"{setting} = JavaVersion.VERSION_21",
                     )
                 self.assertNotEqual(build, changed)
@@ -253,7 +253,7 @@ class VerifyJvmTargetTests(unittest.TestCase):
 
     def test_build_jdk_is_independent_of_output_target(self):
         build = _verify.read_build_gradle()
-        changed = build.replace("JavaLanguageVersion.of(25)", "JavaLanguageVersion.of(21)")
+        changed = build.replace("JavaLanguageVersion.of(27)", "JavaLanguageVersion.of(21)")
         self.assertNotEqual(build, changed)
         with self.assertRaises(SystemExit):
             self.check_config(changed)
@@ -285,6 +285,10 @@ class VerifyFeatureSemanticsTests(unittest.TestCase):
             _verify.parse_java_major('openjdk version "25.0.2" 2026-01-20'),
             25,
         )
+
+    def test_javaVersionParserAcceptsJdk27(self):
+        self.assertEqual(27, _verify.parse_java_major('openjdk version "27" 2026-09-15'))
+        self.assertEqual(27, _verify.REQUIRED_JAVA_MAJOR)
 
     def test_javaVersionParserRejectsUnrelatedOutput(self):
         self.assertIsNone(_verify.parse_java_major("not a java runtime"))
@@ -341,7 +345,7 @@ class VerifyFeatureSemanticsTests(unittest.TestCase):
         entry = found_code[0]
 
         self.assertEqual(entry.get("defaultValue"), "16")
-        self.assertEqual(entry.get("xmlSource"), "app/src/main/res/xml/prefs_system_charginginfo.xml")
+        self.assertEqual(entry.get("xmlSource"), "app/settings/prefs_system_charginginfo.json")
         self.assertIn("SystemLockScreenHooks.kt", entry.get("sourceFile", ""))
         self.assertEqual(entry.get("targetPackage"), "com.android.systemui")
         self.assertEqual(entry.get("installPhase"), "PACKAGE_READY")

@@ -756,12 +756,10 @@
     <string-array name="launcher_dock_background_material">
         <item>@string/launcher_dock_background_auto_glass</item>
         <item>@string/launcher_dock_background_gaussian</item>
-        <item>@string/launcher_dock_background_liquid</item>
     </string-array>
     <string-array name="launcher_dock_background_material_values" translatable="false">
         <item>0</item>
         <item>2</item>
-        <item>3</item>
     </string-array>
     <string-array name="system_toast_position">
         <item>@string/array_default</item>

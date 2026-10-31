@@ -4,6 +4,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.Uri
+import android.os.Binder
+import tv.withaibuild.customiuizer.PrefsProvider
+import tv.withaibuild.customiuizer.utils.CommittedAutomationPreferences
 import tv.withaibuild.customiuizer.utils.Helpers
 import tv.withaibuild.customiuizer.mods.statusbarheight.StatusBarHeightResources
 
@@ -59,7 +63,8 @@ object SystemServerPreferenceInvalidation {
                 if (!ModuleHelper.isTrustedBroadcast(this, Helpers.modulePkg)) return@guarded
 
                 if (intent.getBooleanExtra(EXTRA_BULK, false)) {
-                    bootstrap.refreshRemoteKey(null, StatusBarHeightResources.committedPreference(context))
+                    val automation = committedAutomation(context, null) ?: return@guarded
+                    bootstrap.refreshRemoteKey(null, StatusBarHeightResources.committedPreference(context) + automation)
                     SystemServerInstaller.scheduleCatchUp(context)
                     return@guarded
                 }
@@ -68,10 +73,23 @@ object SystemServerPreferenceInvalidation {
                 if (key == null || !isValidKey(key)) return@guarded
                 val height = if (key == "pref_key_" + StatusBarHeightConfig.PREF_KEY)
                     StatusBarHeightResources.committedPreference(context) else emptyMap()
-                bootstrap.refreshRemoteKey(key, height)
+                val automation = committedAutomation(context, key) ?: return@guarded
+                bootstrap.refreshRemoteKey(key, height + automation)
                 SystemServerInstaller.scheduleCatchUp(context)
             }
         }
+    }
+
+    private fun committedAutomation(context: Context, key: String?): Map<String, Any>? {
+        if (key != null && !CommittedAutomationPreferences.owns(key)) return emptyMap()
+        val token = Binder.clearCallingIdentity()
+        try {
+            // An unavailable acknowledged mirror must not replay the framework's stale cache.
+            return ModuleHelper.guarded<Map<String, Any>?>(null) {
+                context.contentResolver.call(Uri.parse("content://" + PrefsProvider.AUTHORITY),
+                    PrefsProvider.COMMITTED_AUTOMATION, key, null)?.let(CommittedAutomationPreferences::values)
+            }
+        } finally { Binder.restoreCallingIdentity(token) }
     }
 
     private fun isValidKey(key: String): Boolean {

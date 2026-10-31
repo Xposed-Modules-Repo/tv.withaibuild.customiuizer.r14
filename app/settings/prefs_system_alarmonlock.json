@@ -1,0 +1,44 @@
+{
+  "type": "screen",
+  "attributes": {},
+  "children": [
+    {
+      "type": "toggle",
+      "attributes": {
+        "android:key": "pref_key_system_lsalarm",
+        "android:title": "@string/enable_mod",
+        "android:defaultValue": "false"
+      }
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/prefs_group_display",
+        "android:dependency": "pref_key_system_lsalarm",
+        "app:dynamic": "true"
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_lsalarm_all",
+            "android:summary": "@string/system_lsalarm_all_summ",
+            "android:title": "@string/system_lsalarm_all_title",
+            "android:defaultValue": "false"
+          }
+        },
+        {
+          "type": "choice",
+          "attributes": {
+            "android:key": "pref_key_system_lsalarm_format",
+            "android:title": "@string/system_lsalarm_format_title",
+            "android:entries": "@array/alarmformats",
+            "android:entryValues": "@array/alarmformats_val",
+            "android:defaultValue": "1",
+            "app:valueAsSummary": "true"
+          }
+        }
+      ]
+    }
+  ]
+}

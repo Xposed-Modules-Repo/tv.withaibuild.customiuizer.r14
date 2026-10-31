@@ -11,8 +11,8 @@ import kotlin.math.sin
  */
 internal object IslandCapsuleGeometry {
     const val CONTACT_DEPTH_RATIO = .12f
-    // 32 Hermite segments per cap; unit controls are generated once and reused.
-    private const val STEPS = 32
+    // 16 Hermite segments per cap; unit controls are generated once and reused.
+    private const val STEPS = 16
     private const val RAMP = 0.25
 
     internal fun heading(t: Double): Double {

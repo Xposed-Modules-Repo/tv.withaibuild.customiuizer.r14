@@ -508,6 +508,25 @@ WeatherDataController.initContext(mContext, thisObject)
         findings = self.mod.check_weather_data_lifecycle(path, unsafe)
         self.assertEqual(1, len(findings))
 
+    def test_weather_demand_argument_preserves_owner_and_fatal_requirements(self):
+        path = self._source_path("tv/withaibuild/customiuizer/mods/SystemClockHooks.kt")
+        clean = """
+WeatherDataController.initContext(mContext, thisObject,
+    needsWeatherData(snapshot, statusbar, cc, hideDate, hideDrawer))
+} catch (oom: OutOfMemoryError) {
+    throw oom
+} catch (t: Throwable) {
+    log(t)
+}
+"""
+        self.assertEqual([], self.mod.check_weather_data_lifecycle(path, clean))
+        for wrong_owner in ("mWeatherRunnable", "thisObjectOther", "null"):
+            with self.subTest(owner=wrong_owner):
+                findings = self.mod.check_weather_data_lifecycle(path, clean.replace("thisObject,", wrong_owner + ","))
+                self.assertTrue(any("pass the clock controller" in finding.detail for finding in findings))
+        findings = self.mod.check_weather_data_lifecycle(path, clean.replace("catch (oom: OutOfMemoryError)", "catch (ignored: Exception)"))
+        self.assertTrue(any("rethrow OOM" in finding.detail for finding in findings))
+
     def test_battery_indicator_skips_duplicate_work_and_owns_callbacks(self):
         path = self._source_path("tv/withaibuild/customiuizer/utils/BatteryIndicator.kt")
         clean = """
@@ -580,13 +599,18 @@ private fun requestMirrorPass(generation: Long, reason: String) {
                 self.assertEqual(1, len(findings))
                 self.assertIn("fatal", findings[0].detail)
 
-    def test_switch_inherits_row_pressed_state(self):
-        path = self._source_path("tv/withaibuild/customiuizer/prefs/CheckBoxPreferenceEx.kt")
+    def test_compose_switch_has_one_guarded_row_interaction_owner(self):
+        path = self._source_path("tv/withaibuild/customiuizer/ui/SettingsPreferences.kt")
         clean = """
-holder.findViewById(android.R.id.switch_widget)?.isDuplicateParentStateEnabled = true
+modifier.toggleable(preference.isChecked, enabled = enabled,
+    role = Role.Switch, onValueChange = { click() })
+Switch(preference.isChecked, onCheckedChange = null, enabled = enabled)
 """
         self.assertEqual([], self.mod.check_preference_click_feedback(path, clean))
-        self.assertEqual(2, len(self.mod.check_preference_click_feedback(path, "")))
+        self.assertEqual(3, len(self.mod.check_preference_click_feedback(path, "")))
+        for token in ("modifier.toggleable(preference.isChecked", "onValueChange = { click() }", "onCheckedChange = null"):
+            with self.subTest(token=token):
+                self.assertEqual(1, len(self.mod.check_preference_click_feedback(path, clean.replace(token, "removed"))))
 
     def test_reflection_cache_get_declared_method_oom_ok(self):
         text = """

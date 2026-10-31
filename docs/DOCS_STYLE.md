@@ -6,6 +6,7 @@
 
 | 事实 | 权威来源 |
 | --- | --- |
+| 工程取向、性能偏好与基础约束 | [AGENTS.md](../AGENTS.md#产品与取舍)；性能实施与测量见 [OPTIMIZATION_GATES.md](OPTIMIZATION_GATES.md) |
 | UI 入口、名称、顺序和条件 | 当前 XML、资源、路由及 Controller |
 | 实现、安装与所有权 | 当前源码、Feature catalog；进程矩阵只作生成视图 |
 | 当前功能导航 | [FEATURE_MAP.md](FEATURE_MAP.md)；[字符树简版](FEATURE_MAP_SIMPLE.md)为同源生成视图 |

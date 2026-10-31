@@ -1,7 +1,6 @@
 package tv.withaibuild.customiuizer.subs
 
 import android.os.Bundle
-import android.widget.SeekBar
 import tv.withaibuild.customiuizer.SubFragment
 import tv.withaibuild.customiuizer.prefs.SeekBarPreference
 
@@ -16,17 +15,9 @@ class System_AutoBrightness : SubFragment() {
         maxBrightness = findPreference("pref_key_system_autobrightness_max")
         minBrightness = findPreference("pref_key_system_autobrightness_min")
         maxBrightness?.setMinValue((minBrightness?.getValue() ?: 0) + 1)
-        minBrightness?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                if (!fromUser) return
-                if ((maxBrightness?.getValue() ?: 0) <= progress) {
-                    maxBrightness?.setValue(progress + 1, true)
-                }
-                maxBrightness?.setMinValue(progress + 1)
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar) {}
+        minBrightness?.setOnValueChangeListener(preview = { value ->
+            if ((maxBrightness?.getValue() ?: 0) <= value) maxBrightness?.setValue(value + 1, true)
+            maxBrightness?.setMinValue(value + 1)
         })
     }
 }

@@ -1,0 +1,65 @@
+{
+  "type": "screen",
+  "attributes": {},
+  "children": [
+    {
+      "type": "toggle",
+      "attributes": {
+        "android:key": "pref_key_system_screenshot",
+        "android:title": "@string/enable_mod",
+        "android:defaultValue": "false"
+      }
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/prefs_group_image",
+        "android:dependency": "pref_key_system_screenshot",
+        "app:dynamic": "true"
+      },
+      "children": [
+        {
+          "type": "choice",
+          "attributes": {
+            "android:key": "pref_key_system_screenshot_format",
+            "android:title": "@string/system_screenshot_format_title",
+            "android:entries": "@array/screenshotformat",
+            "android:entryValues": "@array/screenshotformat_val",
+            "android:defaultValue": "2",
+            "app:valueAsSummary": "true"
+          }
+        },
+        {
+          "type": "slider",
+          "attributes": {
+            "android:key": "pref_key_system_screenshot_quality",
+            "android:title": "@string/system_screenshot_quality_title",
+            "android:defaultValue": "100",
+            "app:minValue": "0",
+            "app:maxValue": "100",
+            "app:stepValue": "1",
+            "app:format": "%d"
+          }
+        },
+        {
+          "type": "choice",
+          "attributes": {
+            "android:key": "pref_key_system_screenshot_path",
+            "android:title": "@string/system_screenshot_path_title",
+            "android:entries": "@array/screenshotpath",
+            "android:entryValues": "@array/screenshotpath_val",
+            "android:defaultValue": "1",
+            "app:valueAsSummary": "true"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_screenshot_mypath",
+            "android:title": "@string/array_path"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -50,7 +50,6 @@ TYPEFACE_ALLOWLIST = {
 # Classes that must use the AndroidX two-parameter parent constructor.
 TWO_ARG_PREFERENCE_CLASSES = {
     "CheckBoxPreferenceEx": ("SwitchPreference", 2),
-    "DropDownPreferenceEx": ("DropDownPreference", 2),
     "EditTextPreferenceEx": ("EditTextPreference", 2),
     "ListPreferenceEx": ("ListPreference", 2),
     "PreferenceCategoryEx": ("PreferenceCategory", 2),
@@ -239,38 +238,14 @@ class AppTextInvariantsTest(unittest.TestCase):
 
     def test_about_attribution_text_views_allow_wrapping(self):
         """The about page attribution TextViews must not be constrained to one line."""
-        about_head = APP_ROOT / "res" / "layout" / "fragment_about_head.xml"
-        self.assertTrue(about_head.is_file(), "fragment_about_head.xml must exist")
-        text = about_head.read_text(encoding="utf-8")
-
-        about_ids = ("about_maintainer", "about_based_on", "about_version")
-        banned_attrs = (
-            "android:ellipsize",
-            "android:maxLines",
-            "android:singleLine",
-            "android:horizontallyScrolling",
-            "android:autoSizeTextType",
-        )
-
-        for view_id in about_ids:
-            with self.subTest(view=view_id):
-                # Find the element that carries this id.
-                section = re.search(
-                    rf"<TextView\s+[^>]*?android:id=\"@\+id/{view_id}\"[^>]*?>",
-                    text,
-                    re.DOTALL,
-                )
-                self.assertIsNotNone(
-                    section,
-                    f"Could not find {view_id} TextView in fragment_about_head.xml",
-                )
-                tag = section.group(0)
-                for attr in banned_attrs:
-                    self.assertNotIn(
-                        attr,
-                        tag,
-                        f"{view_id} must not set {attr}",
-                    )
+        source = APP_ROOT / "java/tv/withaibuild/customiuizer/AboutFragment.kt"
+        text = source.read_text(encoding="utf-8")
+        for name in ("about_maintainer", "about_based_on", "about_version"):
+            with self.subTest(resource=name):
+                declaration = re.search(r"Text\(stringResource\(R\.string\." + name + r"\b[^\n]+", text)
+                self.assertIsNotNone(declaration)
+                for restriction in ("maxLines", "overflow", "softWrap = false"):
+                    self.assertNotIn(restriction, declaration[0])
 
     def test_about_attribution_text_not_shortened(self):
         """The attribution strings must name the current maintainer and upstream authors."""

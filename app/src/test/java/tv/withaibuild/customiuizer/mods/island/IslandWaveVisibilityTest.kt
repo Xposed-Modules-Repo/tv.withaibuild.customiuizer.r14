@@ -6,27 +6,67 @@ import android.os.Looper
 import android.view.View
 import android.widget.FrameLayout
 import org.junit.Assert.*
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowChoreographer
 import org.robolectric.util.ReflectionHelpers.getField
+import tv.withaibuild.customiuizer.testsupport.advanceDisplayFrames
 import java.time.Duration
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class IslandWaveVisibilityTest {
+    @Before fun controlDisplayFrames() {
+        ShadowChoreographer.setPaused(true)
+        ShadowChoreographer.setFrameDelay(Duration.ofMillis(16))
+    }
+
+    @Test fun visibleWaveAdvancesOnEachDisplayFrameAtBothFrameIntervals() {
+        val savedDelay = ShadowChoreographer.getFrameDelay()
+        val savedPaused = ShadowChoreographer.isPaused()
+        ShadowChoreographer.setPaused(true)
+        try {
+            for (milliseconds in listOf(16L, 8L)) {
+                ShadowChoreographer.setFrameDelay(Duration.ofMillis(milliseconds))
+                val activity = Robolectric.buildActivity(Activity::class.java).setup().visible()
+                try {
+                    val wave = IslandWaveView(activity.get())
+                    activity.get().setContentView(wave, FrameLayout.LayoutParams(25, 24))
+                    advanceDisplayFrames(2, milliseconds)
+                    wave.onVisibilityAggregated(true)
+                    wave.outputVisible = true
+                    wave.playing = true
+                    repeat(6) {
+                        val before = getField<Float>(wave, "phase")
+                        advanceDisplayFrames(milliseconds = milliseconds)
+                        assertTrue("A visible wave must advance at a $milliseconds ms display cadence",
+                            getField<Float>(wave, "phase") > before)
+                    }
+                    wave.spectrum(FloatArray(5))
+                    assertFalse("Stable measured silence must release the frame callback", getField(wave, "scheduled"))
+                } finally { activity.pause().stop().destroy() }
+            }
+        } finally {
+            ShadowChoreographer.setFrameDelay(savedDelay)
+            ShadowChoreographer.setPaused(savedPaused)
+        }
+    }
+
     @Test fun hiddenWaveCancelsFramesRetainsLevelsAndResumesOnItsExistingPhaseClock() {
         val activity = Robolectric.buildActivity(Activity::class.java).setup().visible().get()
         val wave = IslandWaveView(activity)
         activity.setContentView(wave, FrameLayout.LayoutParams(25, 24))
+        advanceDisplayFrames(2)
         wave.onVisibilityAggregated(true)
         wave.outputVisible = true
         wave.playing = true
         try {
-            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(99))
+            advanceDisplayFrames(6)
             val phase = getField<Float>(wave, "phase")
             assertTrue(phase > 0f)
             wave.outputVisible = false
@@ -34,7 +74,7 @@ class IslandWaveVisibilityTest {
             shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(500))
             assertEquals(phase, getField<Float>(wave, "phase"), 0f)
             wave.outputVisible = true
-            shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(33))
+            advanceDisplayFrames()
             assertTrue("Resume uses elapsed time without running hidden frames", getField<Float>(wave, "phase") > phase + 2f)
             wave.spectrum(FloatArray(5) { .4f })
             val levels = getField<FloatArray>(wave, "energies").copyOf()
@@ -52,6 +92,7 @@ class IslandWaveVisibilityTest {
         val shell = IslandActivityView(activity)
         parent.addView(shell, FrameLayout.LayoutParams(240, 40))
         activity.setContentView(parent)
+        advanceDisplayFrames(2)
         shell.bind("Track", null, null, true, true, true, 0, false)
         shell.geometry(240, 40, 40)
         parent.layout(0, 0, 400, 100)
@@ -80,12 +121,14 @@ class IslandWaveVisibilityTest {
             parent.alpha = 1f; refresh(); assertTrue(shell.waveformSampling)
             wave.visibility = View.GONE; refresh(); assertFalse(shell.waveformSampling)
             wave.visibility = View.VISIBLE; refresh(); assertTrue(shell.waveformSampling)
-            shell.clipBounds = Rect(0, 0, 1, 1)
             shell.transition(240, 40, 240, 40, false)
+            // Apply the current occlusion after the transition prepares its own clip.
+            shell.clipBounds = Rect(0, 0, 0, 0)
             refresh()
             assertTrue("A finite transition may prepare sampling before its lane appears", shell.waveformSampling)
             assertFalse(wave.outputVisible)
             getField<android.animation.ValueAnimator>(shell, "motion").end()
+            shell.clipBounds = Rect(0, 0, 0, 0)
             refresh(); assertFalse("Preparation ends with the shell clock", shell.waveformSampling)
             shell.clipBounds = null; refresh()
             val oldWidth = wave.width

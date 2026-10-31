@@ -23,14 +23,12 @@ class PreferenceClickFeedbackContractTest {
 
     @Test
     fun switchReceivesImmediateParentPressedState() {
-        val source = source("app/src/main/java/tv/withaibuild/customiuizer/prefs/CheckBoxPreferenceEx.kt")
-        assertTrue(source.contains("android.R.id.switch_widget"))
-        assertTrue(source.contains("isDuplicateParentStateEnabled = true"))
-        assertTrue(source.contains("switchButton.isChecked = isChecked"))
-        assertTrue(source.contains("jumpDrawablesToCurrentState()"))
-        val duplicate = source.indexOf("isDuplicateParentStateEnabled = true")
-        val reapply = source.indexOf("switchButton.isChecked = isChecked")
-        assertTrue(reapply > duplicate)
+        val source = source("app/src/main/java/tv/withaibuild/customiuizer/ui/SettingsPreferences.kt")
+        assertTrue(source.contains("modifier.toggleable(preference.isChecked"))
+        assertTrue(source.contains("role = Role.Switch"))
+        assertTrue(source.contains("Switch(preference.isChecked, onCheckedChange = null"))
+        assertTrue(source.contains("preference.performClick()"))
+        assertFalse(source.contains("OnTouchListener"))
     }
 
     private fun source(relativePath: String): String {

@@ -26,7 +26,6 @@
 		<item name="colorControlActivated">@color/highlight_normal_light</item>
 		<item name="dialogTheme">@style/AppDialogStyle</item>
 		<item name="alertDialogTheme">@style/AppDialogStyle</item>
-		<item name="preferenceTheme">@style/AppPreferenceTheme</item>
 		<item name="actionOverflowMenuStyle">@style/OverflowMenuStyle</item>
 		<item name="popupMenuStyle">@style/OverflowMenuStyle</item>
 		<item name="android:popupMenuStyle">@style/OverflowMenuStyle</item>
@@ -48,25 +47,10 @@
 		<item name="android:activityCloseEnterAnimation">@anim/activity_close_enter</item>
 		<item name="android:activityCloseExitAnimation">@anim/activity_close_exit</item>
 	</style>
-	<style name="AppToolbarStyle" parent="ThemeOverlay.AppCompat.DayNight.ActionBar">
-		<item name="colorPrimary">@color/color_window_background</item>
-		<item name="android:textColorPrimary">@color/preference_primary_text</item>
-		<item name="android:textColorSecondary">@color/preference_secondary_text</item>
-		<item name="titleTextAppearance">@style/AppTextAppearance.Primary</item>
-		<item name="searchViewStyle">@style/AppSearchView</item>
-	</style>
 	<style name="AppDialogStyle" parent="ThemeOverlay.AppCompat.Dialog">
 		<item name="android:windowBackground">@drawable/popup_background</item>
 		<item name="android:windowMinWidthMajor">70%</item>
 		<item name="android:windowMinWidthMinor">85%</item>
-	</style>
-
-	<style name="AppPreferenceTheme" parent="@style/PreferenceThemeOverlay.v14.Material">
-		<item name="preferenceFragmentCompatStyle">@style/AppPreferenceFragmentCompatStyle</item>
-		<item name="android:selectableItemBackground">@drawable/list_item_bg</item>
-	</style>
-	<style name="AppPreferenceFragmentCompatStyle" parent="@style/PreferenceFragment.Material">
-		<item name="android:layout">@layout/prefs_fragment_base</item>
 	</style>
 	<style name="OverflowMenuStyle" parent="@style/Widget.AppCompat.PopupMenu.Overflow">
 		<item name="android:overlapAnchor">false</item>
@@ -81,26 +65,6 @@
 		<item name="android:divider">@null</item>
 		<item name="android:dividerHeight">0dp</item>
 		<item name="android:cacheColorHint">@android:color/transparent</item>
-	</style>
-	<style name="GroupedListView" parent="@style/Widget.AppCompat.ListView">
-		<item name="android:divider">@null</item>
-		<item name="android:dividerHeight">0dp</item>
-		<item name="android:listSelector">@android:color/transparent</item>
-		<item name="android:cacheColorHint">@android:color/transparent</item>
-		<item name="android:clipToPadding">false</item>
-		<item name="android:paddingStart">@dimen/preference_group_inset</item>
-		<item name="android:paddingEnd">@dimen/preference_group_inset</item>
-		<item name="android:paddingTop">@dimen/preference_screen_padding_top</item>
-		<item name="android:paddingBottom">@dimen/preference_screen_padding_bottom</item>
-		<item name="android:overScrollMode">never</item>
-	</style>
-	<style name="GroupedListView.Nested">
-		<item name="android:paddingTop">0dp</item>
-		<item name="android:paddingBottom">@dimen/preference_group_gap</item>
-	</style>
-	<style name="AppSearchView" parent="Widget.AppCompat.SearchView">
-		<item name="queryBackground">@android:color/transparent</item>
-		<item name="android:textColorHint">@color/hint_edit_text_color</item>
 	</style>
 	<style name="AppTextAppearance.PopupMenu" parent="TextAppearance.AppCompat.Menu">
 		<item name="android:textSize">@dimen/normal_text_size</item>

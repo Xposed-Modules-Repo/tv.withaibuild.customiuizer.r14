@@ -1,6 +1,7 @@
 package tv.withaibuild.customiuizer.mods.utils
 
-import java.io.File
+import tv.withaibuild.customiuizer.testsupport.repositorySource as source
+
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -16,7 +17,7 @@ class GlobalActionConfigContractTest {
     fun configFileOwnsIndexAndIsIndependent() {
         assertTrue(config.contains("internal val customActionKeys = arrayOf("))
         assertTrue(config.contains("private fun ensureCustomActionMaps()"))
-        assertTrue(config.contains("fun hasConfiguredGlobalActions()"))
+        assertFalse(config.contains("fun hasConfiguredGlobalActions()"))
         assertTrue(config.contains("fun hasConfiguredActionCode("))
         assertTrue(config.contains("fun hasConfiguredToggle("))
         assertTrue(config.contains("MainModule.mPrefs.getInt(key + \"_action\", 1)"))
@@ -53,12 +54,4 @@ class GlobalActionConfigContractTest {
         assertFalse(systemServerInstaller.contains("GlobalActions.hasCustomActions()"))
     }
 
-    private fun source(relativePath: String): String {
-        var directory = File(System.getProperty("user.dir").orEmpty()).absoluteFile
-        while (true) {
-            val candidate = File(directory, relativePath)
-            if (candidate.isFile) return candidate.readText()
-            directory = directory.parentFile ?: error("Repository root not found while locating $relativePath")
-        }
-    }
 }

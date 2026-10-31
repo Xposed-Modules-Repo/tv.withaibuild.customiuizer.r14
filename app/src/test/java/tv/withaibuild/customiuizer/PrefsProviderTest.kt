@@ -24,12 +24,14 @@ class PrefsProviderTest {
     @Test fun committedHeightIsRestrictedToSystemUidAndDoesNotInventAMissingMirror() {
         ShadowBinder.setCallingUid(10381)
         try {
-            assertThrows(SecurityException::class.java) { provider.call(PrefsProvider.COMMITTED_HEIGHT, null, null) }
+            for (method in listOf(PrefsProvider.COMMITTED_HEIGHT, PrefsProvider.COMMITTED_AUTOMATION))
+                assertThrows(SecurityException::class.java) { provider.call(method, null, null) }
             ShadowBinder.setCallingUid(1000)
             val previous = AppHelper.remotePrefs
             try {
                 AppHelper.remotePrefs = null
                 assertNull(provider.call(PrefsProvider.COMMITTED_HEIGHT, null, null))
+                assertNull(provider.call(PrefsProvider.COMMITTED_AUTOMATION, null, null))
             } finally { AppHelper.remotePrefs = previous }
         } finally { ShadowBinder.reset() }
     }

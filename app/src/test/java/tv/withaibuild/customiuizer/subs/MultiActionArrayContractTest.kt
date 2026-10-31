@@ -86,19 +86,19 @@ class MultiActionArrayContractTest {
 
     @Test
     fun parameterizedActionsHaveUiAndMatchingPreferenceSuffixes() {
-        val controls = section(multiAction, "private fun updateControls", "override fun onActivityResult")
-        assertTrue(controls.contains("8 -> apps.visibility"))
-        assertTrue(controls.contains("9 -> shortcuts.visibility"))
-        assertTrue(controls.contains("10 -> toggles.visibility"))
-        assertTrue(controls.contains("20 -> activities.visibility"))
+        val controls = section(multiAction, "override fun onCreateView", "override fun onActivityResult")
+        assertTrue(controls.contains("8 -> TargetRow"))
+        assertTrue(controls.contains("9 -> SettingsActionRow"))
+        assertTrue(controls.contains("10 -> ActionChoice"))
+        assertTrue(controls.contains("20 -> TargetRow"))
 
-        assertTrue(multiAction.contains("mKey + \"_app\""))
-        assertTrue(multiAction.contains("mKey + \"_shortcut\""))
-        assertTrue(multiAction.contains("mKey + \"_activity\""))
-        assertTrue(multiAction.contains("mKey + \"_toggle\""))
-        assertTrue(multiAction.contains("mKey + \"_app_user\""))
-        assertTrue(multiAction.contains("mKey + \"_activity_user\""))
-        assertTrue(multiAction.contains("mKey + \"_shortcut_intent\""))
+        assertTrue(multiAction.contains("key + \"_app\""))
+        assertTrue(multiAction.contains("key + \"_shortcut\""))
+        assertTrue(multiAction.contains("key + \"_activity\""))
+        assertTrue(multiAction.contains("key + \"_toggle\""))
+        assertTrue(multiAction.contains("key + \"_app_user\""))
+        assertTrue(multiAction.contains("key + \"_activity_user\""))
+        assertTrue(multiAction.contains("key + \"_shortcut_intent\""))
 
         assertTrue(intentHelper.contains("IntentType.APP -> \"_app\""))
         assertTrue(intentHelper.contains("IntentType.ACTIVITY -> \"_activity\""))

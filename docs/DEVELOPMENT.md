@@ -34,7 +34,7 @@ GitHub CLI / API 仅作为已有 Git 网络故障证据下的备用路径。先�
 
 ## 环境
 
-- JDK 25，JAVA_HOME 指向 JDK 根目录；Gradle daemon、Java toolchain 和 Java / Kotlin 输出均为 25。Android 14 不提供全部桌面 JDK API，需分别验证语言、DEX 和运行期能力。
+- JDK 27，JAVA_HOME 指向 JDK 根目录；Gradle daemon 与 Java toolchain 使用 27；稳定版 Kotlin 2.4.21 的 Java / Kotlin 字节码目标统一为 26。D8 / R8、Host 测试和 A14 设备分别验证，不因构建 JDK 升级而扩展运行期 API。Android 14 不提供全部桌面 JDK API，需分别验证语言、DEX 和运行期能力。
 - Python 3.12+：`python -m pip install -r tools/requirements.txt`。Windows 可设置 `$env:PYTHONUTF8='1'` 统一子进程编码。
 - Android SDK 安装项以 [ci_install_android_sdk.sh](../tools/ci_install_android_sdk.sh) 为准；本机 `local.properties` 的 `sdk.dir` 指向 SDK 根目录，不入库。compileSdk 不改变 minSdk / targetSdk 34 的运行边界。
 - 使用仓库 wrapper；版本以 [libs.versions.toml](../gradle/libs.versions.toml)、[根构建](../build.gradle.kts)、[app 构建](../app/build.gradle.kts) 和 [wrapper 配置](../gradle/wrapper/gradle-wrapper.properties) 为准。
@@ -60,9 +60,11 @@ GitHub CLI / API 仅作为已有 Git 网络故障证据下的备用路径。先�
 | develop | R8 / 资源收缩与 CI 检查，默认未签名 |
 | release | 正式候选，授权及外部签名按 [RELEASE](RELEASE.md)；无正式签名时带 `-unsigned` |
 
-输出在 `app/build/outputs/`。设置源为 `res/xml/prefs_*.xml`；`generatePreferenceArtifacts` 生成分页、搜索索引和偏好目录到 `app/build/generated/`，不手改或提交生成物。
+输出在 `app/build/outputs/`。设置唯一来源为 `app/settings/prefs_*.json`；`generatePreferenceArtifacts` 生成按需 Compose 模型工厂、非 UI 搜索索引和偏好目录到 `app/build/generated/`，不手改或提交生成物。
 
-生成器完整跟踪 XML，Kotlin 声明输入限定 `mods/utils/feature/`。普通 Hook / Java / UI 改动不应重生成设置；新增偏好声明移出 feature 目录时同步生成依赖。回归须将限定输入结果与全源码扫描逐字节比较。
+保持单一 app 模块，只有独立构建 / 分发合同才新增模块。生产辅助 API 按 A14 实际消费者维护；开发采样不嵌入 main，测试与替身只放 test 源码集。三个变体的 provenance 由同一注册函数维护，仍各有独立目录、任务及消费依赖，release 独有完整 sourceCommit。构建配置变化后用实际合并 assets 验证隔离，不能仅看脚本文本。
+
+生成器完整跟踪 settings JSON、schema / Kotlin 生成器脚本，Kotlin 声明输入限定 `mods/utils/feature/`。普通 Hook / Java / UI 改动不应重生成设置；新增偏好声明移出 feature 目录时同步生成依赖。回归须将限定输入结果与全源码扫描逐字节比较。
 
 生成 res / Kotlin 和各变体 provenance assets 用 AGP `addGeneratedSourceDirectory` 声明消费依赖；独立 lint 的 provenance 依赖用公开 PreBuild 生命周期 API 注册，不匹配内部任务名。
 

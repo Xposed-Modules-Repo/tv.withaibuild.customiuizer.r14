@@ -43,39 +43,15 @@ class AppListMetadataTest {
         }
     }
 
-    // Android view inflation is not exercised by the plain JVM suite. These contracts tie
-    // the tested preparation to every loader caller and keep resource loads out of binding.
-    private fun source(name: String): String = Files.readString(
-        Path.of("src/main/java/tv/withaibuild/customiuizer/utils/$name.kt"))
-
-    @Test
-    fun allIconAdaptersPrepareMetadataAndUseTheLoaderCacheKey() {
-        for (name in listOf("AppDataAdapter", "LockedAppAdapter", "PrivacyAppAdapter", "ResolveInfoAdapter")) {
-            val text = source(name)
-            assertTrue("$name must prepare metadata", text.contains("prepareForList()"))
-            assertTrue("$name must use the loader key", text.contains("Helpers.memoryCache[ad.iconKey]"))
-        }
-    }
-
-    @Test
-    fun shortcutBindingAndFilteringUseAdapterOwnedMetadata() {
-        val text = source("ResolveInfoAdapter")
-        val hotPaths = text.substring(text.indexOf("override fun getView"))
-        assertFalse(hotPaths.contains("loadLabel("))
-        assertFalse(hotPaths.contains("AppData()"))
-        assertTrue(text.contains("List<Entry>"))
-        assertTrue(text.contains("filteredAppList[position].resolveInfo"))
-        assertTrue(text.contains("entry.app.labelLower.contains(filterString)"))
-    }
-
-    @Test
-    fun selectedFirstAdaptersUseSingleReadOrderingAndPreparedSearchKeys() {
-        for (name in listOf("LockedAppAdapter", "PrivacyAppAdapter")) {
-            val text = source(name)
-            assertTrue(text.contains("selectedAppsFirst(filteredAppList)"))
-            assertTrue(text.contains("app.labelLower.contains(filterString)"))
-            assertFalse(text.contains("sortWith"))
-            assertFalse(text.contains("CopyOnWriteArrayList"))
-        }
+    @Test fun composeListsLoadIconsOffMainAndReusePreparedKeys() {
+        val source = Files.readString(Path.of("src/main/java/tv/withaibuild/customiuizer/SubFragmentWithSearch.kt"))
+        assertTrue(source.contains("Helpers.memoryCache[app.iconKey]"))
+        assertTrue(source.contains("withContext(AppIconLoader.dispatcher)"))
+        assertFalse(source.contains("loadLabel("))
+        assertTrue(source.contains("app.labelLower.contains(filter)"))
+        val icon = Files.readString(Path.of("src/main/java/tv/withaibuild/customiuizer/utils/AppIconLoader.kt"))
+        assertTrue(icon.contains("Dispatchers.IO.limitedParallelism(4)"))
+        assertTrue(icon.contains("coerceIn(1, 256)"))
+        assertTrue(icon.contains("Helpers.memoryCache.put(iconKey, bitmap)"))
     }
 }

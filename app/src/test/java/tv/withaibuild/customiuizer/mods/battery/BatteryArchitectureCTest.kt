@@ -10,10 +10,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
-import org.junit.Assume.assumeTrue
 import org.junit.Test
-import java.io.File
-import java.net.URLDecoder
 import java.lang.reflect.Modifier
 import tv.withaibuild.customiuizer.mods.SystemUIBatteryHooks
 import tv.withaibuild.customiuizer.mods.utils.XposedHelpers
@@ -22,6 +19,7 @@ import tv.withaibuild.customiuizer.mods.battery.testfixtures.FakeTextView
 import tv.withaibuild.customiuizer.mods.battery.testfixtures.ShadowedBatteryView
 import tv.withaibuild.customiuizer.mods.battery.testfixtures.SubBatteryView
 import java.lang.reflect.Field
+import tv.withaibuild.customiuizer.testsupport.repositorySource
 
 /**
  * Runtime tests for the Battery Style Architecture C migration:
@@ -448,19 +446,22 @@ class BatteryArchitectureCTest {
     @Test
     fun fastPathSourceDoesNotContainXposedGetObjectField() {
         val source = sourceOf(BatteryStyleEffect::class.java)
-        assumeTrue("source file must be available in the workspace", source != null)
-        val body = source!!.substringAfter("private fun readFast(").substringBefore("private fun readLegacy(")
+        assertTrue(source.contains("private fun readFast("))
+        assertTrue(source.contains("private fun readLegacy("))
+        val body = source.substringAfter("private fun readFast(").substringBefore("private fun readLegacy(")
+        assertTrue("FAST path must use the frozen field", body.contains("field.get(parent)"))
         assertFalse(
             "FAST path readFast must not call XposedHelpers.getObjectField",
-            body.contains("XposedHelpers.getObjectField"),
+            Regex("""\bXposedHelpers\s*\.\s*getObjectField\s*\(""").containsMatchIn(body),
         )
     }
 
     @Test
     fun hookCallbackCapturesLocalEffectSource() {
         val source = sourceOf(SystemUIBatteryHooks::class.java)
-        assumeTrue("source file must be available in the workspace", source != null)
-        val body = source!!.substringAfter("fun StatusBarStyleBatteryIconHook(").substringBefore("private fun isBatteryStyleDefault")
+        assertTrue(source.contains("fun StatusBarStyleBatteryIconHook("))
+        assertTrue(source.contains("private fun isBatteryStyleDefault"))
+        val body = source.substringAfter("fun StatusBarStyleBatteryIconHook(").substringBefore("private fun isBatteryStyleDefault")
         assertTrue(
             "StatusBarStyleBatteryIconHook must create a local effect and not use a mutable global",
             body.contains("val effect = BatteryStyleEffect(") &&
@@ -535,26 +536,8 @@ class BatteryArchitectureCTest {
         lateinit var mBatteryPercentView: TextView
     }
 
-    private fun sourceOf(clazz: Class<*>): String? {
-        val resourcePath = clazz.name.replace('.', '/') + ".class"
-        val loader = javaClass.classLoader ?: return null
-        val url = loader.getResource(resourcePath) ?: return null
-        // Decode the file path from the URL, handling spaces and percent-escapes.
-        val classFile = File(URLDecoder.decode(url.file, "UTF-8"))
-        var dir: File? = classFile.parentFile
-        var safety = 0
-        while (dir != null && safety < 20) {
-            val srcMain = File(dir, "src/main/java")
-            if (srcMain.isDirectory) {
-                val relative = clazz.name.replace('.', '/') + ".kt"
-                val kt = File(srcMain, relative)
-                if (kt.exists()) return kt.readText()
-            }
-            dir = dir.parentFile
-            safety++
-        }
-        return null
-    }
+    private fun sourceOf(clazz: Class<*>): String =
+        repositorySource("app/src/main/java/" + clazz.name.replace('.', '/') + ".kt")
 
     private class NonTextView : View(null as android.content.Context?)
 }

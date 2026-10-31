@@ -1,11 +1,12 @@
 package tv.withaibuild.customiuizer.mods.utils
 
+import tv.withaibuild.customiuizer.testsupport.repositorySource as source
+
 import android.content.pm.PackageManager
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import tv.withaibuild.customiuizer.mods.GlobalActionSystemServerHooks
-import java.io.File
 
 class UpdaterServicesBridgeContractTest {
     @Test
@@ -55,12 +56,4 @@ class UpdaterServicesBridgeContractTest {
         assertTrue(screen.contains("SECURITY_CENTER_ANTIVIRUS_TRIM_PREF"))
     }
 
-    private fun source(path: String): String {
-        var directory = File(System.getProperty("user.dir")).absoluteFile
-        while (true) {
-            val candidate = File(directory, path)
-            if (candidate.isFile) return candidate.readText()
-            directory = directory.parentFile ?: error("Repository root not found for $path")
-        }
-    }
 }

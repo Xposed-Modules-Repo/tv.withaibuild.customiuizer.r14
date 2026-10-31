@@ -1,0 +1,307 @@
+{
+  "type": "screen",
+  "attributes": {},
+  "children": [
+    {
+      "type": "toggle",
+      "attributes": {
+        "android:key": "pref_key_system_statusbar_clocktweak",
+        "android:title": "@string/enable_mod",
+        "android:defaultValue": "false"
+      }
+    },
+    {
+      "type": "toggle",
+      "attributes": {
+        "android:key": "pref_key_system_statusbar_enable_weather_param",
+        "android:title": "@string/system_statusbar_enable_weather_param_title"
+      }
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/system_statusbar_clocktweak_title",
+        "android:dependency": "pref_key_system_statusbar_clocktweak",
+        "app:state": "2"
+      },
+      "children": [
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/prefs_group_text"
+          },
+          "children": [
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_fontsize",
+                "android:title": "@string/launcher_titlefontsize_title",
+                "android:defaultValue": "13",
+                "app:minValue": "13",
+                "app:maxValue": "40",
+                "app:stepValue": "1",
+                "app:displayDividerValue": "2",
+                "app:offtext": "@string/array_default",
+                "app:format": "%s dp"
+              }
+            },
+            {
+              "type": "choice",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_align",
+                "android:title": "@string/system_statusbar_clock_align_title",
+                "android:entries": "@array/horizontalalign",
+                "android:entryValues": "@array/horizontalalign_val",
+                "app:valueAsSummary": "true",
+                "android:defaultValue": "1"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_bold",
+                "android:title": "@string/system_statusbar_mobiletype_single_bold_title",
+                "android:defaultValue": "false"
+              }
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/prefs_group_background"
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_chip",
+                "android:title": "@string/system_statusbar_clock_chip_title",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_chip_usemonet",
+                "android:title": "@string/array_dynamic",
+                "android:dependency": "pref_key_system_statusbar_clock_chip",
+                "android:disableDependentsState": "true",
+                "app:indentLevel": "1"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_chip_orientation_vertical",
+                "android:title": "@string/system_statusbar_clock_chip_orientation_vertical_title",
+                "android:dependency": "pref_key_system_statusbar_clock_chip",
+                "app:indentLevel": "1"
+              }
+            },
+            {
+              "type": "color",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_chip_startcolor",
+                "android:title": "@string/system_statusbar_clock_chip_startcolor_title",
+                "android:dependency": "pref_key_system_statusbar_clock_chip",
+                "app:indentLevel": "1"
+              }
+            },
+            {
+              "type": "color",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_chip_endcolor",
+                "android:title": "@string/system_statusbar_clock_chip_endcolor_title",
+                "android:dependency": "pref_key_system_statusbar_clock_chip",
+                "app:indentLevel": "1"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_chip_customtextcolor",
+                "android:title": "@string/system_statusbar_clock_chip_customtextcolor_title",
+                "android:dependency": "pref_key_system_statusbar_clock_chip_usemonet",
+                "app:indentLevel": "1"
+              }
+            },
+            {
+              "type": "color",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_chip_textcolor",
+                "android:title": "@string/array_static",
+                "android:dependency": "pref_key_system_statusbar_clock_chip_customtextcolor",
+                "app:indentLevel": "2"
+              }
+            },
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_chip_horizpadding",
+                "android:title": "@string/system_batteryindicator_padding_title",
+                "android:dependency": "pref_key_system_statusbar_clock_chip",
+                "android:defaultValue": "0",
+                "app:minValue": "0",
+                "app:maxValue": "10",
+                "app:stepValue": "1",
+                "app:indentLevel": "1",
+                "app:format": "%s dp"
+              }
+            },
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_chip_verticalpadding",
+                "android:title": "@string/system_statusbar_clock_chip_verticalpadding_title",
+                "android:dependency": "pref_key_system_statusbar_clock_chip",
+                "android:defaultValue": "0",
+                "app:minValue": "0",
+                "app:maxValue": "16",
+                "app:stepValue": "1",
+                "app:indentLevel": "1",
+                "app:format": "%s dp"
+              }
+            },
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_chip_radius",
+                "android:title": "@string/system_statusbar_clock_chip_radius_title",
+                "android:dependency": "pref_key_system_statusbar_clock_chip",
+                "android:defaultValue": "0",
+                "app:minValue": "0",
+                "app:maxValue": "30",
+                "app:stepValue": "1",
+                "app:indentLevel": "1",
+                "app:format": "%s dp"
+              }
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/prefs_group_spacing"
+          },
+          "children": [
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_leftmargin",
+                "android:title": "@string/system_statusbar_mobiletype_single_leftmargin_title",
+                "android:defaultValue": "0",
+                "app:minValue": "0",
+                "app:maxValue": "10",
+                "app:stepValue": "1",
+                "app:displayDividerValue": "2",
+                "app:format": "%s dp"
+              }
+            },
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_rightmargin",
+                "android:title": "@string/system_statusbar_dualsimin2rows_rightmargin_title",
+                "android:defaultValue": "0",
+                "app:minValue": "0",
+                "app:maxValue": "10",
+                "app:stepValue": "1",
+                "app:displayDividerValue": "2",
+                "app:format": "%s dp"
+              }
+            },
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_verticaloffset",
+                "android:title": "@string/system_statusbar_mobiletype_single_verticaloffset",
+                "android:defaultValue": "8",
+                "app:minValue": "0",
+                "app:maxValue": "16",
+                "app:stepValue": "1",
+                "app:negativeShift": "8",
+                "app:displayDividerValue": "2",
+                "app:format": "%s dp"
+              }
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/prefs_group_clock_format"
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_show_seconds",
+                "android:title": "@string/system_clockseconds_title",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_fixedcontent_width",
+                "android:title": "@string/system_clock_fixed_width_title",
+                "android:summary": "@string/system_clock_fixedwidth_summ",
+                "android:defaultValue": "10",
+                "app:minValue": "10",
+                "app:maxValue": "120",
+                "app:stepValue": "1",
+                "app:offtext": "@string/array_default",
+                "app:format": "%s dp"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_24hour_format",
+                "android:title": "@string/system_clock_time_format_title",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_show_ampm",
+                "android:title": "@string/system_clock_show_ampm_title",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_leadingzero",
+                "android:title": "@string/system_clock_leadingzero_title",
+                "android:disableDependentsState": "true",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_customformat_enable",
+                "android:title": "@string/system_clock_customformat_enable_title"
+              }
+            },
+            {
+              "type": "text",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_clock_customformat",
+                "android:title": "@string/system_clock_customformat_setting_title",
+                "android:dialogMessage": "@string/system_clock_customformat_help_summ",
+                "android:dependency": "pref_key_system_statusbar_clock_customformat_enable",
+                "app:useSimpleSummaryProvider": "true",
+                "app:indentLevel": "1",
+                "android:defaultValue": ""
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

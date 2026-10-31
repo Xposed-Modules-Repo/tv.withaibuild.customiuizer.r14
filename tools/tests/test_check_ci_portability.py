@@ -55,7 +55,7 @@ class CIPortabilityCheckerTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = self.make_fake_repo(tmp)
             (root / "tools" / "bad.py").write_text(
-                'path = "C:/Users/tv/project"\n', encoding="utf-8"
+                'path = "C:/Users/build-user/project"\n', encoding="utf-8"
             )
             result = self.run_checker(root, root / "tools" / "check_ci_portability.py")
             self.assertEqual(1, result.returncode, result.stdout + result.stderr)

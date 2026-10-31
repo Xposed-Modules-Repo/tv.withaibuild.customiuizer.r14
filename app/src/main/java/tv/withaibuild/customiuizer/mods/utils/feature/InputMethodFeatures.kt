@@ -80,7 +80,9 @@ internal class InputMethodFixBottomMarginFeature(
     }
 
     override fun isEnabledCondition(prefs: PrefMap) = Companion.evaluateEnabled(prefs)
-    override fun installHook() = Various.FixInputMethodBottomMarginHook(lpparam)
+    override fun install(): FeatureInstallResult {
+        return Various.FixInputMethodBottomMarginHook(lpparam)
+    }
 }
 
 internal class InputMethodGboardPaddingFeature(

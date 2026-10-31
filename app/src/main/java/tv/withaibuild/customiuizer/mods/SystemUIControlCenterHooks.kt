@@ -1447,6 +1447,26 @@ object SystemUIControlCenterHooks {
         ModuleHelper.hookAllMethods("miui.systemui.controlcenter.qs.tileview.QSTileItemIconView", pluginLoader, "getActiveBackgroundDrawable", radiusHook)
     }
 
+    internal fun statusBarTouchHook(dispatch: (GestureEvent, View) -> Unit) = object : MethodHook() {
+        override fun before(param: BeforeHookCallback) {
+            val owner = param.getThisObject() as? View ?: return
+            val event = param.getArg(0) as? MotionEvent ?: return
+            val gestureEvent = GestureEvent(
+                entry = GestureEntry.STATUS_BAR_TOUCH,
+                actionMasked = event.actionMasked,
+                downTime = event.downTime,
+                eventTime = event.eventTime,
+                x = event.x,
+                y = event.y,
+                pointerCount = event.pointerCount,
+                ownerId = System.identityHashCode(owner),
+                deviceId = event.deviceId,
+                source = event.source,
+            )
+            ModuleHelper.guarded { dispatch(gestureEvent, owner) }
+        }
+    }
+
     @JvmStatic
     fun StatusBarGesturesHook(lpparam: PackageReadyParam) {
         val runtime = ControlCenterPluginRuntime
@@ -1466,32 +1486,10 @@ object SystemUIControlCenterHooks {
             effectExecutor = StatusBarGestureEffectExecutor(),
             arbiter = runtime.arbiter(),
         )
-        val statusBarHook = object : MethodHook() {
-            override fun before(param: BeforeHookCallback) {
-                val thisObject = param.getThisObject() as? View ?: return
-                if (param.getArgs().isEmpty()) return
-                val event = param.getArg(0) as? MotionEvent ?: return
-                // INTERCEPT events do not yet own the touch stream; only process TOUCH.
-                if (param.getMember().name != "onTouchEvent") return
-                val gestureEvent = GestureEvent(
-                    entry = GestureEntry.STATUS_BAR_TOUCH,
-                    actionMasked = event.actionMasked,
-                    downTime = event.downTime,
-                    eventTime = event.eventTime,
-                    x = event.x,
-                    y = event.y,
-                    pointerCount = event.pointerCount,
-                    ownerId = System.identityHashCode(thisObject),
-                    deviceId = event.deviceId,
-                    source = event.source,
-                )
-                ModuleHelper.guarded {
-                    statusBarMachine.dispatch(gestureEvent, thisObject)
-                }
-            }
-        }
+        val statusBarHook = statusBarTouchHook { event, owner -> statusBarMachine.dispatch(event, owner) }
 
-        ModuleHelper.findAndHookMethod("com.android.systemui.statusbar.phone.PhoneStatusBarView", lpparam.classLoader, "onInterceptTouchEvent", MotionEvent::class.java, statusBarHook)
+        // Interception never advanced state or produced effects. Observe only the
+        // authoritative touch entry; leave native interception entirely to the host.
         ModuleHelper.findAndHookMethod("com.android.systemui.statusbar.phone.PhoneStatusBarView", lpparam.classLoader, "onTouchEvent", MotionEvent::class.java, statusBarHook)
         ModuleHelper.findAndHookMethod("com.android.systemui.statusbar.phone.PhoneStatusBarView", lpparam.classLoader, "onAttachedToWindow", object : MethodHook() {
             override fun before(param: BeforeHookCallback) {

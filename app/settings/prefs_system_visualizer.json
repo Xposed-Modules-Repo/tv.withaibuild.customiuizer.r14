@@ -1,0 +1,163 @@
+{
+  "type": "screen",
+  "attributes": {},
+  "children": [
+    {
+      "type": "toggle",
+      "attributes": {
+        "android:key": "pref_key_system_visualizer",
+        "android:title": "@string/enable_mod",
+        "android:summary": "@string/system_visualizer_lockscreen_summ",
+        "android:defaultValue": "false"
+      }
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/system_visualizer_title",
+        "android:dependency": "pref_key_system_visualizer",
+        "app:dynamic": "true",
+        "app:state": "2"
+      },
+      "children": [
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/prefs_group_visibility"
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_visualizer_custom",
+                "android:title": "@string/system_visualizer_custom_title",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_visualizer_drawer",
+                "android:title": "@string/system_visualizer_drawer_title",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_visualizer_controller",
+                "android:title": "@string/system_visualizer_controller_title",
+                "android:summary": "@string/system_visualizer_controller_summ",
+                "android:defaultValue": "false"
+              }
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/prefs_group_style"
+          },
+          "children": [
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_visualizer_animdur",
+                "android:title": "@string/system_visualizer_animdur_title",
+                "android:defaultValue": "65",
+                "app:minValue": "50",
+                "app:maxValue": "200",
+                "app:stepValue": "5",
+                "app:format": "@string/format_d_ms"
+              }
+            },
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_visualizer_transp",
+                "android:title": "@string/system_visualizer_transp_title",
+                "android:defaultValue": "40",
+                "app:minValue": "0",
+                "app:maxValue": "95",
+                "app:stepValue": "5",
+                "app:format": "%d%%"
+              }
+            },
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_visualizer_glowlevel",
+                "android:title": "@string/system_visualizer_glowlevel_title",
+                "android:defaultValue": "50",
+                "app:minValue": "0",
+                "app:maxValue": "100",
+                "app:stepValue": "1",
+                "app:format": "%d%%"
+              }
+            },
+            {
+              "type": "choice",
+              "attributes": {
+                "android:key": "pref_key_system_visualizer_render",
+                "android:title": "@string/system_visualizer_render_title",
+                "android:entries": "@array/visualizerrender",
+                "android:entryValues": "@array/visualizerrender_val",
+                "android:defaultValue": "0",
+                "app:valueAsSummary": "true"
+              }
+            },
+            {
+              "type": "choice",
+              "attributes": {
+                "android:key": "pref_key_system_visualizer_style",
+                "android:title": "@string/system_visualizer_style_title",
+                "android:entries": "@array/visualizerstyle",
+                "android:entryValues": "@array/visualizerstyle_val",
+                "android:defaultValue": "1",
+                "app:valueAsSummary": "true"
+              }
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/prefs_group_color"
+          },
+          "children": [
+            {
+              "type": "choice",
+              "attributes": {
+                "android:key": "pref_key_system_visualizer_color",
+                "android:title": "@string/system_visualizer_color_title",
+                "android:entries": "@array/visualizercolor",
+                "android:entryValues": "@array/visualizercolor_val",
+                "android:defaultValue": "1",
+                "app:valueAsSummary": "true"
+              }
+            },
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_visualizer_dyntime",
+                "android:title": "@string/system_visualizer_dyntime_title",
+                "android:defaultValue": "10",
+                "app:minValue": "3",
+                "app:maxValue": "60",
+                "app:stepValue": "1",
+                "app:format": "@string/format_d_s"
+              }
+            },
+            {
+              "type": "color",
+              "attributes": {
+                "android:key": "pref_key_system_visualizer_colorval",
+                "android:title": "@string/system_visualizer_colorval_title"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

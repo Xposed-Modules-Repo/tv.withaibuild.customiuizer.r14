@@ -151,29 +151,18 @@ def _infer_install_phase(func_name: str | None, source_file: str | None) -> str:
 
 
 def _extract_xml_keys(repo_root: Path) -> dict[str, dict[str, Any]]:
-    xml_dir = repo_root / "app" / "src" / "main" / "res" / "xml"
+    try:
+        from tools.settings_schema import preference_sources, read_element, ANDROID_NS
+    except ModuleNotFoundError:
+        from settings_schema import preference_sources, read_element, ANDROID_NS
+    directory = repo_root / "app/src/main/res/xml"
     found: dict[str, dict[str, Any]] = {}
-    if not xml_dir.is_dir():
-        return found
-    for xml_file in sorted(xml_dir.glob("*.xml")):
-        text = xml_file.read_text(encoding="utf-8")
-        rel = _rel(repo_root, xml_file)
-        # fast per-tag extraction for default value
-        for m in XML_TAG_RE.finditer(text):
-            tag = m.group(0)
-            km = XML_KEY_RE.search(tag)
-            if not km:
-                continue
-            key = html.unescape(km.group(1))
-            default_match = XML_DEFAULT_RE.search(tag)
-            default_value = html.unescape(default_match.group(1)) if default_match else ""
-            if key not in found:
-                found[key] = {
-                    "xmlSource": rel,
-                    "defaultValue": default_value,
-                }
-            else:
-                found[key].setdefault("xmlSource", rel)
+    ns = "{" + ANDROID_NS + "}"
+    for source in preference_sources(directory):
+        for node in read_element(source).iter():
+            key = node.get(ns + "key")
+            if key and key not in found:
+                found[key] = {"xmlSource": _rel(repo_root, source), "defaultValue": node.get(ns + "defaultValue", "")}
     return found
 
 

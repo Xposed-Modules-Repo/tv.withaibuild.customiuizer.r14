@@ -19,8 +19,10 @@ class WeatherDataLifecycleContractTest {
         assertTrue(controller.contains("if (!queryFailureLogged)"))
         assertFalse(controller.contains("private var weakReferenceRunnable: Runnable?"))
         assertFalse(hook.contains("val mWeatherRunnable = Runnable"))
-        assertTrue(hook.contains("WeatherDataController.initContext(mContext, thisObject)"))
-        assertTrue(hook.contains("WeatherDataController.initContext(mContext, thisObject)\n\n                } catch (oom: OutOfMemoryError)"))
+        assertTrue(hook.contains("WeatherDataController.initContext(mContext, thisObject,"))
+        assertTrue(hook.contains("needsWeatherData(snapshot, statusbarClockTweak, ccClockTweak, hideDateView, hideDrawerDate)"))
+        assertTrue(hook.contains("WeatherDataController.setEnabled(needsWeatherData(freshSnapshot,"))
+        assertFalse(hook.contains("private fun initWeatherInfoHook"))
     }
 
     @Test

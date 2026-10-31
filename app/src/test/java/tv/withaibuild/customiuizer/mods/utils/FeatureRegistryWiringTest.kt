@@ -1,5 +1,7 @@
 package tv.withaibuild.customiuizer.mods.utils
 
+import tv.withaibuild.customiuizer.testsupport.repositorySource as source
+
 import io.github.libxposed.api.XposedModuleInterface
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -8,7 +10,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import tv.withaibuild.customiuizer.mods.utils.feature.PackagePermissionsFeatureId
 import tv.withaibuild.customiuizer.utils.PrefMap
-import java.io.File
 import java.lang.reflect.Proxy
 
 class FeatureRegistryWiringTest {
@@ -76,16 +77,6 @@ class FeatureRegistryWiringTest {
                 else -> null
             }
         } as XposedModuleInterface.SystemServerStartingParam
-    }
-
-    private fun source(relativePath: String): String {
-        var directory = File(System.getProperty("user.dir").orEmpty()).absoluteFile
-        while (true) {
-            val candidate = File(directory, relativePath)
-            if (candidate.isFile) return candidate.readText()
-            directory = directory.parentFile
-                ?: error("Repository root not found while locating $relativePath")
-        }
     }
 
     private fun methodBody(source: String, header: String): String {

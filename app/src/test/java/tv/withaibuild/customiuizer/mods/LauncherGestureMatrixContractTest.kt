@@ -7,7 +7,7 @@ import org.junit.Test
 
 class LauncherGestureMatrixContractTest {
 
-    private val prefs = Files.readString(Path.of("src/main/res/xml/prefs_launcher.xml"))
+    private val prefs = Files.readString(Path.of("settings/prefs_launcher.json"))
     private val launcherUi = Files.readString(
         Path.of("src/main/java/tv/withaibuild/customiuizer/subs/Launcher.kt")
     )
@@ -42,7 +42,7 @@ class LauncherGestureMatrixContractTest {
             "pref_key_launcher_spread",
         )
         for (key in uiKeys) {
-            assertTrue("$key missing from prefs_launcher.xml", prefs.contains("android:key=\"$key\""))
+            assertTrue("$key missing from prefs_launcher.json", prefs.contains("\"android:key\": \"$key\""))
             assertTrue("$key missing MultiAction click", launcherUi.contains("\"$key\""))
         }
         val runtimeKeys = listOf(

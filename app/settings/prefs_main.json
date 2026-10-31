@@ -1,0 +1,92 @@
+{
+  "type": "screen",
+  "attributes": {
+    "android:key": "prefs"
+  },
+  "children": [
+    {
+      "type": "action",
+      "attributes": {
+        "android:key": "pref_key_warning",
+        "app:isPreferenceVisible": "false",
+        "app:warning": "true"
+      }
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/mods",
+        "android:key": "prefs_cat"
+      },
+      "children": [
+        {
+          "type": "action",
+          "attributes": {
+            "android:title": "@string/system_mods",
+            "android:key": "pref_key_system"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:title": "@string/launcher_title",
+            "android:key": "pref_key_launcher"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:title": "@string/controls_mods",
+            "android:key": "pref_key_controls"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:title": "@string/various_mods",
+            "android:key": "pref_key_various"
+          }
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/settings_title",
+        "android:key": "pref_key_miuizer"
+      },
+      "children": [
+        {
+          "type": "choice",
+          "attributes": {
+            "android:key": "pref_key_miuizer_locale",
+            "android:title": "@string/miuizer_locale_title",
+            "android:entries": "@array/placeholder_array",
+            "android:entryValues": "@array/placeholder_array_strval",
+            "app:valueAsSummary": "true",
+            "android:defaultValue": "auto"
+          }
+        },
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_miuizer_launchericon",
+            "android:title": "@string/miuizer_show_launchericon_title",
+            "android:defaultValue": "true"
+          }
+        },
+        {
+          "type": "choice",
+          "attributes": {
+            "android:key": "pref_key_miuizer_settingsiconpos",
+            "android:title": "@string/miuizer_show_settingsicon_title",
+            "android:entries": "@array/settingsicon",
+            "android:entryValues": "@array/settingsicon_val",
+            "app:valueAsSummary": "true",
+            "android:defaultValue": "1"
+          }
+        }
+      ]
+    }
+  ]
+}

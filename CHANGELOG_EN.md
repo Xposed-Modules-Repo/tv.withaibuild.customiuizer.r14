@@ -2,9 +2,76 @@
 
 English | [简体中文](CHANGELOG.md)
 
-Changes for maintained releases. Valid changes from the retired r14.25.1 and r14.25.3 releases are consolidated into r14.25.5; the original records remain in Git history.
+Changes for maintained releases. Valid r14.26.1 changes are consolidated into r14.26.3, and the superseded release has been retired. Valid changes from the retired r14.25.1 and r14.25.3 releases are consolidated into r14.25.5; the original records remain in Git history.
 
 ## Unreleased
+
+## r14.26.5 — 2026-10-31
+
+versionCode 265. Changes since r14.25.9:
+
+### User changes
+
+- Migrate the settings interface to Compose with consistent lists, search, selectors, sliders, color and action editors, and state feedback. Preserve settings keys, backups and feature behavior. Group app behavior, Wi-Fi and VPN automation under “System → Apps & automation”.
+- Keep home search collapsed by default, with a dedicated view, automatic focus and highlighted matches. Fix retained focus and keyboard flashing across back navigation and background recovery. App selectors use prepared rows directly when the query is empty, avoiding unnecessary background dispatch and empty-list handoffs.
+- Use consistent neutral light / dark pages, toolbars and cards, with Material 3 dynamic colors for buttons, switches and sliders. Match system bars to the page background, align overflow typography and colors, add a restrained restart-submenu transition, and clear pressed feedback as pages or menus leave so a dark click state does not travel with them or linger.
+- Fix “null” titles in language, Settings-entry and other selection dialogs. The shared title fallback also covers text and multi-selection editors. Use 16sp primary text for choices, with system font scaling and clearer contrast.
+- Select the current numeric value when manual input opens, leave space above the keyboard, and allow long dialog content to scroll. Cancel continues to discard edits.
+- Add the missing section heading for Apps & automation and align settings grouping. Restore native edge stretching and use motion-aware text rendering to reduce glyph and spacing jumps during scrolling, rebound and navigation.
+- Restore native Dock blur opacity after hiding or locking, and stop resubmitting identical opacity in a stable state.
+- Add “System → Apps & automation → Wi-Fi automatic settings”: use SSID, optional BSSID and priority to control Do Not Disturb, ringer mode, auto rotation and VPN. Restore only owned state on exit and respect observed manual changes. Grant the network-identity permissions and restart the device after first enabling.
+- Add “System → Apps & automation → App behavior”: enable sensor rotation, media-volume memory, fixed or system-controlled brightness, and limits on or suppression of app brightness requests for selected apps, with exact Activity exceptions. Each option is off by default; restart the device after first enabling.
+- Remove Dock “Light glass” while retaining Solid panel and Frosted glass. Retired selections fall back to the panel. Remove its gradient rim, extra drawing and blur / power observers while preserving layout, editing, dragging and unlock behavior. Restart Launcher after updating.
+- Retain bounded Wi-Fi setting restoration records after a failed scene exit until readback confirms success; respect manual changes and user switches. Recover network tracking after overflow through a complete trusted snapshot, and prepare rotation and brightness Hook interfaces independently. Fix app-behavior and Wi-Fi changes remaining stale on frameworks that cache old settings.
+- Restore smoother Island waveforms with display updates synchronized to screen frames and the earlier music / recorder sampling cadence. Preserve hidden-state capture release, measured-silence / stable-state frame suspension, pause and power-saving guards. Fix lightweight waveforms remaining frozen after system animations are re-enabled.
+- Maintain Island opacity only for occluded nodes, skip repeated occlusion queries when geometry is unchanged, and tighten the texture budget for full transition surfaces. Preserve native gestures and animation handoffs.
+- Stop weather-specific subscriptions and queries when no clock uses weather content, and skip updates for a hidden second clock.
+- Coalesce duplicate status-bar network-speed mirror deliveries and update charging-text layout only when content or layout conditions change. Avoid unrelated brightness reads and argument-array copies in touch handling.
+- Clear stale recording activity levels after silence and reset the previous envelope after a failed read instead of retaining an incorrect peak.
+
+### Engineering notes
+
+- Use stable Kotlin 2.4.21, JDK 27 and Java / Kotlin bytecode 26, with updated Gradle / AGP and compileSdk 37. Runtime support remains Android 14 / HyperOS 1 without raising minSdk or targetSdk.
+- Remove settings layout XML, legacy list adapters, View binding and custom color widgets. Generate typed settings models from validated JSON while preserving AndroidX Preference persistence and dependency semantics.
+- Commit authentication state only after native success. Preserve native exception boundaries and activate screenshot and input-method Hook groups atomically so failures do not leave partial installations.
+- Remove installation sampling, unused reflection helpers, an obsolete threshold implementation and unreachable resources. Keep test helpers and temporary samples in test sources, preserve useful behavior regressions. Only settings activate Compose; host Hooks retain native View / Canvas rendering, and Release excludes test dependencies.
+- Keep Android 14 / HyperOS 1 support, the existing app identity and signing certificate; new rules are off by default. Performance conclusions are limited to measured scenarios; Host tests and reduced source work do not establish device CPU / GPU or power gains.
+- Remove duplicate search state, the obsolete state machine and four unused backgrounds. Preserve AndroidX persistence, dependency notifications and host resources.
+- Use API 102 Chain directly for Dock measurement and content-layout hooks, removing per-call before / after wrappers while preserving single native execution, exception identity, fatal propagation and installation lifetime.
+- Remove lightweight-glass paths, unused G4 path construction and tests of the retired behavior, while retaining the shared Island curvature integral. Use native TextMotion and release ripple nodes with Fragment lifecycle changes; add no persistent work, extra layers or third-party UI library.
+
+## r14.26.3 — 2026-10-31
+
+versionCode 263. Changes since r14.25.9:
+
+### User changes
+
+- Migrate the settings interface to Compose with consistent lists, search, selectors, sliders, color and action editors, and state feedback. Preserve settings keys, backups and feature behavior. Group app behavior, Wi-Fi and VPN automation under “System → Apps & automation”.
+- Keep home search collapsed by default, with a dedicated search view, automatic focus and highlighted matches. Fix intermittent focus loss and keyboard flashing, and release focus on exit and navigation return. App selectors share search input and clear actions.
+- Use consistent neutral light / dark pages, toolbars and cards, with Material 3 dynamic colors for buttons, switches and sliders. Match system bars to the page background, align overflow typography and colors, add a restrained restart-submenu transition, and fix incorrect pressed feedback when it opens.
+- Fix “null” titles in language, Settings-entry and other selection dialogs. The shared title fallback also covers text and multi-selection editors.
+- Select the current numeric value when manual input opens, leave space above the keyboard, and allow long dialog content to scroll. Cancel continues to discard edits.
+- Add the missing section heading for Apps & automation and align settings grouping. Remove edge stretching so text keeps its shape when scrolling past the end.
+- Restore native Dock blur opacity after hiding or locking, and stop resubmitting identical opacity in a stable state.
+- Add “System → Apps & automation → Wi-Fi automatic settings”: use SSID, optional BSSID and priority to control Do Not Disturb, ringer mode, auto rotation and VPN. Restore only owned state on exit and respect observed manual changes. Grant the network-identity permissions and restart the device after first enabling.
+- Add “System → Apps & automation → App behavior”: enable sensor rotation, media-volume memory, fixed or system-controlled brightness, and limits on or suppression of app brightness requests for selected apps, with exact Activity exceptions. Each option is off by default; restart the device after first enabling.
+- Replace Dock “Liquid glass” with “Light glass”: reuse Launcher blur with a simple translucent fallback; remove custom wallpaper capture and refraction. Keep the stored material value, layout, editing, dragging and unlock-animation entries. Restart Launcher after updating.
+- Retain bounded Wi-Fi setting restoration records after a failed scene exit until readback confirms success; respect manual changes and user switches. Recover network tracking after overflow through a complete trusted snapshot, and prepare rotation and brightness Hook interfaces independently. Fix app-behavior and Wi-Fi changes remaining stale on frameworks that cache old settings.
+- Restore smoother Island waveforms with display updates synchronized to screen frames and the earlier music / recorder sampling cadence. Preserve hidden-state capture release, measured-silence / stable-state frame suspension, pause and power-saving guards. Fix lightweight waveforms remaining frozen after system animations are re-enabled.
+- Maintain Island opacity only for occluded nodes, skip repeated occlusion queries when geometry is unchanged, and tighten the texture budget for full transition surfaces. Preserve native gestures and animation handoffs.
+- Stop weather-specific subscriptions and queries when no clock uses weather content, and skip updates for a hidden second clock.
+- Coalesce duplicate status-bar network-speed mirror deliveries and update charging-text layout only when content or layout conditions change. Avoid unrelated brightness reads and argument-array copies in touch handling.
+- Clear stale recording activity levels after silence and reset the previous envelope after a failed read instead of retaining an incorrect peak.
+
+### Engineering notes
+
+- Use stable Kotlin 2.4.21, JDK 27 and Java / Kotlin bytecode 26, with updated Gradle / AGP and compileSdk 37. Runtime support remains Android 14 / HyperOS 1 without raising minSdk or targetSdk.
+- Remove settings layout XML, legacy list adapters, View binding and custom color widgets. Generate typed settings models from validated JSON while preserving AndroidX Preference persistence and dependency semantics.
+- Commit authentication state only after native success. Preserve native exception boundaries and activate screenshot and input-method Hook groups atomically so failures do not leave partial installations.
+- Remove installation sampling, unused reflection helpers, an obsolete threshold implementation and unreachable resources. Keep test helpers and temporary samples in test sources, preserve useful behavior regressions. Only settings activate Compose; host Hooks retain native View / Canvas rendering, and Release excludes test dependencies.
+- Keep Android 14 / HyperOS 1 support, the existing app identity and signing certificate; new rules are off by default. Performance conclusions are limited to measured scenarios; Host tests and reduced source work do not establish device CPU / GPU or power gains.
+- Remove duplicate search state, the obsolete state machine and four unused backgrounds. Preserve AndroidX persistence, dependency notifications and host resources.
+- Use API 102 Chain directly for Dock measurement and content-layout hooks, removing per-call before / after wrappers while preserving single native execution, exception identity, fatal propagation and installation lifetime.
 
 ## r14.25.9 — 2026-10-29
 

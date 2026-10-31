@@ -15,13 +15,16 @@ import java.io.File
 class SystemUiResourceBootstrapContractTest {
 
     @Test
-    fun bootstrap_preservesStatusbarTextIconFakeResourceRegistration() {
+    fun textIconsUseNativeViewsAndNeedNoFakeLayoutResource() {
         val bootstrap = source("app/src/main/java/tv/withaibuild/customiuizer/mods/utils/SystemUiResourceBootstrap.kt")
-
-        assertTrue(
-            "statusbar_text_icon fake resource registration must be present",
-            bootstrap.contains("statusbarTextIconLayoutResId = MainModule.resHooks.addFakeResource(\"statusbar_text_icon\", R.layout.statusbar_text_icon, \"layout\")")
-        )
+        val hooks = source("app/src/main/java/tv/withaibuild/customiuizer/mods/SystemUIStatusBarHooks.kt")
+        assertFalse(bootstrap.contains("statusbar_text_icon"))
+        assertTrue(hooks.contains("NetworkSpeedView"))
+        assertTrue(hooks.contains("iconView.addView(number)"))
+        assertTrue(hooks.contains("iconView.addView(unit)"))
+        assertTrue(hooks.contains("mNetworkSpeedNumberText"))
+        assertTrue(hooks.contains("mNetworkSpeedUnitText"))
+        assertFalse(hooks.contains("androidx.compose"))
     }
 
     @Test

@@ -9,7 +9,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.preference.Preference
@@ -189,6 +188,23 @@ class System : SubFragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         when (sub) {
+            "pref_key_system_cat_automation" -> {
+                findPreference<Preference>("pref_key_system_appbehavior_cat")?.setOnPreferenceClickListener {
+                    openSubFragment(System_AppBehavior(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp,
+                        R.string.appbehavior_title, R.id.prefs_system_appbehavior)
+                    true
+                }
+                findPreference<Preference>("pref_key_system_wifiauto_cat")?.setOnPreferenceClickListener {
+                    openSubFragment(System_WifiAutomatic(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp,
+                        R.string.wifiauto_title, R.id.prefs_system_wifiauto)
+                    true
+                }
+                findPreference<Preference>("pref_key_system_vpnauto_cat")?.setOnPreferenceClickListener {
+                    openSubFragment(System_VpnAutoSwitch(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp,
+                        R.string.system_vpnauto_title, R.id.prefs_system_vpnauto)
+                    true
+                }
+            }
             "pref_key_system_cat_screen" -> {
                 findPreference<Preference>("pref_key_system_orientationlock")?.setOnPreferenceChangeListener { _, newValue ->
                     val act = activity ?: return@setOnPreferenceChangeListener false
@@ -199,21 +215,21 @@ class System : SubFragment() {
                 }
 
                 findPreference<Preference>("pref_key_system_autobrightness_cat")?.setOnPreferenceClickListener {
-                    openSubFragment(System_AutoBrightness(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp, R.string.system_autobrightness_title, R.xml.prefs_system_autobrightness)
+                    openSubFragment(System_AutoBrightness(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp, R.string.system_autobrightness_title, R.id.prefs_system_autobrightness)
                     true
                 }
             }
             "pref_key_system_cat_audio" -> {
                 findPreference<Preference>("pref_key_system_ignorecalls_apps")?.setOnPreferenceClickListener(openAppsEdit)
                 findPreference<Preference>("pref_key_system_visualizer_cat")?.setOnPreferenceClickListener {
-                    openSubFragment(System_Visualizer(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp, R.string.system_visualizer_title, R.xml.prefs_system_visualizer)
+                    openSubFragment(System_Visualizer(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp, R.string.system_visualizer_title, R.id.prefs_system_visualizer)
                     true
                 }
             }
             "pref_key_system_cat_vibration" -> {
                 findPreference<Preference>("pref_key_system_vibration_apps")?.setOnPreferenceClickListener(openAppsEdit)
                 findPreference<Preference>("pref_key_system_vibration_amp_cat")?.setOnPreferenceClickListener {
-                    openSubFragment(System_VibrationAmp(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp, R.string.system_vibration_amp_title, R.xml.prefs_system_vibration_amp)
+                    openSubFragment(System_VibrationAmp(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp, R.string.system_vibration_amp_title, R.id.prefs_system_vibration_amp)
                     true
                 }
             }
@@ -279,22 +295,22 @@ class System : SubFragment() {
             }
             "pref_key_system_cat_island" -> {
                 findPreference<Preference>("pref_key_system_island_actions_cat")?.setOnPreferenceClickListener {
-                    openSystemSubFragment(it, false, R.xml.prefs_system_island_actions); true
+                    openSystemSubFragment(it, false, R.id.prefs_system_island_actions); true
                 }
                 findPreference<Preference>("pref_key_system_island_layout_cat")?.setOnPreferenceClickListener {
-                    openSystemSubFragment(it, false, R.xml.prefs_system_island_layout); true
+                    openSystemSubFragment(it, false, R.id.prefs_system_island_layout); true
                 }
                 findPreference<Preference>("pref_key_system_island_notifications_cat")?.setOnPreferenceClickListener {
-                    openSystemSubFragment(it, false, R.xml.prefs_system_island_notifications); true
+                    openSystemSubFragment(it, false, R.id.prefs_system_island_notifications); true
                 }
                 findPreference<Preference>("pref_key_system_island_feedback_cat")?.setOnPreferenceClickListener {
-                    openSystemSubFragment(it, false, R.xml.prefs_system_island_feedback); true
+                    openSystemSubFragment(it, false, R.id.prefs_system_island_feedback); true
                 }
                 findPreference<Preference>("pref_key_system_island_music_cat")?.setOnPreferenceClickListener {
-                    openSystemSubFragment(it, false, R.xml.prefs_system_island_music); true
+                    openSystemSubFragment(it, false, R.id.prefs_system_island_music); true
                 }
                 findPreference<Preference>("pref_key_system_island_effects_cat")?.setOnPreferenceClickListener {
-                    openSystemSubFragment(it, false, R.xml.prefs_system_island_effects); true
+                    openSystemSubFragment(it, false, R.id.prefs_system_island_effects); true
                 }
                 val strongToastMode = findPreference<ListPreferenceEx>("pref_key_system_strong_toast_mode")
                 fun showIslandOffset(mode: Any?) {
@@ -328,20 +344,20 @@ class System : SubFragment() {
             }
             "pref_key_system_cat_statusbar" -> {
                 findPreference<Preference>("pref_key_system_statusbarcolor_apps")?.setOnPreferenceClickListener(openAppsEdit)
-                findPreference<Preference>("pref_key_system_detailednetspeed_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, false, R.xml.prefs_system_detailednetspeed); true }
-                findPreference<Preference>("pref_key_system_statusbar_batterytempandcurrent_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.xml.prefs_system_statusbar_batterytempandcurrent); true }
-                findPreference<Preference>("prefs_system_statusbar_showdevicetemperature_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.xml.prefs_system_statusbar_showdevicetemperature); true }
-                findPreference<Preference>("pref_key_system_statusbar_batterystyle_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, false, R.xml.prefs_system_statusbar_batterystyle); true }
-                findPreference<Preference>("pref_key_system_statusbar_duo_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.xml.prefs_system_statusbar_duo); true }
-                findPreference<Preference>("pref_key_system_statusbar_mobile_signal_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.xml.prefs_system_statusbar_mobilesignal); true }
-                findPreference<Preference>("pref_key_system_statusbaricons_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.xml.prefs_system_hideicons); true }
-                findPreference<Preference>("pref_key_system_statusbaricons_atright_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.xml.prefs_system_statusbar_righticons); true }
-                findPreference<Preference>("pref_key_system_statusbar_clocktweak_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.xml.prefs_system_statusbar_clock); true }
+                findPreference<Preference>("pref_key_system_detailednetspeed_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, false, R.id.prefs_system_detailednetspeed); true }
+                findPreference<Preference>("pref_key_system_statusbar_batterytempandcurrent_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.id.prefs_system_statusbar_batterytempandcurrent); true }
+                findPreference<Preference>("prefs_system_statusbar_showdevicetemperature_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.id.prefs_system_statusbar_showdevicetemperature); true }
+                findPreference<Preference>("pref_key_system_statusbar_batterystyle_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, false, R.id.prefs_system_statusbar_batterystyle); true }
+                findPreference<Preference>("pref_key_system_statusbar_duo_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.id.prefs_system_statusbar_duo); true }
+                findPreference<Preference>("pref_key_system_statusbar_mobile_signal_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.id.prefs_system_statusbar_mobilesignal); true }
+                findPreference<Preference>("pref_key_system_statusbaricons_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.id.prefs_system_hideicons); true }
+                findPreference<Preference>("pref_key_system_statusbaricons_atright_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.id.prefs_system_statusbar_righticons); true }
+                findPreference<Preference>("pref_key_system_statusbar_clocktweak_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.id.prefs_system_statusbar_clock); true }
                 findPreference<Preference>("pref_key_system_batteryindicator_cat")?.setOnPreferenceClickListener {
-                    openSubFragment(System_BatteryIndicator(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp, R.string.system_batteryindicator_title, R.xml.prefs_system_batteryindicator)
+                    openSubFragment(System_BatteryIndicator(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp, R.string.system_batteryindicator_title, R.id.prefs_system_batteryindicator)
                     true
                 }
-                findPreference<Preference>("pref_key_system_statusbarcontrols_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.xml.prefs_system_statusbarcontrols); true }
+                findPreference<Preference>("pref_key_system_statusbarcontrols_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.id.prefs_system_statusbarcontrols); true }
             }
             "pref_key_system_cat_drawer" -> {
                 findPreference<Preference>("pref_key_system_clock_app")?.setOnPreferenceClickListener {
@@ -352,7 +368,7 @@ class System : SubFragment() {
                     openStandaloneApp(it, this, 2)
                     true
                 }
-                findPreference<Preference>("pref_key_system_cc_clocktweak_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.xml.prefs_system_controlcenter_clock); true }
+                findPreference<Preference>("pref_key_system_cc_clocktweak_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.id.prefs_system_controlcenter_clock); true }
             }
             "pref_key_system_cat_notifications" -> {
                 findPreference<Preference>("pref_key_system_expandnotifs_apps")?.setOnPreferenceClickListener(openAppsEdit)
@@ -360,7 +376,7 @@ class System : SubFragment() {
                 findPreference<Preference>("pref_key_system_colorizenotifs_apps")?.setOnPreferenceClickListener(openAppsEdit)
             }
             "pref_key_system_cat_qs" -> {
-                findPreference<Preference>("pref_key_system_cc_tile_style_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, false, R.xml.prefs_system_controlcenter_themestyle); true }
+                findPreference<Preference>("pref_key_system_cc_tile_style_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, false, R.id.prefs_system_controlcenter_themestyle); true }
             }
             "pref_key_system_cat_recents" -> findPreference<Preference>("pref_key_system_hidefromrecents_apps")?.setOnPreferenceClickListener(openAppsEdit)
             "pref_key_system_cat_betterpopups" -> {
@@ -377,24 +393,24 @@ class System : SubFragment() {
             }
             "pref_key_system_cat_lockscreen" -> {
                 findPreference<Preference>("pref_key_system_noscreenlock_cat")?.setOnPreferenceClickListener {
-                    openSubFragment(System_NoScreenLock(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp, R.string.system_noscreenlock_title, R.xml.prefs_system_noscreenlock)
+                    openSubFragment(System_NoScreenLock(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp, R.string.system_noscreenlock_title, R.id.prefs_system_noscreenlock)
                     true
                 }
-                findPreference<Preference>("pref_key_system_lockscreenshortcuts_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.xml.prefs_system_lockscreenshortcuts); true }
+                findPreference<Preference>("pref_key_system_lockscreenshortcuts_cat")?.setOnPreferenceClickListener { openSystemSubFragment(it, true, R.id.prefs_system_lockscreenshortcuts); true }
                 findPreference<Preference>("pref_key_system_albumartonlock_cat")?.setOnPreferenceClickListener {
-                    openSubFragment(SubFragment(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp, R.string.system_albumartonlock_title, R.xml.prefs_system_albumartonlock)
+                    openSubFragment(SubFragment(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp, R.string.system_albumartonlock_title, R.id.prefs_system_albumartonlock)
                     true
                 }
                 findPreference<Preference>("pref_key_system_charginginfo_cat")?.setOnPreferenceClickListener {
-                    openSubFragment(SubFragment(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp, R.string.system_charginginfo_title, R.xml.prefs_system_charginginfo)
+                    openSubFragment(SubFragment(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp, R.string.system_charginginfo_title, R.id.prefs_system_charginginfo)
                     true
                 }
                 findPreference<Preference>("pref_key_system_lsalarm_cat")?.setOnPreferenceClickListener {
-                    openSubFragment(SubFragment(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp, R.string.system_lsalarm_title, R.xml.prefs_system_alarmonlock)
+                    openSubFragment(SubFragment(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp, R.string.system_lsalarm_title, R.id.prefs_system_alarmonlock)
                     true
                 }
                 findPreference<Preference>("pref_key_system_secureqs_cat")?.setOnPreferenceClickListener {
-                    openSubFragment(SubFragment(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp, R.string.system_secureqs_title, R.xml.prefs_system_secureqs)
+                    openSubFragment(SubFragment(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp, R.string.system_secureqs_title, R.id.prefs_system_secureqs)
                     true
                 }
 
@@ -419,11 +435,6 @@ class System : SubFragment() {
             }
             "pref_key_system_lockscreenshortcuts_cat" -> findPreference<Preference>("pref_key_system_lockscreenshortcuts_right")?.setOnPreferenceClickListener(openLockScreenActions)
             "pref_key_system_cat_other" -> {
-                findPreference<Preference>("pref_key_system_vpnauto_cat")?.setOnPreferenceClickListener {
-                    openSubFragment(System_VpnAutoSwitch(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp,
-                        R.string.system_vpnauto_title, R.xml.prefs_system_vpnauto)
-                    true
-                }
                 findPreference<Preference>("pref_key_system_forceclose_apps")?.setOnPreferenceClickListener(openAppsEdit)
                 findPreference<Preference>("pref_key_system_nooverscroll_apps")?.setOnPreferenceClickListener(openAppsEdit)
                 findPreference<Preference>("pref_key_system_cleanshare_apps")?.setOnPreferenceClickListener(openShareEdit)
@@ -465,36 +476,24 @@ class System : SubFragment() {
                 }
 
                 findPreference<Preference>("pref_key_system_screenshot_cat")?.setOnPreferenceClickListener {
-                    openSubFragment(System_ScreenshotConfig(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp, R.string.system_screenshot_title, R.xml.prefs_system_screenshot)
+                    openSubFragment(System_ScreenshotConfig(), null, AppHelper.SettingsType.Preference, AppHelper.ActionBarType.HomeUp, R.string.system_screenshot_title, R.id.prefs_system_screenshot)
                     true
                 }
 
                 AppHelper.appPrefs!!.edit().putInt("pref_key_system_animationscale_window", (Helpers.getAnimationScale(0) * 10).roundToInt()).apply()
-                findPreference<SeekBarPreference>("pref_key_system_animationscale_window")?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                    override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {}
-                    override fun onStartTrackingTouch(seekBar: SeekBar) {}
-                    override fun onStopTrackingTouch(seekBar: SeekBar) {
-                        requestAnimationScale(0, seekBar)
-                    }
-                })
+                findPreference<SeekBarPreference>("pref_key_system_animationscale_window")?.let { control ->
+                    control.setOnValueChangeListener(commit = { value -> requestAnimationScale(0, control, value) })
+                }
 
                 AppHelper.appPrefs!!.edit().putInt("pref_key_system_animationscale_transition", (Helpers.getAnimationScale(1) * 10).roundToInt()).apply()
-                findPreference<SeekBarPreference>("pref_key_system_animationscale_transition")?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                    override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {}
-                    override fun onStartTrackingTouch(seekBar: SeekBar) {}
-                    override fun onStopTrackingTouch(seekBar: SeekBar) {
-                        requestAnimationScale(1, seekBar)
-                    }
-                })
+                findPreference<SeekBarPreference>("pref_key_system_animationscale_transition")?.let { control ->
+                    control.setOnValueChangeListener(commit = { value -> requestAnimationScale(1, control, value) })
+                }
 
                 AppHelper.appPrefs!!.edit().putInt("pref_key_system_animationscale_animator", (Helpers.getAnimationScale(2) * 10).roundToInt()).apply()
-                findPreference<SeekBarPreference>("pref_key_system_animationscale_animator")?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                    override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {}
-                    override fun onStartTrackingTouch(seekBar: SeekBar) {}
-                    override fun onStopTrackingTouch(seekBar: SeekBar) {
-                        requestAnimationScale(2, seekBar)
-                    }
-                })
+                findPreference<SeekBarPreference>("pref_key_system_animationscale_animator")?.let { control ->
+                    control.setOnValueChangeListener(commit = { value -> requestAnimationScale(2, control, value) })
+                }
 
             }
             "pref_key_system_detailednetspeed_cat" -> {
@@ -547,9 +546,9 @@ class System : SubFragment() {
         super.onActivityResult(requestCode, resultCode, data)
     }
 
-    private fun requestAnimationScale(type: Int, seekBar: SeekBar) {
+    private fun requestAnimationScale(type: Int, preference: SeekBarPreference, value: Int) {
         val context = context ?: return
-        val requestedValue = seekBar.progress / 10f
+        val requestedValue = value / 10f
         val intent = Intent(GlobalActions.SET_ANIMATION_SCALE_ACTION).apply {
             setPackage("android")
             putExtra(GlobalActions.EXTRA_ANIMATION_SCALE_TYPE, type)
@@ -558,7 +557,7 @@ class System : SubFragment() {
         val resultReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: android.content.Context, intent: Intent?) {
                 if (resultCode == GlobalActions.ACTION_HANDLED) return
-                seekBar.progress = (Helpers.getAnimationScale(type) * 10).roundToInt()
+                preference.setValue((Helpers.getAnimationScale(type) * 10).roundToInt(), true)
                 val message = if (resultCode == GlobalActions.ACTION_UNHANDLED) {
                     R.string.animation_scale_bridge_unavailable
                 } else {

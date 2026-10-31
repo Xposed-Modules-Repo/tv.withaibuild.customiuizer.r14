@@ -26,11 +26,15 @@ class HotPathArgumentMaterializationTest {
     @Test
     fun screenshotPassThroughDoesNotMaterializeArguments() {
         val system = source("app/src/main/java/tv/withaibuild/customiuizer/mods/System.kt")
-        val dexKitHook = system.section("val changeFormatHook", "if (methodData != null)")
+        val binding = system.section("internal fun installScreenshotHooks", "internal fun screenshotUpdateHook")
+        assertTrue(binding.contains("save to screenshotSaveFormatHook()"))
+        assertTrue(binding.contains("val compressHook = screenshotCompressHook()"))
+        assertTrue(binding.contains("compressions.map { it to compressHook }"))
+        val dexKitHook = system.section("internal fun screenshotSaveFormatHook", "internal fun screenshotCompressHook")
         assertAfter(dexKitHook, "if (chain.args.size < 7)", "val args = XposedHelpers.getArgsArray(chain)")
 
         val bitmapHook = system.section(
-            "ModuleHelper.hookAllMethods(\"android.graphics.Bitmap\"",
+            "internal fun screenshotCompressHook",
             "fun ToastTimeHook"
         )
         assertAfter(bitmapHook, "chain.getArg(2) is ByteArrayOutputStream", "val args = XposedHelpers.getArgsArray(chain)")

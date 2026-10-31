@@ -1,5 +1,7 @@
 package tv.withaibuild.customiuizer.mods.utils.feature
 
+import tv.withaibuild.customiuizer.testsupport.repositorySource as source
+
 import io.github.libxposed.api.XposedModuleInterface
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -8,7 +10,6 @@ import org.junit.Test
 import tv.withaibuild.customiuizer.mods.utils.FeatureTarget
 import tv.withaibuild.customiuizer.mods.utils.InstallPhase
 import tv.withaibuild.customiuizer.utils.PrefMap
-import java.io.File
 import java.lang.reflect.Proxy
 
 class SystemServerFeaturesWiringTest {
@@ -64,8 +65,8 @@ class SystemServerFeaturesWiringTest {
         val features = SystemServerFeatures.all(fakeSystemServerStartingParam())
 
         assertEquals(
-            "All 55 supported system_server features should be present",
-            55,
+            "All 58 supported system_server features should be present",
+            58,
             features.size
         )
         val uniqueIds = features.map { it.id }.toSet()
@@ -73,6 +74,8 @@ class SystemServerFeaturesWiringTest {
             features.any { it.id == IslandApplicationOverlayFeatureId })
         assertTrue("VPN automation must have its own preference-gated system_server feature",
             features.any { it.id == VpnAutoSwitchFeatureId })
+        assertTrue(features.any { it.id == AppWindowBehaviorFeatureId })
+        assertTrue(features.any { it.id == AppVolumeMemoryFeatureId })
         assertEquals("Every feature must have a unique FeatureId", features.size, uniqueIds.size)
         assertFalse("Global notification policy feature 38 is retired", features.any { it.id.id == 38 })
 
@@ -80,6 +83,19 @@ class SystemServerFeaturesWiringTest {
             assertEquals(FeatureTarget.SYSTEM_SERVER, feature.target)
             assertEquals(InstallPhase.SYSTEM_SERVER_STARTING, feature.phase)
         }
+    }
+
+    @Test fun appBehaviorDoesNotInstallBusinessHooksWhenDisabled() {
+        val prefs = PrefMap()
+        assertFalse(AppWindowBehaviorFeature.evaluateEnabled(prefs))
+        assertFalse(AppVolumeMemoryFeature.evaluateEnabled(prefs))
+        prefs.put("system_appbehavior_block", true)
+        assertTrue(AppWindowBehaviorFeature.evaluateEnabled(prefs))
+        assertFalse(AppVolumeMemoryFeature.evaluateEnabled(prefs))
+        prefs.put("system_appbehavior_block", false)
+        prefs.put("system_appbehavior_volume", true)
+        assertFalse(AppWindowBehaviorFeature.evaluateEnabled(prefs))
+        assertTrue(AppVolumeMemoryFeature.evaluateEnabled(prefs))
     }
 
     @Test fun vpnAutomationIsOptInEvenWhenRulesAreAlreadyConfigured() {
@@ -260,16 +276,6 @@ class SystemServerFeaturesWiringTest {
                 else -> null
             }
         } as XposedModuleInterface.SystemServerStartingParam
-    }
-
-    private fun source(relativePath: String): String {
-        var directory = File(System.getProperty("user.dir").orEmpty()).absoluteFile
-        while (true) {
-            val candidate = File(directory, relativePath)
-            if (candidate.isFile) return candidate.readText()
-            directory = directory.parentFile
-                ?: error("Repository root not found while locating $relativePath")
-        }
     }
 
     private fun methodBody(source: String, header: String): String {

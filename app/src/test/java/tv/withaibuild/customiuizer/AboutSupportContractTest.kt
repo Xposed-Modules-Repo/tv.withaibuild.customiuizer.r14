@@ -1,15 +1,16 @@
 package tv.withaibuild.customiuizer
 
+import tv.withaibuild.customiuizer.testsupport.repositorySource as source
+
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
 
 class AboutSupportContractTest {
     @Test
     fun supportEntries_areColdPathAndUseCanonicalLinks() {
         val fragment = source("app/src/main/java/tv/withaibuild/customiuizer/AboutFragment.kt")
-        val layout = source("app/src/main/res/layout/fragment_about.xml")
+        val layout = fragment
 
         assertTrue(layout.contains("about_donate_title"))
         assertTrue(layout.contains("about_paypal_title"))
@@ -22,7 +23,7 @@ class AboutSupportContractTest {
         )
         assertTrue(layout.contains("about_repository_title"))
         assertTrue(layout.contains("about_links_category"))
-        assertTrue(layout.contains("about_community_row"))
+        assertTrue(layout.contains("about_community"))
         assertTrue(fragment.contains("openLink(BuildConfig.COMMUNITY_URL)"))
         assertFalse(layout.contains("about_contact_row"))
         assertTrue(layout.contains("about_dynamic"))
@@ -57,12 +58,4 @@ class AboutSupportContractTest {
         assertFalse(zh.contains("name=\"about_donate_title\">赞赏开发</string>"))
     }
 
-    private fun source(path: String): String {
-        var directory = File(System.getProperty("user.dir") ?: "").absoluteFile
-        while (true) {
-            val candidate = File(directory, path)
-            if (candidate.isFile) return candidate.readText()
-            directory = directory.parentFile ?: error("Repository root not found for $path")
-        }
-    }
 }

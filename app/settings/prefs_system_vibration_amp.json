@@ -1,0 +1,87 @@
+{
+  "type": "screen",
+  "attributes": {},
+  "children": [
+    {
+      "type": "toggle",
+      "attributes": {
+        "android:key": "pref_key_system_vibration_amp",
+        "android:title": "@string/enable_mod",
+        "android:summary": "@string/system_vibration_amp_val_summ",
+        "android:defaultValue": "false"
+      }
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/system_vibration_amp_period_title",
+        "android:dependency": "pref_key_system_vibration_amp",
+        "app:dynamic": "true"
+      },
+      "children": [
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_vibration_amp_period_start",
+            "android:title": "@string/various_calluibright_night_start_title"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_vibration_amp_period_end",
+            "android:title": "@string/various_calluibright_night_end_title"
+          }
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/system_vibration_amp_val_title",
+        "android:dependency": "pref_key_system_vibration_amp",
+        "app:dynamic": "true"
+      },
+      "children": [
+        {
+          "type": "slider",
+          "attributes": {
+            "android:key": "pref_key_system_vibration_amp_ringer",
+            "android:title": "@string/system_vibration_amp_ringer_title",
+            "android:dependency": "pref_key_system_vibration_amp",
+            "android:defaultValue": "100",
+            "app:minValue": "1",
+            "app:maxValue": "100",
+            "app:stepValue": "1",
+            "app:format": "%d%%"
+          }
+        },
+        {
+          "type": "slider",
+          "attributes": {
+            "android:key": "pref_key_system_vibration_amp_notif",
+            "android:title": "@string/system_vibration_amp_notif_title",
+            "android:defaultValue": "100",
+            "app:minValue": "1",
+            "app:maxValue": "100",
+            "app:stepValue": "1",
+            "app:format": "%d%%"
+          }
+        },
+        {
+          "type": "slider",
+          "attributes": {
+            "android:key": "pref_key_system_vibration_amp_other",
+            "android:title": "@string/system_vibration_amp_other_title",
+            "android:dependency": "pref_key_system_vibration_amp",
+            "android:defaultValue": "100",
+            "app:minValue": "1",
+            "app:maxValue": "100",
+            "app:stepValue": "1",
+            "app:format": "%d%%"
+          }
+        }
+      ]
+    }
+  ]
+}

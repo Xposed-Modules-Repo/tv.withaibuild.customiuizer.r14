@@ -1,7 +1,6 @@
 package tv.withaibuild.customiuizer.subs
 
 import android.os.Bundle
-import android.widget.SeekBar
 import androidx.preference.Preference
 import androidx.preference.ListPreference
 import androidx.preference.TwoStatePreference
@@ -46,13 +45,9 @@ class Launcher : SubFragment() {
                 val folderCols = findPreference<SeekBarPreference>("pref_key_launcher_folder_cols")
                 findPreference<Preference>("pref_key_launcher_folderwidth")?.isEnabled = AppHelper.getIntOfAppPrefs("pref_key_launcher_folder_cols", 1) > 1
                 findPreference<Preference>("pref_key_launcher_folderspace")?.isEnabled = AppHelper.getIntOfAppPrefs("pref_key_launcher_folder_cols", 1) > 3
-                folderCols?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                    override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {}
-                    override fun onStartTrackingTouch(seekBar: SeekBar) {}
-                    override fun onStopTrackingTouch(seekBar: SeekBar) {
-                        findPreference<Preference>("pref_key_launcher_folderwidth")?.isEnabled = seekBar.progress > 0
-                        findPreference<Preference>("pref_key_launcher_folderspace")?.isEnabled = seekBar.progress > 2
-                    }
+                folderCols?.setOnValueChangeListener(commit = { value ->
+                    findPreference<Preference>("pref_key_launcher_folderwidth")?.isEnabled = value > 1
+                    findPreference<Preference>("pref_key_launcher_folderspace")?.isEnabled = value > 3
                 })
             }
             "pref_key_launcher_cat_gestures" -> {

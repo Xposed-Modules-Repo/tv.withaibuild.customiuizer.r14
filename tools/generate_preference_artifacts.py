@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate lazy preference pages and the compact search index from canonical XML."""
+"""Generate lazy preference pages and the compact search index from canonical settings data."""
 
 from __future__ import annotations
 
@@ -9,6 +9,13 @@ import dataclasses
 import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
+
+try:
+    from tools.settings_schema import preference_sources, read_element
+    from tools.compose_preferences import write_pages
+except ModuleNotFoundError:
+    from settings_schema import preference_sources, read_element
+    from compose_preferences import write_pages
 
 
 ANDROID_NS = "http://schemas.android.com/apk/res/android"
@@ -78,6 +85,8 @@ STANDALONE_PAGES = (
     ("pref_key_system_secureqs_cat", "prefs_system_secureqs", "SubFragment", False),
     ("pref_key_system_screenshot_cat", "prefs_system_screenshot", "System_ScreenshotConfig", False),
     ("pref_key_system_vpnauto_cat", "prefs_system_vpnauto", "System_VpnAutoSwitch", False),
+    ("pref_key_system_appbehavior_cat", "prefs_system_appbehavior", "System_AppBehavior", False),
+    ("pref_key_system_wifiauto_cat", "prefs_system_wifiauto", "System_WifiAutomatic", False),
     ("pref_key_various_calluibright_cat", "prefs_various_calluibright", "Various_CallUIBright", False),
     ("pref_key_various_hiddenfeatures_cat", "prefs_various_hiddenfeatures", "Various_HiddenFeatures", False),
 )
@@ -114,7 +123,8 @@ def _structured_categories(
     category: CategorySource,
     source_root: ET.Element,
     xml_dir: Path,
-) -> None:
+) -> dict[str, ET.Element]:
+    pages: dict[str, ET.Element] = {}
     selector = _selector_screen()
     found = 0
     def append_group(source_group: ET.Element, selector_group: ET.Element) -> None:
@@ -133,7 +143,7 @@ def _structured_categories(
 
             split_root = _new_screen(source_root)
             split_root.append(copy.deepcopy(source_category))
-            _write_xml(xml_dir / _split_name(category, key), split_root)
+            pages[_split_name(category, key).removesuffix(".xml")] = split_root
             selector_group.append(ET.Element(PREFERENCE_ITEM, {
                 ANDROID_KEY: key, ANDROID_TITLE: title,
                 f"{{{ANDROID_NS}}}widgetLayout": "@layout/preference_widget_disclosure",
@@ -143,7 +153,8 @@ def _structured_categories(
     append_group(source_root, selector)
     if found == 0:
         raise ValueError(f"No categories found in {category.source_name}")
-    _write_xml(xml_dir / f"prefs_{category.suffix}_cat.xml", selector)
+    pages[f"prefs_{category.suffix}_cat"] = selector
+    return pages
 
 
 def _search_entries(
@@ -202,14 +213,14 @@ def _standalone_search_entries(
         parent = parents.get(entry_key)
         if parent is None:
             continue
-        root = ET.parse(source_dir / f"{resource}.xml").getroot()
+        root = read_element(source_dir / f"{resource}.xml")
         for item in _search_entries(category, root):
             section = item.get("breadcrumbSubSubTitle") or item.get("breadcrumbSubTitle", "")
             item.update(
                 routeSub=entry_key,
                 breadcrumbSubTitle=parent.get("breadcrumbSubTitle", ""),
                 breadcrumbSubSubTitle=section,
-                page=f"@xml/{resource}",
+                page=f"@id/{resource}",
                 pageTitle=parent["title"],
                 pageFragment=controller,
                 pageDynamic=str(dynamic).lower(),
@@ -292,8 +303,8 @@ def _storage_key(raw: str) -> str:
 
 def collect_xml_storage_keys(xml_dir: Path) -> set[str]:
     keys: set[str] = set()
-    for path in sorted(xml_dir.glob("*.xml")):
-        root = ET.parse(path).getroot()
+    for path in preference_sources(xml_dir):
+        root = read_element(path)
         for element in root.iter():
             key = element.get(ANDROID_KEY)
             if key:
@@ -303,8 +314,8 @@ def collect_xml_storage_keys(xml_dir: Path) -> set[str]:
 
 def collect_xml_storage_types(xml_dir: Path) -> dict[str, str]:
     types: dict[str, str] = {}
-    for path in sorted(xml_dir.glob("*.xml")):
-        root = ET.parse(path).getroot()
+    for path in preference_sources(xml_dir):
+        root = read_element(path)
         for element in root.iter():
             key = element.get(ANDROID_KEY)
             if not key:
@@ -377,12 +388,11 @@ def generate(
     roots: dict[str, ET.Element] = {}
     for category in CATEGORY_SOURCES:
         source_path = source_dir / category.source_name
-        if not source_path.is_file():
-            raise FileNotFoundError(source_path)
-        roots[category.key] = ET.parse(source_path).getroot()
+        roots[category.key] = read_element(source_path)
 
+    pages = {path.stem: read_element(path) for path in preference_sources(source_dir)}
     for category in CATEGORY_SOURCES:
-        _structured_categories(category, roots[category.key], xml_dir)
+        pages.update(_structured_categories(category, roots[category.key], xml_dir))
 
     index_root = ET.Element("mod-search-index")
     all_parent_keys: set[str] = set()
@@ -401,6 +411,13 @@ def generate(
     _write_xml(xml_dir / "mod_search_index.xml", index_root)
 
     if catalog_output is not None:
+        write_pages(catalog_output, pages)
+        values_dir = output_dir / "values"
+        values_dir.mkdir(parents=True, exist_ok=True)
+        ids = ET.Element("resources")
+        for name in sorted(pages):
+            ET.SubElement(ids, "item", {"type": "id", "name": name})
+        _write_xml(values_dir / "compose_pages.xml", ids)
         keys = collect_xml_storage_keys(source_dir)
         types = collect_xml_storage_types(source_dir)
         if java_dir is not None:

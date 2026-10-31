@@ -12,6 +12,7 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import org.junit.Assert.*
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
@@ -21,12 +22,18 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import org.robolectric.shadows.ShadowChoreographer
 import org.robolectric.util.ReflectionHelpers.getField
+import tv.withaibuild.customiuizer.testsupport.advanceDisplayFrames
 import java.time.Duration
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class IslandPolishTest {
+    @Before fun controlDisplayFrames() {
+        ShadowChoreographer.setPaused(true)
+        ShadowChoreographer.setFrameDelay(Duration.ofMillis(16))
+    }
+
     @Test fun measuredGainIsBoundedImmediateAndCannotInventASignalForSilenceOrInvalidSamples() {
         val wave = IslandWaveView(org.robolectric.RuntimeEnvironment.getApplication())
         wave.gainPercent = 100
@@ -61,6 +68,7 @@ class IslandPolishTest {
         val activity=Robolectric.buildActivity(Activity::class.java).setup().visible().get()
         val wave=IslandWaveView(activity)
         activity.setContentView(wave,FrameLayout.LayoutParams(25,24))
+        advanceDisplayFrames(2)
         wave.onVisibilityAggregated(true)
         wave.outputVisible = true
         wave.spectrum(FloatArray(5))
@@ -68,13 +76,13 @@ class IslandPolishTest {
         assertFalse(getField(wave,"scheduled"))
         wave.spectrum(FloatArray(5) { 1f })
         assertEquals(0f,getField<FloatArray>(wave,"energies")[0],0f)
-        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(33))
+        advanceDisplayFrames()
         assertTrue(getField<FloatArray>(wave,"energies")[0] in .1f.. .99f)
-        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(300))
+        advanceDisplayFrames(18)
         assertEquals(.8944272f,getField<FloatArray>(wave,"energies")[0],.006f)
         assertFalse(getField(wave,"scheduled"))
         wave.spectrum(FloatArray(5))
-        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(300))
+        advanceDisplayFrames(18)
         assertEquals(0f,getField<FloatArray>(wave,"energies")[0],.006f)
         assertFalse(getField(wave,"scheduled"))
         wave.spectrum(null)

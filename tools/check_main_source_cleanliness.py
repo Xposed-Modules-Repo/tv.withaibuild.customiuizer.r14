@@ -66,7 +66,9 @@ FORBIDDEN_SYMBOLS = re.compile(
 TEST_DEPENDENCY_PATTERN = re.compile(
     r"\b(?:"
     r"org\.junit|"
+    r"org\.robolectric|"
     r"kotlin\.test|"
+    r"kotlinx\.coroutines\.test|"
     r"org\.mockito|"
     r"mockk"
     r")\b"
@@ -74,6 +76,13 @@ TEST_DEPENDENCY_PATTERN = re.compile(
 
 # AndroidX annotation that marks a declaration as exposed only for testing.
 VISIBLE_FOR_TESTING_PATTERN = re.compile(r"@VisibleForTesting\b")
+
+# Host profiling tools provide runtime measurements without compiling samplers
+# into every target process. A build-type guard is not source-set isolation.
+DEVELOPMENT_SAMPLING_PATTERN = re.compile(
+    r"\bandroid\.os\.Debug\b|\bDebug\.(?:getRuntimeStat|startMethodTracing)\b|"
+    r"\bFeatureInstallMetrics\b|CustoMIUIzer FeaturePerf"
+)
 
 # Phrases in comments that describe a declaration as test-only.  These catch
 # hand-rolled seams that do not use the naming patterns above.
@@ -115,6 +124,7 @@ def _check_text(path: Path, text: str) -> list[str]:
         ("forbidden-test-symbol", FORBIDDEN_SYMBOLS),
         ("test-dependency-reference", TEST_DEPENDENCY_PATTERN),
         ("visible-for-testing", VISIBLE_FOR_TESTING_PATTERN),
+        ("development-sampling", DEVELOPMENT_SAMPLING_PATTERN),
         ("test-only-comment", TEST_ONLY_COMMENT_PATTERN),
     ]
     for rule, pattern in patterns:

@@ -1,0 +1,91 @@
+{
+  "type": "screen",
+  "attributes": {},
+  "children": [
+    {
+      "type": "toggle",
+      "attributes": {
+        "android:key": "pref_key_various_calluibright",
+        "android:title": "@string/enable_mod",
+        "android:defaultValue": "false"
+      }
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/various_calluibright_title",
+        "android:dependency": "pref_key_various_calluibright",
+        "app:dynamic": "true",
+        "app:state": "2"
+      },
+      "children": [
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/prefs_group_brightness"
+          },
+          "children": [
+            {
+              "type": "choice",
+              "attributes": {
+                "android:key": "pref_key_various_calluibright_type",
+                "android:title": "@string/various_calluibright_type_title",
+                "android:entries": "@array/calluibright",
+                "android:entryValues": "@array/calluibright_val",
+                "android:defaultValue": "1"
+              }
+            },
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_various_calluibright_val",
+                "android:title": "@string/various_calluibright_val_title",
+                "android:defaultValue": "0",
+                "app:minValue": "0",
+                "app:maxValue": "100",
+                "app:stepValue": "10",
+                "app:offtext": "@string/array_default",
+                "app:format": "%d%%"
+              }
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/prefs_group_schedule"
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_various_calluibright_night",
+                "android:title": "@string/various_calluibright_night_title",
+                "android:summary": "@string/various_calluibright_night_summ",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "action",
+              "attributes": {
+                "android:key": "pref_key_various_calluibright_night_start",
+                "android:title": "@string/various_calluibright_night_start_title",
+                "android:dependency": "pref_key_various_calluibright_night",
+                "app:indentLevel": "1"
+              }
+            },
+            {
+              "type": "action",
+              "attributes": {
+                "android:key": "pref_key_various_calluibright_night_end",
+                "android:title": "@string/various_calluibright_night_end_title",
+                "android:dependency": "pref_key_various_calluibright_night",
+                "app:indentLevel": "1"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

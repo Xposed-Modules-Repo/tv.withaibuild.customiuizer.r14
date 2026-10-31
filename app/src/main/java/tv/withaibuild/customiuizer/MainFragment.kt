@@ -1,32 +1,33 @@
 package tv.withaibuild.customiuizer
 
 import android.annotation.SuppressLint
-import android.app.Activity
+import androidx.compose.runtime.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.testTag
+import androidx.activity.compose.BackHandler
+import android.view.MenuItem
+import tv.withaibuild.customiuizer.ui.highlightSearchText
+import tv.withaibuild.customiuizer.ui.SettingsSearchField
+import tv.withaibuild.customiuizer.ui.SettingsPreferenceList
 import android.content.ComponentName
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.MotionEvent
-import android.view.View
-import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.ImageView
-import android.widget.ListView
 import android.widget.Toast
 import androidx.annotation.Nullable
-import androidx.appcompat.app.ActionBar
+import tv.withaibuild.customiuizer.ui.SettingsActionBar as ActionBar
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SearchView
 import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.RecyclerView
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -42,23 +43,19 @@ import tv.withaibuild.customiuizer.utils.AppLocaleController
 import tv.withaibuild.customiuizer.utils.AppSelectionSanitizer
 import tv.withaibuild.customiuizer.utils.Helpers
 import tv.withaibuild.customiuizer.utils.ModData
-import tv.withaibuild.customiuizer.utils.ModSearchAdapter
 import tv.withaibuild.customiuizer.utils.PreferenceResourceResolver
 import tv.withaibuild.customiuizer.utils.SearchRouteResolver
-import tv.withaibuild.customiuizer.utils.SearchStateMachine
 import tv.withaibuild.customiuizer.utils.XposedServiceManager
 
 class MainFragment : PreferenceFragmentBase() {
 
-    private var mActionMenu: Menu? = null
-    private var listView: RecyclerView? = null
-    private var resultView: ListView? = null
+    private var query by mutableStateOf("")
+    private var indexRevision by mutableIntStateOf(0)
     private var localeConfirmationDialog: AlertDialog? = null
 
-    private var isSearchFocused = false
-    private var inSearchView = SearchStateMachine.STATE_IDLE
-    private var lastFilter: String? = null
-    private var isRestoringSearch = false
+    private var searchExpanded by mutableStateOf(false)
+    private var focusSearch by mutableStateOf(false)
+    internal val isSearching: Boolean get() = searchExpanded
 
     private fun isFragmentReady(act: AppCompatActivity?): Boolean {
         return act != null && !act.isFinishing && isAdded
@@ -68,8 +65,7 @@ class MainFragment : PreferenceFragmentBase() {
     override fun onCreate(savedInstanceState: Bundle?) {
         toolbarMenu = true
         activeMenus = "all"
-        super.onCreate(savedInstanceState, R.xml.prefs_main)
-        tailLayoutId = R.layout.prefs_main12
+        super.onCreate(savedInstanceState)
 
         val act = activity as? AppCompatActivity ?: return
 
@@ -86,22 +82,21 @@ class MainFragment : PreferenceFragmentBase() {
                 }
             }
             Helpers.getAllMods(act, savedInstanceState != null)
+            withContext(Dispatchers.Main) { indexRevision++ }
         }
 
         checkModuleIsActive()
 
         savedInstanceState?.let {
-            inSearchView = it.getInt("inSearchView", 0)
-            lastFilter = it.getString("lastFilter")
-            isSearchFocused = it.getBoolean("isSearchFocused", false)
+            searchExpanded = it.getBoolean("search.expanded", false)
+            query = if (searchExpanded) it.getString("search.query").orEmpty() else ""
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt("inSearchView", inSearchView)
-        outState.putString("lastFilter", lastFilter)
-        outState.putBoolean("isSearchFocused", isSearchFocused)
+        outState.putBoolean("search.expanded", searchExpanded)
+        outState.putString("search.query", query)
     }
 
     private fun checkModuleIsActive() {
@@ -124,7 +119,7 @@ class MainFragment : PreferenceFragmentBase() {
 
     override fun onCreatePreferences(@Nullable savedInstanceState: Bundle?, @Nullable rootKey: String?) {
         super.onCreatePreferences(savedInstanceState, rootKey)
-        setPreferencesFromResource(R.xml.prefs_main, rootKey)
+        setSettingsPage(R.id.prefs_main)
     }
 
     private fun doBaseReload() = super.reloadPreferences()
@@ -139,63 +134,62 @@ class MainFragment : PreferenceFragmentBase() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        mActionMenu = menu
-        val searchMenuItem = mActionMenu?.findItem(R.id.search_btn) ?: return
-
-        val searchView = searchMenuItem.actionView as? SearchView ?: return
-        searchMenuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
-                for (i in 0 until (mActionMenu?.size() ?: 0)) {
-                    val menuItem = mActionMenu?.getItem(i) ?: continue
-                    menuItem.isVisible = menuItem.itemId != R.id.edit_confirm
-                }
-                return true
-            }
-
-            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
-                for (i in 0 until (mActionMenu?.size() ?: 0)) {
-                    val menuItem = mActionMenu?.getItem(i) ?: continue
-                    menuItem.isVisible = menuItem.itemId == R.id.search_btn
-                }
-                return true
-            }
-        })
-
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean = false
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                if (isRestoringSearch || !SearchStateMachine.canFilter(inSearchView)) return false
-                inSearchView = SearchStateMachine.transitionOnQuery(inSearchView, newText)
-                findMod(newText ?: "")
-                return false
-            }
-        })
-
-        searchView.setOnQueryTextFocusChangeListener { _, hasFocus ->
-            isSearchFocused = hasFocus
+    @Composable
+    internal override fun SettingsContent(model: SettingsPreferenceList) {
+        val focusManager = LocalFocusManager.current
+        val closeSearch = {
+            focusManager.clearFocus(force = true)
+            searchExpanded = false
+            focusSearch = false
+            query = ""
         }
-
-        if (SearchStateMachine.shouldClearOnReturn(inSearchView)) {
-            resetSearchUi(searchMenuItem, searchView)
-        } else if (inSearchView != SearchStateMachine.STATE_IDLE && !lastFilter.isNullOrEmpty()) {
-            isRestoringSearch = true
-            searchMenuItem.expandActionView()
-            searchView.setQuery(lastFilter, false)
-            if (!isSearchFocused) searchView.clearFocus()
-            isRestoringSearch = false
-            if (resultView != null && listView != null) findMod(lastFilter ?: "")
+        BackHandler(enabled = searchExpanded) { closeSearch() }
+        Column(Modifier.fillMaxSize()) {
+            if (searchExpanded) SettingsSearchField(query, { query = it },
+                Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp).testTag("home.search"),
+                requestFocus = focusSearch, onClose = closeSearch)
+            if (!searchExpanded) Box(Modifier.weight(1f)) { super.SettingsContent(model) }
+            else if (query.isNotBlank()) {
+                val terms = remember(query) { tv.withaibuild.customiuizer.utils.searchTerms(query) }
+                val highlight = MaterialTheme.colorScheme.primary
+                val matches = remember(query, indexRevision) {
+                    Helpers.allModsList.filter { mod -> if (query == Helpers.NEW_MODS_SEARCH_QUERY)
+                        Helpers.newMods.contains(mod.key) else mod.matchesSearch(terms) }
+                }
+                LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(12.dp)) {
+                    items(matches.size, key = { index -> matches[index].key + ":" + index }) { index ->
+                        val mod = matches[index]
+                        Surface(Modifier.fillMaxWidth().padding(bottom = 2.dp).testTag("search.result:" + mod.key).clickable {
+                            if (openSearchResult(mod)) {
+                                closeSearch()
+                            }
+                        }) {
+                            Column(Modifier.padding(16.dp)) {
+                                val title = remember(mod.title, terms, highlight) { highlightSearchText(mod.title, terms, highlight) }
+                                val path = remember(mod.breadcrumbs, terms, highlight) { highlightSearchText(mod.breadcrumbs, terms, highlight) }
+                                Text(title, style = MaterialTheme.typography.bodyLarge)
+                                Text(path, style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
-    override fun fixStubLayout(view: View, postion: Int) {
-        if (postion == 2) {
-            val lp = view.layoutParams
-            lp.height = ViewGroup.LayoutParams.MATCH_PARENT
-            view.layoutParams = lp
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.search_btn) {
+            searchExpanded = true
+            focusSearch = true
+            return true
         }
+        return super.onOptionsItemSelected(item)
+    }
+
+    override fun onStop() {
+        focusSearch = false
+        super.onStop()
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -203,39 +197,6 @@ class MainFragment : PreferenceFragmentBase() {
 
         val actionBar: ActionBar? = getActionBar()
         actionBar?.setTitle(R.string.app_name)
-
-        val view = this.view ?: return
-
-        resultView = view.findViewById(R.id.custom)
-        resultView?.setDivider(null)
-        resultView?.setDividerHeight(0)
-        resultView?.adapter = ModSearchAdapter(requireActivity())
-        resultView?.setOnItemClickListener { parent: AdapterView<*>, _, position: Int, _ ->
-            val mod = parent.adapter?.getItem(position) as? ModData ?: return@setOnItemClickListener
-            if (openSearchResult(mod)) {
-                inSearchView = SearchStateMachine.STATE_NAVIGATED
-                isSearchFocused = false
-                Helpers.hideKeyboard(activity as? AppCompatActivity, this@MainFragment.view)
-            }
-        }
-        resultView?.setOnTouchListener { _, event: MotionEvent ->
-            if (isSearchFocused) {
-                isSearchFocused = false
-                lifecycleScope.launch {
-                    delay(resources.getInteger(android.R.integer.config_shortAnimTime).toLong())
-                    Helpers.hideKeyboard(activity as? AppCompatActivity, this@MainFragment.view)
-                    resultView?.requestFocus()
-                }
-            }
-            false
-        }
-
-        listView = getListView()
-
-        when {
-            SearchStateMachine.shouldClearOnReturn(inSearchView) -> resetSearchUi(null, null)
-            inSearchView != SearchStateMachine.STATE_IDLE && !lastFilter.isNullOrEmpty() -> findMod(lastFilter ?: "")
-        }
 
         bindLocalePreference()
 
@@ -253,12 +214,15 @@ class MainFragment : PreferenceFragmentBase() {
     }
 
     override fun onDestroyView() {
+        // Replacing the home page exits search; configuration recreation keeps the query.
+        if (isRemoving) {
+            searchExpanded = false
+            focusSearch = false
+            query = ""
+        }
         super.onDestroyView()
         localeConfirmationDialog?.dismiss()
         localeConfirmationDialog = null
-        resultView = null
-        listView = null
-        mActionMenu = null
     }
 
     private fun bindLocalePreference() {
@@ -315,32 +279,6 @@ class MainFragment : PreferenceFragmentBase() {
             .setOnDismissListener { localeConfirmationDialog = null }
             .create()
         localeConfirmationDialog?.show()
-    }
-
-    private fun findMod(filter: String) {
-        if (isRestoringSearch || !SearchStateMachine.canFilter(inSearchView)) return
-        lastFilter = filter
-        resultView?.visibility = if (filter == "") View.GONE else View.VISIBLE
-        listView?.isEnabled = filter == ""
-        val adapter = resultView?.adapter ?: return
-        (adapter as ModSearchAdapter).filter.filter(filter)
-    }
-
-    private fun resetSearchUi(searchMenuItem: MenuItem?, searchView: SearchView?) {
-        if (!SearchStateMachine.shouldClearOnReturn(inSearchView)) return
-        isRestoringSearch = true
-        try {
-            searchMenuItem?.collapseActionView()
-            searchView?.setQuery("", false)
-            searchView?.clearFocus()
-            resultView?.visibility = View.GONE
-            listView?.isEnabled = true
-            isSearchFocused = false
-        } finally {
-            isRestoringSearch = false
-        }
-        inSearchView = SearchStateMachine.STATE_IDLE
-        lastFilter = null
     }
 
     private fun openSearchResult(mod: ModData): Boolean {

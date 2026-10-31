@@ -75,7 +75,7 @@ class CIWorkflowRegressionTest(unittest.TestCase):
     def test_every_first_step_key_preserves_jdk_gate(self):
         for first_key in ("id: java", "if: always()", "timeout-minutes: 5", "continue-on-error: false", "env:\n          NOTE: value"):
             with self.subTest(first_key=first_key):
-                changed = self.original().replace("      - name: Set up JDK 25\n", f"      - {first_key}\n        name: Set up JDK 25\n")
+                changed = self.original().replace("      - name: Set up JDK 27\n", f"      - {first_key}\n        name: Set up JDK 27\n")
                 changed = changed.replace("force-download: true", "force-download: false").replace("verify-signature: true", "verify-signature: false")
                 errors = "\n".join(self.scan(changed))
                 self.assertIn("CI_JDK_DOWNLOAD", errors)
@@ -106,7 +106,7 @@ class CIWorkflowRegressionTest(unittest.TestCase):
                 self.assertIn("CI_JDK_DOWNLOAD", "\n".join(self.scan(changed)))
 
     def test_yaml_alias_steps_preserve_security_semantics(self):
-        changed = self.original().replace("      - name: Set up JDK 25", "      - &java\n        name: Set up JDK 25", 1)
+        changed = self.original().replace("      - name: Set up JDK 27", "      - &java\n        name: Set up JDK 27", 1)
         changed += "\n      - *java\n"
         self.assertEqual([], self.scan(changed))
         self.assertIn("CI_JDK_DOWNLOAD", "\n".join(self.scan(changed.replace("force-download: true", "force-download: false"))))

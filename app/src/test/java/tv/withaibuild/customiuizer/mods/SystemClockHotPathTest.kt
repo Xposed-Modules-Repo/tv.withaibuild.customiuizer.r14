@@ -153,6 +153,8 @@ class SystemClockHotPathTest {
 
     private open inner class RecordingClockView(context: Context = FakeContext()) : RecordingTextView(context) {
         val updateTimeCalls = mutableListOf<Any?>()
+        var shown = true
+        override fun isShown() = shown
 
         @JvmField
         var mMiuiStatusBarClockController: Any? = null
@@ -1718,6 +1720,92 @@ class SystemClockHotPathTest {
         assertNotNull("ticker must be created when publication is non-null", ticker)
 
         disposeTicker(ticker)
+    }
+
+    @Test
+    fun secondTicker_hiddenClocksDoNoCalendarOrTextWork() {
+        setCurrentSnapshot(makeSnapshotWithSeconds(statusBar = true, cc = true))
+        val status = RecordingClockView().apply { shown = false }
+        val cc = RecordingClockView().apply { shown = false }
+        val controller = makeControllerWithClocks(status, cc)
+        SystemClockHooks.initSecondTicker(controller, true, true, makePublication(makeCalendarCold()))
+        val ticker = SystemClockHooks.activeSecondTicker(controller)!!
+        startTicker(ticker)
+        try {
+            repeat(120) { runTicker(ticker) }
+            assertEquals(0, (controller.mCalendar as FakeCalendar).setTimeInMillisCalls.size)
+            assertEquals(0, status.updateTimeCalls.size)
+            assertEquals(0, cc.updateTimeCalls.size)
+            assertFalse("hidden tick must not write the controller's time format", controller.mIs24)
+        } finally { disposeTicker(ticker) }
+    }
+
+    @Test
+    fun secondTicker_hiddenClockDefersCalibrationUntilShown() {
+        setCurrentSnapshot(makeSnapshotWithSeconds(statusBar = false, cc = true))
+        val clock = RecordingClockView().apply { shown = false }
+        val controller = makeControllerWithCcClock(clock)
+        val publication = makePublication()!!
+        SystemClockHooks.initSecondTicker(controller, true, true, publication)
+        val ticker = SystemClockHooks.activeSecondTicker(controller)!!
+        startTicker(ticker)
+        try {
+            repeat(120) { runTicker(ticker) }
+            assertEquals(0, publication.calibrationAttempts)
+            assertNull(publication.currentEffect())
+            clock.shown = true
+            runTicker(ticker)
+            assertNotNull(publication.currentEffect())
+            assertEquals(1, publication.calibrationAttempts)
+            assertEquals(1, clock.updateTimeCalls.size)
+            assertSame(ticker, SystemClockHooks.activeSecondTicker(controller))
+        } finally { disposeTicker(ticker) }
+    }
+
+    @Test
+    fun secondTicker_mixedVisibilityUpdatesOnlyShownSecondsAndResumes() {
+        setCurrentSnapshot(makeSnapshotWithSeconds(statusBar = true, cc = true))
+        val status = RecordingClockView()
+        val cc = RecordingClockView().apply { shown = false }
+        val controller = makeControllerWithClocks(status, cc)
+        val calendar = controller.mCalendar as FakeCalendar
+        SystemClockHooks.initSecondTicker(controller, true, true, makePublication(makeCalendarCold()))
+        val ticker = SystemClockHooks.activeSecondTicker(controller)!!
+        startTicker(ticker)
+        try {
+            runTicker(ticker)
+            assertEquals(1, calendar.setTimeInMillisCalls.size)
+            assertEquals(1, status.updateTimeCalls.size)
+            assertEquals(0, cc.updateTimeCalls.size)
+            status.shown = false
+            cc.shown = true
+            runTicker(ticker)
+            assertEquals(2, calendar.setTimeInMillisCalls.size)
+            assertEquals(1, status.updateTimeCalls.size)
+            assertEquals(1, cc.updateTimeCalls.size)
+            status.shown = true
+            runTicker(ticker)
+            assertEquals("prepare the shared calendar once for two visible clocks", 3, calendar.setTimeInMillisCalls.size)
+            assertEquals(2, status.updateTimeCalls.size)
+            assertEquals(2, cc.updateTimeCalls.size)
+        } finally { disposeTicker(ticker) }
+    }
+
+    @Test
+    fun secondTicker_visibleClockWithoutSecondsDoesNotPrepareHiddenSeconds() {
+        setCurrentSnapshot(makeSnapshotWithSeconds(statusBar = false, cc = true))
+        val status = RecordingClockView()
+        val cc = RecordingClockView().apply { shown = false }
+        val controller = makeControllerWithClocks(status, cc)
+        SystemClockHooks.initSecondTicker(controller, true, true, makePublication(makeCalendarCold()))
+        val ticker = SystemClockHooks.activeSecondTicker(controller)!!
+        startTicker(ticker)
+        try {
+            runTicker(ticker)
+            assertEquals(0, (controller.mCalendar as FakeCalendar).setTimeInMillisCalls.size)
+            assertEquals(0, status.updateTimeCalls.size)
+            assertEquals(0, cc.updateTimeCalls.size)
+        } finally { disposeTicker(ticker) }
     }
 
     @Test

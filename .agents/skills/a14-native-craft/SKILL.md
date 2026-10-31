@@ -1,17 +1,17 @@
 ---
 name: a14-native-craft
-description: Design, implement, or review A14 native Android View/Canvas UI craft, including Dynamic Island, Dock, settings, status bar, motion, gestures and overlay geometry. Use for A14 native interface quality work; not general backend, build, release or web UI tasks.
+description: Design, implement, or review A14 Android UI craft: Compose settings and native View/Canvas for Dynamic Island, Dock and status bar, including motion, gestures and overlay geometry. Use for A14 native interface quality work; not general backend, build, release or web UI tasks.
 ---
 
 # A14 原生界面工艺
 
-让界面清楚、克制、响应可靠；将 Apple、Emil 和 Telegram 的适用原则转译到现有 Android View / Canvas 实现。先确定用户操作和预期反馈，再决定视觉与动效，不为风格扩张功能或依赖。
+让界面清楚、克制、响应可靠；将 Apple、Emil 和 Telegram 的适用原则转译到 A14 设置 Compose 与宿主原生 View / Canvas 实现。先确定用户操作和预期反馈，再决定视觉与动效，不为风格扩张功能或依赖。
 
 ## 约束与入口
 
 以当前用户任务和 [AGENTS](../../../AGENTS.md)、[运行时合同](../../../ARCHITECTURE.md#运行时不变量)、涉及功能的现行合同为准；已在上下文且未变化的内容不重复加载。本 Skill 补充界面判断，不另建架构、参数或验证规则。
 
-- 保留 A14 的 View / Canvas、平台与宿主边界；不据外部 Skill 迁移 SwiftUI、React、Compose 或升级 SDK。
+- 设置页使用既有 Compose 组件；Dynamic Island / Dock / 状态栏 Hook 保留原生 View / Canvas、平台与宿主边界。不得据外部 Skill 把设置端 Compose 引入宿主、迁移 SwiftUI / React 或改变 SDK 支持范围。
 - 使用当前功能已有的状态、动效、几何与材质 owner。Dock 的原生圆角矩形与岛的 G4 胶囊各按自身合同，不能统一替换。
 - 时长与曲线先查现有实现；不把 Web 的 300 ms、CSS 合成规则或 iOS 点数当作 Android 门禁。
 - 审查请求保持只读；实施与验证沿用 [安全实施](../a14-safe-implementation/SKILL.md) 和 [测试分级](../../../docs/TESTING.md#执行分级)，不因加载本 Skill 启动构建、MCP 服务或发布。

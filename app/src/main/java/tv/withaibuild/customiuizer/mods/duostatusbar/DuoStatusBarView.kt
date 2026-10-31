@@ -272,7 +272,11 @@ internal class DuoStatusBarView(context: Context, private val config: DuoConfig,
             canvas.drawText(label, 59.5f, 26f, text)
         }
 
-        val progress = transition.fraction(SystemClock.uptimeMillis())
+        var progress = transition.fraction(SystemClock.uptimeMillis())
+        if (progress < 1f && !ValueAnimator.areAnimatorsEnabled()) {
+            transition.finish()
+            progress = 1f
+        }
         drawCenter(canvas, transition.drawKey(progress), transition.drawAlpha(progress))
         if (progress < 1f && isShown && windowVisibility == VISIBLE) postInvalidateOnAnimation()
 

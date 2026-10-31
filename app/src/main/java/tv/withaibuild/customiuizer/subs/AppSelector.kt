@@ -4,12 +4,9 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.view.View
-import android.widget.AdapterView
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.lifecycleScope
 
@@ -22,21 +19,22 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 import tv.withaibuild.customiuizer.R
+import tv.withaibuild.customiuizer.AppSelectionRow
 import tv.withaibuild.customiuizer.SubFragmentWithSearch
+import tv.withaibuild.customiuizer.utils.selectedAppsFirst
 import tv.withaibuild.customiuizer.mods.GlobalActions
 import tv.withaibuild.customiuizer.mods.utils.ModuleHelper
 import tv.withaibuild.customiuizer.utils.AppData
-import tv.withaibuild.customiuizer.utils.AppDataAdapter
 import tv.withaibuild.customiuizer.utils.AppHelper
 import tv.withaibuild.customiuizer.utils.AppSelectionSanitizer
 import tv.withaibuild.customiuizer.utils.DynamicAppScope
 import tv.withaibuild.customiuizer.utils.Helpers
-import tv.withaibuild.customiuizer.utils.LockedAppAdapter
-import tv.withaibuild.customiuizer.utils.PrivacyAppAdapter
 import tv.withaibuild.customiuizer.mods.utils.FatalErrors
 
 class AppSelector : SubFragmentWithSearch() {
 
+    private var sourceApps: List<AppData> = emptyList()
+    private val lockedApps = HashSet<String>()
     private var initialized = false
     private var standalone = false
     private var multi = false
@@ -73,7 +71,6 @@ class AppSelector : SubFragmentWithSearch() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        this.padded = false
         super.onCreate(savedInstanceState)
 
         val args = arguments
@@ -130,6 +127,16 @@ class AppSelector : SubFragmentWithSearch() {
                     Helpers.getLaunchableApps(ctx)
                 }
             }
+            if (applock) {
+                val manager = ctx.getSystemService("security")
+                val method = manager?.javaClass?.getDeclaredMethod("getApplicationAccessControlEnabledAsUser",
+                    String::class.java, Int::class.javaPrimitiveType)?.apply { isAccessible = true }
+                val result = HashSet<String>()
+                for (app in AppHelper.installedAppsList.orEmpty()) {
+                    if (method?.invoke(manager, app.pkgName, app.user) == true) result.add("${app.pkgName}|${app.user}")
+                }
+                synchronized(lockedApps) { lockedApps.clear(); lockedApps.addAll(result) }
+            }
         } catch (e: Throwable) {
             FatalErrors.unwrapAndRethrowIfFatal(e)
             if (e is CancellationException) throw e
@@ -172,77 +179,76 @@ class AppSelector : SubFragmentWithSearch() {
                 )
             }
 
-            listView?.adapter = AppDataAdapter(
-                context,
-                apps,
-                AppHelper.AppAdapterType.Mutli,
-                currentKey,
-                bwlist,
-            )
-        } else if (privacy) {
-            val apps = AppHelper.installedAppsList ?: return
-            listView?.adapter = PrivacyAppAdapter(context, apps, mPrivacyAppsMap ?: HashMap())
-        } else if (applock) {
-            val apps = AppHelper.installedAppsList ?: return
-            listView?.adapter = LockedAppAdapter(context, apps)
-        } else if (customTitles) {
-            val apps = Helpers.launchableAppsList ?: return
-            listView?.adapter = AppDataAdapter(context, apps, AppHelper.AppAdapterType.CustomTitles, currentKey)
-        } else if (standalone && currentKey != "") {
-            val apps = Helpers.launchableAppsList ?: return
-            listView?.adapter = AppDataAdapter(context, apps, AppHelper.AppAdapterType.Standalone, currentKey)
-        } else if (selectActivity) {
-            val apps = AppHelper.installedAppsList ?: return
-            listView?.adapter = AppDataAdapter(context, apps, AppHelper.AppAdapterType.Default, currentKey)
-        } else {
-            val apps = Helpers.launchableAppsList ?: return
-            listView?.adapter = AppDataAdapter(context, apps)
         }
-
-        listView?.setOnItemClickListener { parent: AdapterView<*>, _, position: Int, _ ->
-            val app = (parent.adapter?.getItem(position) as? AppData) ?: return@setOnItemClickListener
-            if (multi && key != null) {
-                handleMultiSelect(parent, app)
-            } else if (selectActivity) {
-                val args = Bundle()
-                args.putString("key", key)
-                args.putString("package", app.pkgName)
-                args.putInt("user", app.user)
-                val activitySelect = ActivitySelector()
-                activitySelect.setTargetFragment(this@AppSelector, targetRequestCode)
-                openSubFragment(activitySelect, args, AppHelper.SettingsType.Edit, AppHelper.ActionBarType.HomeUp, R.string.select_activity, R.layout.prefs_app_selector)
-            } else if (privacy) {
-                toggleAppPrivacy(app)
-                (parent.adapter as? PrivacyAppAdapter)?.notifyDataSetChanged()
-            } else if (applock) {
-                handleAppLock(app, parent)
-            } else if (customTitles) {
-                val k = key ?: return@setOnItemClickListener
-                AppHelper.showInputDialog(activity, k + ":" + app.pkgName + "|" + app.actName + "|" + app.user, R.string.launcher_renameapps_modified, 0, 1) { _, text ->
-                    if (text.isNullOrEmpty()) {
-                        AppHelper.appPrefs!!.edit().remove(k + ":" + app.pkgName + "|" + app.actName + "|" + app.user).apply()
-                    } else {
-                        AppHelper.appPrefs!!.edit().putString(k + ":" + app.pkgName + "|" + app.actName + "|" + app.user, text).apply()
-                    }
-                    (parent.adapter as? AppDataAdapter)?.notifyDataSetChanged()
-                }
-            } else {
-                val intent = Intent()
-                if (app.pkgName == "" && app.actName == "") {
-                    intent.putExtra("app", "")
-                } else {
-                    intent.putExtra("app", app.pkgName + "|" + app.actName)
-                }
-                intent.putExtra("user", app.user)
-                targetFragment?.onActivityResult(targetRequestCode, Activity.RESULT_OK, intent)
-                finish()
-            }
-        }
-
-        view?.findViewById<View>(R.id.am_progressBar)?.visibility = View.GONE
+        val available = when {
+            openwith -> Helpers.openWithAppsList
+            share -> Helpers.shareAppsList
+            privacy || applock || selectActivity || multi -> AppHelper.installedAppsList
+            else -> Helpers.launchableAppsList
+        } ?: return
+        sourceApps = available.filter { !(multi && !share && !openwith ||
+            selectActivity && currentKey.contains("pref_key_system_applock_skip_activities")) || it.user == 0 }
+        if (standalone && !multi && currentKey.isNotEmpty()) sourceApps = listOf(AppData().apply {
+            label = getString(R.string.array_default); enabled = true; prepareForList()
+        }) + sourceApps
+        sourceApps.forEach { it.prepareForList() }
+        refreshRows(sort = true)
+        loading = false
     }
 
-    private fun handleMultiSelect(parent: AdapterView<*>, app: AppData) {
+    private fun refreshRows(sort: Boolean = false) {
+        val selected = if (multi) AppHelper.getStringSetOfAppPrefs(key, emptySet()) else emptySet()
+        val black = if (bwlist) AppHelper.getStringSetOfAppPrefs(key + "_black", emptySet()) else emptySet()
+        val selectedApp = if (standalone && !multi) AppHelper.getStringOfAppPrefs(key, "") else ""
+        val selectedUser = AppHelper.getIntOfAppPrefs(key + "_user", 0)
+        val rows = sourceApps.map { app ->
+            val identifier = if (share || openwith) "${app.pkgName}|${app.user}" else app.pkgName
+            val checked = when {
+                multi -> identifier in selected || !share && !openwith && "${app.pkgName}|0" in selected
+                privacy -> mPrivacyAppsMap?.get(app.user)?.contains(app.pkgName) == true
+                applock -> "${app.pkgName}|${app.user}" in lockedApps
+                standalone -> selectedUser == app.user && (selectedApp == "${app.pkgName}|${app.actName}" || selectedApp.isNullOrEmpty() && app.pkgName.isEmpty())
+                else -> null
+            }
+            AppSelectionRow(app,
+                if (customTitles) AppHelper.getStringOfAppPrefs("$key:${app.pkgName}|${app.actName}|${app.user}", "").orEmpty() else "",
+                if (bwlist) null else checked,
+                if (bwlist) getString(when { app.pkgName in selected -> R.string.a14_selection_allow; app.pkgName in black -> R.string.a14_selection_block; else -> R.string.array_default }) else "",
+                !applock || app.pkgName != "com.miui.securitycenter")
+        }
+        appRows = if (sort && (multi || privacy || applock || standalone))
+            selectedAppsFirst(ArrayList(rows)) { it.app.pkgName.isEmpty() && it.app.actName.isEmpty() || it.selected == true || bwlist && (it.app.pkgName in selected || it.app.pkgName in black) }
+            else rows
+    }
+
+    override fun selectApp(row: AppSelectionRow) {
+        val app = row.app
+        if (multi && key != null) {
+            handleMultiSelect(app)
+        } else if (selectActivity) {
+            val args = Bundle().apply { putString("key", key); putString("package", app.pkgName); putInt("user", app.user) }
+            val selector = ActivitySelector().apply { setTargetFragment(this@AppSelector, targetRequestCode) }
+            openSubFragment(selector, args, AppHelper.SettingsType.Edit, AppHelper.ActionBarType.HomeUp, R.string.select_activity, R.id.prefs_app_selector)
+        } else if (privacy) {
+            toggleAppPrivacy(app); refreshRows()
+        } else if (applock) {
+            handleAppLock(app)
+        } else if (customTitles) {
+            val k = key ?: return
+            AppHelper.showInputDialog(activity, "$k:${app.pkgName}|${app.actName}|${app.user}", R.string.launcher_renameapps_modified, 0, 1) { _, text ->
+                val editor = AppHelper.appPrefs?.edit() ?: return@showInputDialog
+                val name = "$k:${app.pkgName}|${app.actName}|${app.user}"
+                if (text.isNullOrEmpty()) editor.remove(name) else editor.putString(name, text)
+                editor.apply(); refreshRows()
+            }
+        } else {
+            val intent = Intent().putExtra("app", if (app.pkgName.isEmpty() && app.actName.isEmpty()) "" else "${app.pkgName}|${app.actName}").putExtra("user", app.user)
+            targetFragment?.onActivityResult(targetRequestCode, Activity.RESULT_OK, intent)
+            finish()
+        }
+    }
+
+    private fun handleMultiSelect(app: AppData) {
         val selectedApps = LinkedHashSet(AppHelper.getStringSetOfAppPrefs(key, LinkedHashSet()))
         if (bwlist) {
             val selectedAppsBlack = LinkedHashSet(AppHelper.getStringSetOfAppPrefs(key + "_black", LinkedHashSet()))
@@ -300,11 +306,11 @@ class AppSelector : SubFragmentWithSearch() {
         }
         AppHelper.appPrefs!!.edit().putStringSet(key, selectedApps).apply()
         DynamicAppScope.requestForSelection(context, key, selectedApps)
-        (parent.adapter as? AppDataAdapter)?.updateSelectedApps()
+        refreshRows()
     }
 
     @SuppressLint("WrongConstant")
-    private fun handleAppLock(app: AppData, parent: AdapterView<*>) {
+    private fun handleAppLock(app: AppData) {
         val act = activity ?: return
         try {
             val mSecurityManager = act.getSystemService("security") ?: return
@@ -315,7 +321,9 @@ class AppSelector : SubFragmentWithSearch() {
             setApplicationAccessControlEnabledForUser.isAccessible = true
             val enabled = getApplicationAccessControlEnabledAsUser.invoke(mSecurityManager, app.pkgName, app.user) as? Boolean ?: return
             setApplicationAccessControlEnabledForUser.invoke(mSecurityManager, app.pkgName, !enabled, app.user)
-            (parent.adapter as? LockedAppAdapter)?.notifyDataSetChanged()
+            val identifier = "${app.pkgName}|${app.user}"
+            if (enabled) lockedApps.remove(identifier) else lockedApps.add(identifier)
+            refreshRows()
         } catch (t: Throwable) {
             t.printStackTrace()
         }

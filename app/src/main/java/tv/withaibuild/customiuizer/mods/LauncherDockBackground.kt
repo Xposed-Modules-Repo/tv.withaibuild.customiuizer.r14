@@ -1,25 +1,18 @@
 package tv.withaibuild.customiuizer.mods
 
 import android.animation.ValueAnimator
-import android.app.WallpaperManager
 import android.content.Context
-import android.content.BroadcastReceiver
-import android.content.Intent
-import android.content.IntentFilter
-import android.os.PowerManager
 import android.content.res.Configuration
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.ColorFilter
 import android.graphics.Insets
 import android.graphics.Matrix
-import android.graphics.LinearGradient
 import android.graphics.Outline
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PixelFormat
 import android.graphics.Rect
-import android.graphics.Shader
 import android.graphics.drawable.Drawable
 import android.view.RoundedCorner
 import android.view.View
@@ -27,7 +20,6 @@ import android.view.ViewGroup
 import android.view.ViewOutlineProvider
 import android.view.ViewTreeObserver
 import android.view.WindowInsets
-import android.view.WindowManager
 import android.view.animation.AnimationSet
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.Transformation
@@ -50,7 +42,13 @@ import kotlin.math.roundToInt
 
 /** A non-interactive decoration owned by HotSeats, below its native icon content. */
 object LauncherDockBackground {
-    private const val EDITING_OWNER = "customiuizer_dock_editing_owner"
+    private class EditingOwner(animation: AnimationSet, owner: DockBackgroundView) {
+        val animation = WeakReference(animation)
+        val owner = WeakReference(owner)
+    }
+    // Binding/release publishes a new snapshot. Global frame callbacks never probe the shared
+    // additional-field table, acquire a lock or retain a View/Animation beyond its owner.
+    @Volatile private var editingOwners: List<EditingOwner> = emptyList()
     private const val FULL_WIDTH_OWNER = "customiuizer_dock_full_width_owner"
     @JvmStatic
     fun install(lpparam: PackageReadyParam) {
@@ -58,8 +56,6 @@ object LauncherDockBackground {
         val hotseats = XposedHelpers.findClass("com.miui.home.launcher.hotseats.HotSeats", lpparam.classLoader)
         check(FrameLayout::class.java.isAssignableFrom(hotseats))
         val content = DockContentAccess.resolve(lpparam.classLoader)
-        val wallpaper = if (config.material == 3 && config.opacity > 0)
-            DockWallpaperCapture.resolve(lpparam.classLoader) else null
         val material = XposedHelpers.findClassIfExists(
             "com.miui.blur.sdk.backdrop.BackdropBlurRelativeLayout", lpparam.classLoader
         )?.constructors?.firstOrNull { it.parameterTypes.contentEquals(arrayOf(Context::class.java)) }
@@ -72,25 +68,16 @@ object LauncherDockBackground {
             hooks.add(method to callback)
         }
         prepare(hotseats, "onMeasure", Int::class.javaPrimitiveType,
-            Int::class.javaPrimitiveType, object : MethodHook() {
-                override fun after(callback: AfterHookCallback) {
-                    if (callback.getThrowable() != null) return
-                    findBackground(callback.getThisObject() as FrameLayout)?.scheduleGeometry()
-                }
-            })
+            Int::class.javaPrimitiveType, hotseatMeasureHook())
         // Phone HotSeats lays out its children immediately without changing the row's frame.
         // An OnLayoutChangeListener on mContent cannot observe that layout.
         XposedHelpers.findClassIfExists("com.miui.home.launcher.hotseats.HotSeatsScreenViewContent",
             lpparam.classLoader)?.let { row ->
             prepare(row, "onLayout", Boolean::class.javaPrimitiveType,
                 Int::class.javaPrimitiveType, Int::class.javaPrimitiveType,
-                Int::class.javaPrimitiveType, Int::class.javaPrimitiveType, object : MethodHook() {
-                    override fun after(callback: AfterHookCallback) {
-                        if (callback.getThrowable() != null) return
-                        onContentLayout(callback.getThisObject() as View)
-                    }
-                })
+                Int::class.javaPrimitiveType, Int::class.javaPrimitiveType, contentLayoutHook())
         }
+
         content?.dragControllerType?.let { controller ->
             prepare(controller, "endDrag", object : MethodHook() {
                 override fun after(callback: AfterHookCallback) {
@@ -134,22 +121,50 @@ object LauncherDockBackground {
             override fun after(callback: AfterHookCallback) {
                 if (callback.getThrowable() != null) return
                 val host = callback.getThisObject() as FrameLayout
-                attach(host, config, material, content, wallpaper)
+                attach(host, config, material, content)
             }
         })
         check(installDockBackgroundHooks(hooks)) { "Dock background Hook group incomplete" }
     }
 
+    internal fun hotseatMeasureHook() = object : MethodHook() {
+        override fun intercept(chain: XposedInterface.Chain): Any? {
+            val result = try { chain.proceed() } catch (error: Throwable) {
+                FatalErrors.unwrapAndRethrowIfFatal(error)
+                throw error
+            }
+            ModuleHelper.guarded { findBackground(chain.thisObject as FrameLayout)?.scheduleGeometry() }
+            return result
+        }
+    }
+
+    internal fun contentLayoutHook() = object : MethodHook() {
+        override fun intercept(chain: XposedInterface.Chain): Any? {
+            val result = try { chain.proceed() } catch (error: Throwable) {
+                FatalErrors.unwrapAndRethrowIfFatal(error)
+                throw error
+            }
+            ModuleHelper.guarded { onContentLayout(chain.thisObject as View) }
+            return result
+        }
+    }
+
     internal fun editingTransformationHook() = object : MethodHook() {
         override fun intercept(chain: XposedInterface.Chain): Any? {
             val result = chain.proceed()
+            val owners = editingOwners
+            if (owners.isEmpty()) return result
             ModuleHelper.guarded {
-                val animation = chain.thisObject as AnimationSet
-                @Suppress("UNCHECKED_CAST")
-                val owner = (XposedHelpers.getAdditionalInstanceField(animation, EDITING_OWNER) as? WeakReference<DockBackgroundView>)
-                    ?.get() ?: return@guarded
-                val transformation = chain.getArg(1) as Transformation
-                owner.onEditingFrame(animation, transformation.alpha, result == true, transformation.matrix)
+                val animation = chain.thisObject
+                for (index in owners.indices) {
+                    val entry = owners[index]
+                    val target = entry.animation.get() ?: continue
+                    if (target !== animation) continue
+                    val owner = entry.owner.get() ?: return@guarded
+                    val transformation = chain.getArg(1) as Transformation
+                    owner.onEditingFrame(target, transformation.alpha, result == true, transformation.matrix)
+                    return@guarded
+                }
             }
             return result
         }
@@ -157,7 +172,6 @@ object LauncherDockBackground {
 
     internal fun attach(host: FrameLayout, config: DockBackgroundConfig, material: Constructor<*>?,
         content: DockContentAccess? = null,
-        wallpaper: DockWallpaperSampler? = null,
     ) {
         if (config.fullWidth && !host.isAttachedToWindow) {
             if (XposedHelpers.getAdditionalInstanceField(host, FULL_WIDTH_OWNER) != null) return
@@ -167,7 +181,7 @@ object LauncherDockBackground {
                     XposedHelpers.removeAdditionalInstanceField(v, FULL_WIDTH_OWNER)
                     // This listener is also a value in the global weak-key field table.
                     // Use the callback owner so its value cannot keep its own key alive.
-                    attach(v as FrameLayout, config, material, content, wallpaper)
+                    attach(v as FrameLayout, config, material, content)
                 }
                 override fun onViewDetachedFromWindow(v: View) = Unit
             }
@@ -182,7 +196,7 @@ object LauncherDockBackground {
         val container = if (config.fullWidth) host.rootView as? FrameLayout ?: host else host
         val full = config.fullWidth && container !== host
         val decoration = DockBackgroundView(host.context, if (full) config else config.copy(fullWidth = false),
-            material, content, wallpaper, if (full) host else null)
+            material, content, if (full) host else null)
         val inset = ((if (config.sideInsetDp == 0) 14 else config.sideInsetDp) * host.resources.displayMetrics.density).roundToInt()
         val layer = if (full) DockFullWidthContainer(host.context).also {
             container.addView(it, 0, FrameLayout.LayoutParams(-1, -1))
@@ -232,14 +246,22 @@ object LauncherDockBackground {
         content.host(controller)?.let { findBackground(it)?.scheduleGeometry() }
     }
 
-    internal fun setEditingOwner(animation: AnimationSet, owner: DockBackgroundView?) {
-        if (owner == null) XposedHelpers.removeAdditionalInstanceField(animation, EDITING_OWNER)
-        else XposedHelpers.setAdditionalInstanceField(animation, EDITING_OWNER, WeakReference(owner))
+    @Synchronized internal fun setEditingOwner(animation: AnimationSet, owner: DockBackgroundView?) {
+        editingOwners = buildList {
+            for (entry in editingOwners) {
+                val target = entry.animation.get()
+                if (target != null && target !== animation && entry.owner.get() != null) add(entry)
+            }
+            if (owner != null) add(EditingOwner(animation, owner))
+        }
     }
 
-    internal fun clearEditingOwner(animation: AnimationSet, owner: DockBackgroundView) {
-        if ((XposedHelpers.getAdditionalInstanceField(animation, EDITING_OWNER) as? WeakReference<*>)?.get() === owner)
-            setEditingOwner(animation, null)
+    @Synchronized internal fun clearEditingOwner(animation: AnimationSet, owner: DockBackgroundView) {
+        editingOwners = editingOwners.filter { entry ->
+            val target = entry.animation.get()
+            val current = entry.owner.get()
+            target != null && current != null && (target !== animation || current !== owner)
+        }
     }
 }
 
@@ -346,18 +368,16 @@ internal data class DockBackgroundConfig(
     val sideInsetDp: Int = 0,
     val sizeAdjustmentDp: Int = 0,
     val fullWidth: Boolean = false,
-    val blurAllowed: Boolean = true,
 ) {
     companion object {
         fun read(prefs: PrefMap) = DockBackgroundConfig(
-            material = when (prefs.getStringAsInt("launcher_dock_background_material", 0)) { 2 -> 2; 3 -> 3; else -> 0 },
+            material = if (prefs.getStringAsInt("launcher_dock_background_material", 0) == 2) 2 else 0,
             opacity = prefs.getInt("launcher_dock_background_opacity", 90).coerceIn(0, 100),
             radiusDp = prefs.getInt("launcher_dock_background_radius", 0).coerceIn(0, 80),
             sideInsetDp = prefs.getInt("launcher_dock_background_inset", 0).coerceIn(0, 40),
             // Retain the key and raw encoding. Positive displayed values now expand all four edges.
             sizeAdjustmentDp = prefs.getInt("launcher_dock_background_shrink", 17).coerceIn(0, 34) - 17,
             fullWidth = prefs.getBoolean("launcher_dock_background_full_width"),
-            blurAllowed = !prefs.getBoolean("system_disable_window_blurs"),
         )
     }
 }
@@ -368,39 +388,15 @@ internal class DockBackgroundView(
     private val config: DockBackgroundConfig,
     private val materialConstructor: Constructor<*>?,
     private val contentAccess: DockContentAccess? = null,
-    private val wallpaperSampler: DockWallpaperSampler? = null,
     layoutHost: FrameLayout? = null,
 ) : FrameLayout(context), ViewTreeObserver.OnPreDrawListener, View.OnLayoutChangeListener {
     private val fullWidthHost = WeakReference(layoutHost)
-    private val tint = DockBackgroundTint(config.material == 3, resources.displayMetrics.density)
+    private val tint = DockBackgroundTint()
     private var nativeMaterial: View? = null
-    private var glassBackdrop: DockGlassBackdrop? = null
     private var materialEnabled = false
+    private var opacityDrawable: Drawable? = null
+    private var appliedDrawableAlpha = -1
     private var googleBlur = false
-    private var powerSave = false
-    private var powerRegistered = false
-    private var blurWindow: WindowManager? = null
-    private var crossWindowBlur = false
-    private val blurListener = java.util.function.Consumer<Boolean> { enabled ->
-        ModuleHelper.guarded {
-            if (crossWindowBlur != enabled) {
-                crossWindowBlur = enabled
-                syncNativeMaterialVisibility(isShown || editingAnimation != null)
-                invalidate()
-            }
-        }
-    }
-    private val powerReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == PowerManager.ACTION_POWER_SAVE_MODE_CHANGED) ModuleHelper.guarded { updatePowerSave() }
-        }
-    }
-
-    private fun updatePowerSave() {
-        powerSave = ModuleHelper.guarded(true) { context.getSystemService(PowerManager::class.java)?.isPowerSaveMode != false }
-        glassBackdrop?.setPowerSave(powerSave)
-        invalidate()
-    }
     private var editingAnimation: AnimationSet? = null
     private var editingAlpha = 1f
     private val editingMatrix = Matrix()
@@ -442,34 +438,9 @@ internal class DockBackgroundView(
             readScreenRadius(rootWindowInsets)
             navigationInsets = rootWindowInsets?.getInsets(WindowInsets.Type.navigationBars()) ?: Insets.NONE
             installMaterial()
-            installGlass()
-            if (config.material == 3 && (glassBackdrop != null || nativeMaterial != null) && !powerRegistered) {
-                context.registerReceiver(powerReceiver, IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED), Context.RECEIVER_NOT_EXPORTED)
-                powerRegistered = true
-                updatePowerSave()
-            }
-            if (config.material == 3 && googleBlur && blurWindow == null) {
-                context.getSystemService(WindowManager::class.java)?.let { manager ->
-                    crossWindowBlur = manager.isCrossWindowBlurEnabled
-                    manager.addCrossWindowBlurEnabledListener(context.mainExecutor, blurListener)
-                    blurWindow = manager
-                }
-            }
             syncNativeMaterialVisibility(isShown)
             refreshAppearance()
             scheduleGeometry()
-        }
-    }
-
-    private fun installGlass() {
-        if (config.material != 3 || config.opacity == 0 || wallpaperSampler == null || !DockWallpaperCapture.permitted(context)) return
-        try {
-            val live = WallpaperManager.getInstance(context).wallpaperInfo != null
-            glassBackdrop = DockGlassBackdrop(this, wallpaperSampler, config.opacity, live)
-            tint.backdrop = glassBackdrop
-        } catch (error: Throwable) {
-            FatalErrors.unwrapAndRethrowIfFatal(error)
-            XposedHelpers.log("Dock lens: native material retained after source setup failure", error)
         }
     }
 
@@ -498,6 +469,8 @@ internal class DockBackgroundView(
             nativeMaterial = candidate
             materialEnabled = true
         } catch (error: Throwable) {
+            googleBlur = false
+            materialEnabled = false
             try {
                 if (candidate?.parent === this) removeView(candidate)
             } finally {
@@ -509,7 +482,6 @@ internal class DockBackgroundView(
 
     private fun blurRadius(): Int = when (config.material) {
         2 -> (35 * resources.displayMetrics.density).roundToInt()
-        3 -> (18 * resources.displayMetrics.density).roundToInt()
         else -> 12
     }
 
@@ -525,12 +497,6 @@ internal class DockBackgroundView(
 
     override fun onDetachedFromWindow() {
         try {
-            blurWindow?.let { manager -> ModuleHelper.guarded { manager.removeCrossWindowBlurEnabledListener(blurListener) } }
-            blurWindow = null
-            if (powerRegistered) {
-                powerRegistered = false
-                ModuleHelper.guarded { context.unregisterReceiver(powerReceiver) }
-            }
             ModuleHelper.guarded {
                 cancelWidthAnimation()
                 widthAnimation?.removeAllUpdateListeners()
@@ -539,9 +505,6 @@ internal class DockBackgroundView(
                 cancelGeometry()
                 observeContent(null)
                 clearEditingAnimation()
-                tint.backdrop = null
-                glassBackdrop?.release()
-                glassBackdrop = null
                 retireMaterial()
             }
         } finally {
@@ -554,6 +517,8 @@ internal class DockBackgroundView(
         nativeMaterial = null
         materialEnabled = false
         googleBlur = false
+        opacityDrawable = null
+        appliedDrawableAlpha = -1
         ModuleHelper.guarded { material.background?.alpha = 0 }
         try {
             removeView(material)
@@ -597,15 +562,31 @@ internal class DockBackgroundView(
             if (!isVisible) cancelWidthAnimation()
             if (isVisible) scheduleGeometry() else if (editingAnimation == null) cancelGeometry()
             val drawingAnimation = editingAnimation != null
-            glassBackdrop?.onFrame(isVisible || drawingAnimation, nativeBlurAlpha() > 0)
             if (!isVisible && drawingAnimation) nativeMaterial?.onVisibilityAggregated(true)
             syncNativeMaterialVisibility(isVisible || drawingAnimation)
         }
     }
 
+    override fun onWindowVisibilityChanged(visibility: Int) {
+        super.onWindowVisibilityChanged(visibility)
+        if (!isAttachedToWindow) return
+        ModuleHelper.guarded {
+            // Keyguard can replace the window surface without changing View visibility.
+            // Retire the old blur region while hidden and restore it once on return.
+            if (visibility != VISIBLE) {
+                cancelWidthAnimation()
+                cancelGeometry()
+                syncNativeMaterialVisibility(false)
+            } else {
+                syncNativeMaterialVisibility(isShown || editingAnimation != null)
+                scheduleGeometry()
+            }
+        }
+    }
+
     internal fun bindEditingAnimation(animation: AnimationSet, showing: Boolean) {
         cancelWidthAnimation()
-        if ((!config.fullWidth && !googleBlur && glassBackdrop == null) || !isAttachedToWindow) return
+        if ((!config.fullWidth && !googleBlur) || !isAttachedToWindow) return
         if (editingAnimation === animation && animation.startTime != -1L) return
         clearEditingAnimation()
         editingAnimation = animation
@@ -622,7 +603,6 @@ internal class DockBackgroundView(
         if (editingAnimation !== animation || !isAttachedToWindow) return
         editingAlpha = alpha.coerceIn(0f, 1f)
         if (matrix == null) editingMatrix.reset() else editingMatrix.set(matrix)
-        if (!config.fullWidth) glassBackdrop?.setLegacyTransform(matrix)
         syncFullWidthHost()
         syncNativeOpacity()
         // false is returned while ViewGroup is still drawing the native terminal
@@ -636,7 +616,6 @@ internal class DockBackgroundView(
         editingAnimation = null
         editingAlpha = 1f
         editingMatrix.reset()
-        glassBackdrop?.setLegacyTransform(null)
     }
 
     private fun finishEditingAnimation() {
@@ -646,13 +625,12 @@ internal class DockBackgroundView(
         syncNativeMaterialVisibility(isShown)
     }
 
-    private fun syncNativeMaterialVisibility(requestedVisible: Boolean) {
+    private fun syncNativeMaterialVisibility(requestedVisible: Boolean, frameOpacity: Int = -1) {
         val material = nativeMaterial ?: return
         try {
-            val fallbackAllowed = config.material != 3 || !powerSave && config.blurAllowed && (!googleBlur || crossWindowBlur)
-            val isVisible = requestedVisible && !tint.lensActive && fallbackAllowed
+            val isVisible = requestedVisible && windowVisibility == VISIBLE
             // Retire the Google region before the SDK clears its background; disable the MIUI binder too.
-            if (!isVisible) material.background?.let { if (it.alpha != 0) it.alpha = 0 }
+            if (!isVisible) material.background?.let { applyNativeOpacity(it, 0) }
             if (materialEnabled != isVisible) {
                 if (isVisible) {
                     // setBlurEnabled(false) also resets the SDK's saved radius to zero.
@@ -665,31 +643,16 @@ internal class DockBackgroundView(
             val visibility = if (isVisible) VISIBLE else INVISIBLE
             if (material.visibility != visibility) material.visibility = visibility
             if (isVisible) material.background?.let { drawable ->
-                val wasTransparent = drawable.alpha == 0
-                val alpha = if (googleBlur) nativeBlurAlpha() else (config.opacity * 2.55f).roundToInt()
-                if (drawable.alpha != alpha) drawable.alpha = alpha
-                if (wasTransparent && drawable.alpha > 0) {
-                    val bounds = drawable.bounds
-                    drawable.setBounds(bounds.left, bounds.top, bounds.right, bounds.bottom)
-                }
+                val alpha = if (googleBlur) {
+                    if (frameOpacity >= 0) frameOpacity else nativeBlurAlpha()
+                } else (config.opacity * 2.55f).roundToInt()
+                applyNativeOpacity(drawable, alpha)
             }
         } catch (error: Throwable) {
             FatalErrors.unwrapAndRethrowIfFatal(error)
             retireMaterial()
             XposedHelpers.log("Dock background: native material retired after visibility failure", error)
         }
-    }
-
-    override fun draw(canvas: Canvas) {
-        if (config.material != 3) { super.draw(canvas); return }
-        // Resolve the owner before drawing children: the first usable lens frame must
-        // not blend with a second native blur region using a different corner profile.
-        tint.beginFrame(canvas)
-        syncNativeMaterialVisibility((isShown || editingAnimation != null) && nativeBlurAlpha() > 0)
-        tint.nativeFallback = materialEnabled && nativeMaterial?.visibility == VISIBLE && !tint.lensActive
-        tint.solidFallback = !tint.lensActive && !tint.nativeFallback
-        tint.panelAlpha = (config.opacity * 2.3f).roundToInt().coerceIn(0, 255)
-        try { super.draw(canvas) } finally { tint.endFrame() }
     }
 
     fun scheduleGeometry() {
@@ -760,22 +723,31 @@ internal class DockBackgroundView(
         return (255 * opacity).roundToInt().coerceIn(0, 255)
     }
 
-    private fun syncNativeOpacity() {
+    private fun syncNativeOpacity(frameOpacity: Int = -1) {
         if (!googleBlur || !materialEnabled) return
         try {
             val drawable = nativeMaterial?.background ?: return
-            val alpha = nativeBlurAlpha()
-            if (drawable.alpha == alpha) return
-            val wasTransparent = drawable.alpha == 0
-            drawable.alpha = alpha
-            if (wasTransparent && alpha > 0) {
-                val bounds = drawable.bounds
-                drawable.setBounds(bounds.left, bounds.top, bounds.right, bounds.bottom)
-            }
+            val alpha = if (frameOpacity >= 0) frameOpacity else nativeBlurAlpha()
+            applyNativeOpacity(drawable, alpha)
         } catch (error: Throwable) {
             FatalErrors.unwrapAndRethrowIfFatal(error)
             retireMaterial()
             XposedHelpers.log("Dock background: native material retired after opacity failure", error)
+        }
+    }
+
+    private fun applyNativeOpacity(drawable: Drawable, alpha: Int) {
+        // A14 BackgroundBlurDrawable.setAlpha writes mAlpha but inherits Drawable.getAlpha,
+        // which returns 255. Read-back therefore cannot tell whether this region is transparent.
+        // Track only this owner's last write, scoped to the current native drawable identity.
+        val previous = if (opacityDrawable === drawable) appliedDrawableAlpha else -1
+        if (previous == alpha) return
+        drawable.alpha = alpha
+        opacityDrawable = drawable
+        appliedDrawableAlpha = alpha
+        if (previous <= 0 && alpha > 0) {
+            val bounds = drawable.bounds
+            drawable.setBounds(bounds.left, bounds.top, bounds.right, bounds.bottom)
         }
     }
 
@@ -784,17 +756,15 @@ internal class DockBackgroundView(
         ModuleHelper.guarded {
             if (editingAnimation != null && (fullWidthHost.get() ?: parent as? View)?.animation !== editingAnimation)
                 finishEditingAnimation()
-            if (config.opacity > 0) {
-                syncFullWidthHost()
-                // Google blur regions have independent compositor opacity. Keep following native
-                // rendered properties without starting a frame loop or reading icon bounds.
-                glassBackdrop?.onFrame(isShown || editingAnimation != null, nativeBlurAlpha() > 0)
-            }
+            if (config.opacity > 0) syncFullWidthHost()
+            // Reuse only within this synchronous pass, after the full-width transform is applied.
+            // Draw and legacy animation callbacks take their own current snapshot.
+            val opacity = if (config.opacity > 0 && (config.fullWidth && nativeMaterial != null || googleBlur && materialEnabled)) nativeBlurAlpha() else 0
             val host = fullWidthHost.get() ?: parent as? FrameLayout ?: return@guarded
             if (config.opacity > 0 && config.fullWidth) {
-                syncNativeMaterialVisibility(isShown && nativeBlurAlpha() > 0)
+                syncNativeMaterialVisibility(isShown && opacity > 0, opacity)
             }
-            syncNativeOpacity()
+            syncNativeOpacity(opacity)
             if (!geometryPending) return@guarded
             geometryPending = false
             if (!isShown || host.height <= 0) return@guarded
@@ -905,7 +875,7 @@ internal class DockBackgroundView(
             updateGeometry()
         }
         if (!geometryPending && (config.opacity == 0 ||
-                !config.fullWidth && !(googleBlur && materialEnabled) && glassBackdrop == null)) cancelGeometry()
+                !config.fullWidth && !(googleBlur && materialEnabled))) cancelGeometry()
         return ready
     }
 
@@ -962,13 +932,7 @@ internal class DockBackgroundView(
             false
         }
         tint.color = if (night || lightWallpaper) Color.rgb(24, 26, 30) else Color.WHITE
-        tint.alpha = (config.opacity * if (config.material == 3) 0.2f else 0.85f).roundToInt()
-        glassBackdrop?.let { backdrop ->
-            // Wallpaper replacement may also switch static/live policy. Resolve only on this
-            // native appearance event; never ask WallpaperManager from a frame/draw callback.
-            val live = ModuleHelper.guarded<Boolean?>(null) { WallpaperManager.getInstance(context).wallpaperInfo != null }
-            if (live == null) backdrop.invalidateSource() else backdrop.invalidateSource(live)
-        }
+        tint.alpha = (config.opacity * 0.85f).roundToInt()
         updateGeometry()
         scheduleGeometry()
     }
@@ -987,31 +951,9 @@ internal class DockBackgroundView(
 }
 
 /** Cached geometry; color/alpha changes never rebuild a path. */
-internal class DockBackgroundTint(withRim: Boolean = false, private val density: Float = 1f) : Drawable() {
-    var backdrop: DockGlassBackdrop? = null
-        set(value) { field = value; if (value == null) lensActive = false }
-    var lensActive = false
-        private set
-    var nativeFallback = false
-    var solidFallback = false
-    var panelAlpha = 216
-    private var prepared = false
-    fun beginFrame(canvas: Canvas) {
-        prepared = true
-        lensActive = backdrop?.prepare(canvas, bounds, radius, density) == true
-    }
-    fun endFrame() { prepared = false }
+internal class DockBackgroundTint : Drawable() {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.TRANSPARENT }
     private val path = Path()
-    private val rim = if (withRim) Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeWidth = density.coerceAtLeast(1f)
-        alpha = 0
-    } else null
-    private val rimPath = if (withRim) Path() else null
-    private val depth = if (withRim) Paint(Paint.ANTI_ALIAS_FLAG) else null
-    private val optics = if (withRim) DockGlassOptics.create() else null
-    private var gradientDepth: Shader? = null
     private var explicitAlpha = false
     var color: Int
         get() = paint.color
@@ -1020,96 +962,28 @@ internal class DockBackgroundTint(withRim: Boolean = false, private val density:
                 val alpha = paint.alpha
                 paint.color = value
                 if (explicitAlpha) paint.alpha = alpha
-                optics?.setFloatUniform("dark", if (Color.red(value) < 128) 1f else 0f)
                 invalidateSelf()
             }
         }
     var radius = 0f
         set(value) { if (field != value) { field = value; rebuild(); invalidateSelf() } }
 
-    override fun onBoundsChange(bounds: android.graphics.Rect) {
-        gradientDepth = if (depth == null || bounds.isEmpty) null else LinearGradient(
-            0f, bounds.top.toFloat(), 0f, bounds.bottom.toFloat(),
-            intArrayOf(0x18FFFFFF, 0x00FFFFFF, 0x10000000),
-            floatArrayOf(0f, 0.45f, 1f), Shader.TileMode.CLAMP,
-        )
-        rim?.shader = if (bounds.isEmpty) null else LinearGradient(
-            bounds.left.toFloat(), bounds.top.toFloat(), bounds.right.toFloat(), bounds.bottom.toFloat(),
-            intArrayOf(0xB3FFFFFF.toInt(), 0x25FFFFFF, 0x00FFFFFF, 0x66FFFFFF),
-            floatArrayOf(0f, 0.25f, 0.55f, 1f), Shader.TileMode.CLAMP,
-        )
-        rebuild()
-    }
-
+    override fun onBoundsChange(bounds: Rect) { rebuild() }
     private fun rebuild() {
         path.rewind()
-        rimPath?.rewind()
         if (bounds.isEmpty) return
-        val r = radius.coerceIn(0f, min(bounds.width(), bounds.height()) * 0.5f)
-        DockCornerGeometry.outline(path, bounds.width().toFloat(), bounds.height().toFloat(), r)
+        DockCornerGeometry.outline(path, bounds.width().toFloat(), bounds.height().toFloat(), radius)
         path.offset(bounds.left.toFloat(), bounds.top.toFloat())
-        depth?.shader = if (optics != null) optics.apply {
-            setFloatUniform("origin", bounds.left.toFloat(), bounds.top.toFloat())
-            setFloatUniform("size", bounds.width().toFloat(), bounds.height().toFloat())
-            setFloatUniform("radius", r)
-            setFloatUniform("density", density.coerceAtLeast(0.1f))
-            setFloatUniform("dark", if (Color.red(paint.color) < 128) 1f else 0f)
-        } else gradientDepth
-        rim?.let { edge ->
-            // Keep the softly curved G4 bevel inside the compositor's circular outer boundary.
-            val inset = min(maxOf(edge.strokeWidth, r * 0.16f), min(bounds.width(), bounds.height()) * 0.2f)
-            rimPath?.let { bevel ->
-                DockCornerGeometry.buildSoft(bevel, bounds.width() - 2 * inset, bounds.height() - 2 * inset,
-                    (r - inset).coerceAtLeast(0f), 0.3f * density)
-                bevel.offset(bounds.left + inset, bounds.top + inset)
-            }
-        }
     }
-
     override fun draw(canvas: Canvas) {
-        if (prepared) {
-            if (lensActive) {
-                if (backdrop?.drawPrepared(canvas) == true) return
-                lensActive = false
-                nativeFallback = false
-                solidFallback = true
-            }
-        } else if (backdrop?.draw(canvas, bounds, radius, density) == true) return
-        if (nativeFallback) return
-        if (solidFallback) {
-            val alpha = paint.alpha
-            paint.alpha = panelAlpha
-            try { canvas.drawPath(path, paint) } finally { paint.alpha = alpha }
-            return
-        }
-        if (paint.alpha == 0) return
-        canvas.drawPath(path, paint)
-        depth?.let {
-            // Bitmap/software draws cannot execute RuntimeShader. Keep the prepared gradient
-            // for those callers and restore the same shader for the next hardware recording.
-            val shader = it.shader
-            if (!canvas.isHardwareAccelerated && shader === optics) it.shader = gradientDepth
-            try { canvas.drawPath(path, it) }
-            finally { if (it.shader !== shader) it.shader = shader }
-        }
-        rim?.let { canvas.drawPath(checkNotNull(rimPath), it) }
+        if (paint.alpha != 0) canvas.drawPath(path, paint)
     }
     override fun setAlpha(alpha: Int) {
         explicitAlpha = true
-        if (paint.alpha != alpha) {
-            paint.alpha = alpha
-            rim?.alpha = (alpha * 4).coerceIn(0, 255)
-            depth?.alpha = (alpha * 6).coerceIn(0, 255)
-            invalidateSelf()
-        }
+        if (paint.alpha != alpha) { paint.alpha = alpha; invalidateSelf() }
     }
     override fun getAlpha(): Int = paint.alpha
-    override fun setColorFilter(colorFilter: ColorFilter?) {
-        paint.colorFilter = colorFilter
-        rim?.colorFilter = colorFilter
-        depth?.colorFilter = colorFilter
-        invalidateSelf()
-    }
+    override fun setColorFilter(colorFilter: ColorFilter?) { paint.colorFilter = colorFilter; invalidateSelf() }
     @Deprecated("Drawable requires this legacy API; use alpha for opacity.")
     override fun getOpacity(): Int = PixelFormat.TRANSLUCENT
 }

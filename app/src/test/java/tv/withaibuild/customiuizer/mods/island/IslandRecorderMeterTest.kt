@@ -28,7 +28,7 @@ class IslandRecorderMeterTest {
             ShadowBinder.setCallingUid(1000)
             val producer = IslandRecorderMeter.producer(1000) { reads++; 32767 }
             consumer.start(producer); scheduler.runCurrent()
-            scheduler.advanceTimeBy(335); scheduler.runCurrent()
+            scheduler.advanceTimeBy(5 * IslandRecorderMeter.SAMPLE_INTERVAL_MS); scheduler.runCurrent()
             val previous = frames.last()!!.copyOf()
             val count = frames.size; val sampled = reads
             repeat(120) { consumer.pauseKeepingFrame() }
@@ -93,14 +93,14 @@ class IslandRecorderMeterTest {
             val producer = IslandRecorderMeter.producer(1000) { reads++; amplitude }
             consumer.start(producer); consumer.start(producer)
             scheduler.runCurrent()
-            scheduler.advanceTimeBy(335); scheduler.runCurrent()
+            scheduler.advanceTimeBy(5 * IslandRecorderMeter.SAMPLE_INTERVAL_MS); scheduler.runCurrent()
             assertTrue(reads in 5..6)
             assertArrayEquals(FloatArray(5) { 1f }, frames.last(), .00001f)
             amplitude = 0
-            scheduler.advanceTimeBy(402); scheduler.runCurrent()
+            scheduler.advanceTimeBy(6 * IslandRecorderMeter.SAMPLE_INTERVAL_MS); scheduler.runCurrent()
             assertArrayEquals(FloatArray(5), frames.last(), 0f)
             val frameCount = frames.size
-            scheduler.advanceTimeBy(402); scheduler.runCurrent()
+            scheduler.advanceTimeBy(6 * IslandRecorderMeter.SAMPLE_INTERVAL_MS); scheduler.runCurrent()
             assertEquals("Stable silence must not invalidate the waveform", frameCount, frames.size)
             consumer.stop(); consumer.stop()
             val stoppedAt = reads

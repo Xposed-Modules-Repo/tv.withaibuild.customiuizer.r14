@@ -369,9 +369,15 @@ class UiHotPathPreferenceSnapshotTest {
 
     @Test
     fun variousAndSystemMiscReadSnapshots() {
-        val callUi = methodBody(
+        val callUiBinding = methodBody(
             "app/src/main/java/tv/withaibuild/customiuizer/mods/Various.kt",
             "fun ShowCallUIHook",
+        )
+        assertTrue(callUiBinding.contains("installVariousSnapshot()"))
+        assertTrue(callUiBinding.contains("showCallUiHook()"))
+        val callUi = methodBody(
+            "app/src/main/java/tv/withaibuild/customiuizer/mods/Various.kt",
+            "internal fun showCallUiHook",
         )
         assertFalse(callUi.contains("MainModule.mPrefs"))
         assertTrue(callUi.contains("variousConfig.showCallUi"))

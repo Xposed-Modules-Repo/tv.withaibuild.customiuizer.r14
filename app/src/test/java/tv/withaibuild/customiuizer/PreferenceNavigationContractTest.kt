@@ -14,17 +14,12 @@ class PreferenceNavigationContractTest {
     )
 
     @Test
-    fun navigationFinishesVisiblePressFeedbackBeforeStartingTheTransaction() {
-        val stringOverload = source.substring(
-            source.indexOf("open fun openSubFragment(\n        fragment: Fragment", source.indexOf("open fun openSubFragment(") + 1),
-            source.indexOf("override fun onCreateAnimator")
-        )
-        val finishFeedback = stringOverload.indexOf("finishNavigationFeedback()")
-        val beginTransaction = stringOverload.indexOf("beginTransaction()")
-
-        assertTrue(finishFeedback >= 0)
-        assertTrue(beginTransaction > finishFeedback)
-        assertTrue(source.contains("jumpDrawablesToCurrentState()"))
+    fun composeOwnsPressFeedbackWithoutTraversingNativePreferenceChildren() {
+        assertFalse(source.contains("finishNavigationFeedback"))
+        val renderer = Files.readString(Path.of("src/main/java/tv/withaibuild/customiuizer/ui/SettingsPreferences.kt"))
+        assertTrue(renderer.contains("modifier.clickable"))
+        assertTrue(renderer.contains("modifier.toggleable"))
+        assertFalse(renderer.contains("jumpDrawablesToCurrentState"))
     }
 
     @Test

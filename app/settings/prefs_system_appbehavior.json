@@ -1,0 +1,181 @@
+{
+  "type": "screen",
+  "children": [
+    {
+      "type": "action",
+      "attributes": {
+        "android:title": "@string/appbehavior_note_title",
+        "android:summary": "@string/appbehavior_note",
+        "android:selectable": "false",
+        "android:persistent": "false"
+      }
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/appbehavior_rotation"
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_appbehavior_rotation",
+            "android:title": "@string/appbehavior_rotation",
+            "android:summary": "@string/appbehavior_rotation_summary",
+            "android:defaultValue": "false"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_appbehavior_rotation_apps",
+            "android:title": "@string/appbehavior_apps",
+            "android:dependency": "pref_key_system_appbehavior_rotation",
+            "app:countAsSummary": "true",
+            "app:dynamic": "true"
+          }
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/appbehavior_volume"
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_appbehavior_volume",
+            "android:title": "@string/appbehavior_volume",
+            "android:summary": "@string/appbehavior_volume_summary",
+            "android:defaultValue": "false"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_appbehavior_volume_apps",
+            "android:title": "@string/appbehavior_apps",
+            "android:dependency": "pref_key_system_appbehavior_volume",
+            "app:countAsSummary": "true",
+            "app:dynamic": "true"
+          }
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/appbehavior_brightness"
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_appbehavior_brightness",
+            "android:title": "@string/appbehavior_brightness",
+            "android:summary": "@string/appbehavior_brightness_summary",
+            "android:defaultValue": "false"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_appbehavior_brightness_apps",
+            "android:title": "@string/appbehavior_apps",
+            "android:dependency": "pref_key_system_appbehavior_brightness",
+            "app:countAsSummary": "true",
+            "app:dynamic": "true"
+          }
+        },
+        {
+          "type": "choice",
+          "attributes": {
+            "android:key": "pref_key_system_appbehavior_edit_app",
+            "android:title": "@string/appbehavior_edit_app",
+            "android:persistent": "false",
+            "app:valueAsSummary": "true",
+            "app:dynamic": "true"
+          }
+        },
+        {
+          "type": "slider",
+          "attributes": {
+            "android:key": "pref_key_system_appbehavior_edit_level",
+            "android:title": "@string/appbehavior_level",
+            "android:defaultValue": "0",
+            "android:persistent": "false",
+            "app:minValue": "0",
+            "app:maxValue": "100",
+            "app:stepValue": "1",
+            "app:format": "%d%%",
+            "app:offtext": "@string/appbehavior_follow_system",
+            "app:dynamic": "true"
+          }
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/appbehavior_block"
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_appbehavior_block",
+            "android:title": "@string/appbehavior_block",
+            "android:summary": "@string/appbehavior_block_summary",
+            "android:defaultValue": "false"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_appbehavior_block_apps",
+            "android:title": "@string/appbehavior_apps",
+            "android:dependency": "pref_key_system_appbehavior_block",
+            "app:countAsSummary": "true",
+            "app:dynamic": "true"
+          }
+        },
+        {
+          "type": "slider",
+          "attributes": {
+            "android:key": "pref_key_system_appbehavior_block_limit",
+            "android:title": "@string/appbehavior_limit",
+            "android:defaultValue": "0",
+            "android:dependency": "pref_key_system_appbehavior_block",
+            "app:minValue": "0",
+            "app:maxValue": "100",
+            "app:stepValue": "1",
+            "app:format": "%d%%",
+            "app:offtext": "@string/appbehavior_follow_system",
+            "app:dynamic": "true"
+          }
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "attributes": {
+        "android:key": "pref_key_system_appbehavior_exceptions",
+        "android:title": "@string/appbehavior_exceptions",
+        "android:summary": "@string/appbehavior_exceptions_summary",
+        "android:dialogMessage": "@string/appbehavior_exceptions_summary",
+        "android:defaultValue": "",
+        "app:dynamic": "true"
+      }
+    },
+    {
+      "type": "text",
+      "attributes": {
+        "android:key": "pref_key_system_appbehavior_brightness_values",
+        "android:defaultValue": "",
+        "app:isPreferenceVisible": "false"
+      }
+    }
+  ]
+}

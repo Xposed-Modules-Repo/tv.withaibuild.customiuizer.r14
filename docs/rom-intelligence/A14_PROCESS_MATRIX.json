@@ -1334,7 +1334,7 @@
       "target": "SYSTEM_UI",
       "phase": "PACKAGE_READY",
       "installer": "SystemUiFeatures",
-      "installHook": "(default base install)",
+      "installHook": "SystemLockScreenHooks.ChargingInfoHook(lpparam)",
       "enableCondition": "prefs.getBoolean(\"system_charginginfo\")",
       "allowedProcess": "com.android.systemui",
       "deniedProcess": "miui.systemui.plugin (ClassLoader extracted at runtime)"
@@ -1906,7 +1906,7 @@
       "target": "LAUNCHER",
       "phase": "PACKAGE_READY",
       "installer": "LauncherPackageReadyFeatures",
-      "installHook": "(default base install)",
+      "installHook": "{ LauncherLayoutHooks.UnlockGridsRes() LauncherLayoutHooks.UnlockGridsHook(lpparam) return FeatureInstallResult.INSTALLED }",
       "enableCondition": "prefs.getBoolean(\"launcher_unlockgrids\")",
       "allowedProcess": "com.miui.home",
       "deniedProcess": "third-party launchers (unless selected app sets)"
@@ -2569,7 +2569,7 @@
       "target": "ANY",
       "phase": "PACKAGE_READY",
       "installer": "InputMethodFeatures",
-      "installHook": "Various.FixInputMethodBottomMarginHook(lpparam)",
+      "installHook": "{ return Various.FixInputMethodBottomMarginHook(lpparam) }",
       "enableCondition": "prefs.getBoolean(\"controls_nonavbar_fix_inputmethod\") && prefs.getBoolean(\"controls_nonavbar\")",
       "allowedProcess": "com.baidu.input; com.baidu.input_mi; com.iflytek.inputmethod; com.iflytek.inputmethod.miui; com.sohu.inputmethod.sogou; com.sohu.inputmethod.sogou.xiaomi; com.google.android.inputmethod*; com.touchtype.swiftkey; com.tencent.wetype",
       "deniedProcess": "packages outside scope.list (no callback with static scope)"
@@ -2608,7 +2608,7 @@
       "target": "SYSTEM_PACKAGE",
       "phase": "PACKAGE_READY",
       "installer": "SettingsFeatures",
-      "installHook": "(default base install)",
+      "installHook": "{ SystemNotificationHooks.DisableAnyNotificationHook(lpparam) return FeatureInstallResult.INSTALLED }",
       "enableCondition": "prefs.getBoolean(\"system_disableanynotif\")",
       "allowedProcess": "com.android.settings",
       "deniedProcess": "com.android.settings:remote"
@@ -2920,7 +2920,7 @@
       "target": "SYSTEM_PACKAGE",
       "phase": "PACKAGE_READY",
       "installer": "GuardProviderFeatures",
-      "installHook": "(default base install)",
+      "installHook": "{ try { MainModule.loadDexKit() XposedHelpers.createBridge(lpparam.applicationInfo.sourceDir) return Various.DisableDefraudAppsCheck(lpparam) } finally { XposedHelpers.closeBridge() } }",
       "enableCondition": "!isInternationalBuild && prefs.getBoolean(\"various_disable_defraud_apps_detect\")",
       "allowedProcess": "com.miui.guardprovider",
       "deniedProcess": ""
@@ -2985,7 +2985,7 @@
       "target": "SYSTEM_PACKAGE",
       "phase": "PACKAGE_READY",
       "installer": "MediaFeatures",
-      "installHook": "(default base install)",
+      "installHook": "{ try { MainModule.loadDexKit() XposedHelpers.createBridge(lpparam.applicationInfo.sourceDir) return ModsSystem.ScreenshotConfigHook(lpparam) } finally { XposedHelpers.closeBridge() } }",
       "enableCondition": "packageName == \"com.miui.screenshot\" && prefs.getBoolean(\"system_screenshot\")",
       "allowedProcess": "com.miui.screenshot",
       "deniedProcess": ""
@@ -3037,7 +3037,7 @@
       "target": "SYSTEM_PACKAGE",
       "phase": "PACKAGE_READY",
       "installer": "AndroidPackageFeatures",
-      "installHook": "(default base install)",
+      "installHook": "{ val allRotations = mPrefs.getStringAsInt(\"system_allrotations2\", 1) MainModule.resHooks.setThemeValueReplacement(\"android\", \"bool\", \"config_allowAllRotations\", allRotations == 2) return FeatureInstallResult.INSTALLED }",
       "enableCondition": "prefs.getStringAsInt(\"system_allrotations2\", 1) > 1",
       "allowedProcess": "android",
       "deniedProcess": ""
@@ -3063,7 +3063,7 @@
       "target": "ANY",
       "phase": "APPLICATION_ATTACHED",
       "installer": "GenericAppFeatures",
-      "installHook": "(default base install)",
+      "installHook": "{ SystemStatusBarBackgroundHooks.StatusBarBackgroundCompatHook(lpparam) SystemStatusBarBackgroundHooks.StatusBarBackgroundHook(lpparam) return FeatureInstallResult.INSTALLED }",
       "enableCondition": "prefs.getBoolean(\"system_statusbarcolor\") && prefs.getStringSet(\"system_statusbarcolor_apps\").contains(packageName)",
       "allowedProcess": "com.miui.home + selected packages",
       "deniedProcess": ""
@@ -3219,7 +3219,7 @@
       "target": "SYSTEM_UI",
       "phase": "PACKAGE_READY",
       "installer": "SystemUiFeatures",
-      "installHook": "(default base install)",
+      "installHook": "DuoStatusBarHooks.install(lpparam.classLoader, DuoConfig.read(prefs))",
       "enableCondition": "{ prefs -> DuoStatusBarFeature.evaluateEnabled(prefs) }",
       "allowedProcess": "com.android.systemui",
       "deniedProcess": "miui.systemui.plugin (ClassLoader extracted at runtime)"
@@ -3325,6 +3325,45 @@
       "installer": "SystemServerFeatures",
       "installHook": "tv.withaibuild.customiuizer.mods.vpn.VpnAutoSwitchHooks.install(lpparam.classLoader)",
       "enableCondition": "{ prefs -> prefs.getBoolean(\"system_vpnauto_enabled\") }",
+      "allowedProcess": "system_server",
+      "deniedProcess": ""
+    },
+    {
+      "featureIdInt": 263,
+      "featureIdName": "system_app_window_behavior",
+      "name": "App Window Behavior",
+      "preferenceKey": "system_appbehavior_rotation",
+      "target": "SYSTEM_SERVER",
+      "phase": "SYSTEM_SERVER_STARTING",
+      "installer": "SystemServerFeatures",
+      "installHook": "tv.withaibuild.customiuizer.mods.appbehavior.AppWindowBehaviorHooks.install(lpparam.classLoader)",
+      "enableCondition": "prefs.getBoolean(\"system_appbehavior_rotation\") || prefs.getBoolean(\"system_appbehavior_brightness\") || prefs.getBoolean(\"system_appbehavior_block\")",
+      "allowedProcess": "system_server",
+      "deniedProcess": ""
+    },
+    {
+      "featureIdInt": 264,
+      "featureIdName": "system_app_volume_memory",
+      "name": "App Volume Memory",
+      "preferenceKey": "system_appbehavior_volume",
+      "target": "SYSTEM_SERVER",
+      "phase": "SYSTEM_SERVER_STARTING",
+      "installer": "SystemServerFeatures",
+      "installHook": "tv.withaibuild.customiuizer.mods.appbehavior.AppVolumeMemoryHooks.install(lpparam.classLoader)",
+      "enableCondition": "prefs.getBoolean(\"system_appbehavior_volume\")",
+      "allowedProcess": "system_server",
+      "deniedProcess": ""
+    },
+    {
+      "featureIdInt": 265,
+      "featureIdName": "system_wifi_automatic_settings",
+      "name": "Wi-Fi Automatic Settings",
+      "preferenceKey": "system_wifiauto_enabled",
+      "target": "SYSTEM_SERVER",
+      "phase": "SYSTEM_SERVER_STARTING",
+      "installer": "SystemServerFeatures",
+      "installHook": "tv.withaibuild.customiuizer.mods.wifiauto.WifiAutomationHooks.install(lpparam.classLoader)",
+      "enableCondition": "{ prefs -> prefs.getBoolean(\"system_wifiauto_enabled\") }",
       "allowedProcess": "system_server",
       "deniedProcess": ""
     }

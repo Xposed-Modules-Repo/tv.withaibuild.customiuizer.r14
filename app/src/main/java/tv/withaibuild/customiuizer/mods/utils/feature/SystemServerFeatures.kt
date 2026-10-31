@@ -1427,7 +1427,62 @@ object SystemServerFeatures {
             enabled = { prefs -> prefs.getBoolean("system_vpnauto_enabled") },
             factory = { VpnAutoSwitchFeature(lpparam) },
         ),
+        LazyFeatureSpec(
+            id = AppWindowBehaviorFeatureId,
+            name = "App Window Behavior",
+            preferenceKey = "system_appbehavior_rotation",
+            target = FeatureTarget.SYSTEM_SERVER,
+            phase = InstallPhase.SYSTEM_SERVER_STARTING,
+            enabled = { prefs -> AppWindowBehaviorFeature.evaluateEnabled(prefs) },
+            factory = { AppWindowBehaviorFeature(lpparam) },
+        ),
+        LazyFeatureSpec(
+            id = AppVolumeMemoryFeatureId,
+            name = "App Volume Memory",
+            preferenceKey = "system_appbehavior_volume",
+            target = FeatureTarget.SYSTEM_SERVER,
+            phase = InstallPhase.SYSTEM_SERVER_STARTING,
+            enabled = { prefs -> AppVolumeMemoryFeature.evaluateEnabled(prefs) },
+            factory = { AppVolumeMemoryFeature(lpparam) },
+        ),
+        LazyFeatureSpec(
+            id = WifiAutomaticSettingsFeatureId,
+            name = "Wi-Fi Automatic Settings",
+            preferenceKey = "system_wifiauto_enabled",
+            target = FeatureTarget.SYSTEM_SERVER,
+            phase = InstallPhase.SYSTEM_SERVER_STARTING,
+            enabled = { prefs -> prefs.getBoolean("system_wifiauto_enabled") },
+            factory = { WifiAutomaticSettingsFeature(lpparam) },
+        ),
 )
+}
+
+internal class WifiAutomaticSettingsFeature(lpparam: XposedModuleInterface.SystemServerStartingParam) : BaseSystemServerFeature(
+    lpparam, WifiAutomaticSettingsFeatureId, "Wi-Fi Automatic Settings", "system_wifiauto_enabled"
+) {
+    override fun isEnabledCondition(prefs: PrefMap) = prefs.getBoolean("system_wifiauto_enabled")
+    override fun installHook() = tv.withaibuild.customiuizer.mods.wifiauto.WifiAutomationHooks.install(lpparam.classLoader)
+}
+
+internal class AppWindowBehaviorFeature(lpparam: XposedModuleInterface.SystemServerStartingParam) : BaseSystemServerFeature(
+    lpparam, AppWindowBehaviorFeatureId, "App Window Behavior", "system_appbehavior_rotation"
+) {
+    companion object {
+        fun evaluateEnabled(prefs: PrefMap): Boolean = prefs.getBoolean("system_appbehavior_rotation") ||
+            prefs.getBoolean("system_appbehavior_brightness") || prefs.getBoolean("system_appbehavior_block")
+    }
+    override fun isEnabledCondition(prefs: PrefMap) = evaluateEnabled(prefs)
+    override fun installHook() = tv.withaibuild.customiuizer.mods.appbehavior.AppWindowBehaviorHooks.install(lpparam.classLoader)
+}
+
+internal class AppVolumeMemoryFeature(lpparam: XposedModuleInterface.SystemServerStartingParam) : BaseSystemServerFeature(
+    lpparam, AppVolumeMemoryFeatureId, "App Volume Memory", "system_appbehavior_volume"
+) {
+    companion object {
+        fun evaluateEnabled(prefs: PrefMap): Boolean = prefs.getBoolean("system_appbehavior_volume")
+    }
+    override fun isEnabledCondition(prefs: PrefMap) = evaluateEnabled(prefs)
+    override fun installHook() = tv.withaibuild.customiuizer.mods.appbehavior.AppVolumeMemoryHooks.install(lpparam.classLoader)
 }
 
 internal class VpnAutoSwitchFeature(lpparam: XposedModuleInterface.SystemServerStartingParam) : BaseSystemServerFeature(

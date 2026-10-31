@@ -32,6 +32,23 @@ import androidx.preference.PreferenceViewHolder
 import androidx.preference.PreferenceGroup
 import java.time.Duration
 import java.io.File
+import androidx.compose.ui.test.*
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.LocalOverscrollFactory
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LocalRippleConfiguration
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.style.TextMotion
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.toArgb
+import tv.withaibuild.customiuizer.ui.settingsView
+import androidx.compose.ui.test.junit4.createEmptyComposeRule
+import tv.withaibuild.customiuizer.ui.SettingsPreferenceList
+import org.junit.Rule
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -67,6 +84,7 @@ import tv.withaibuild.customiuizer.prefs.SeekBarPreference
 @Config(sdk = [34], application = Application::class, qualifiers = "w411dp-h891dp")
 @LooperMode(LooperMode.Mode.PAUSED)
 class PreferenceNavigationUiTest {
+    @get:Rule val compose = createEmptyComposeRule()
 
     @Test
     fun homeAndAboutUseTheProductNameForTheSelectedLanguage() {
@@ -142,7 +160,7 @@ class PreferenceNavigationUiTest {
             .putBoolean("pref_key_system_island_media", true).apply()
         Helpers.getAllMods(activity, true)
         val standaloneKeys = Helpers.allModsList.filter { it.page != null }.mapNotNull { it.sub }.toSet()
-        assertEquals("All standalone page entries, including automatic VPN, must be indexed", 32, standaloneKeys.size)
+        assertEquals("All standalone page entries, including Wi-Fi automatic settings, must be indexed", 34, standaloneKeys.size)
         val visited = mutableSetOf<String>()
         capturePage("home")
         for (key in arrayOf("pref_key_system", "pref_key_launcher", "pref_key_controls", "pref_key_various")) {
@@ -157,7 +175,7 @@ class PreferenceNavigationUiTest {
             for (settingKey in keys) {
                 val selector = currentPage() as SubFragment
                 val settingsEntry = requireNotNull(selector.findPreference<Preference>(settingKey))
-                assertEquals("Directories use a navigation disclosure", R.layout.preference_widget_disclosure, settingsEntry.widgetLayoutResource)
+                assertTrue("Directory entries remain selectable", settingsEntry.isSelectable)
                 settingsEntry.performClick()
                 settleNavigation()
                 assertTrue("$settingKey must open a fresh settings page", currentPage() !== selector)
@@ -166,7 +184,7 @@ class PreferenceNavigationUiTest {
                 for (entryKey in standaloneKeys) {
                     val parent = currentPage() as SubFragment
                     val entry = parent.findPreference<Preference>(entryKey) ?: continue
-                    assertEquals("Standalone pages use the same navigation disclosure", R.layout.preference_widget_disclosure, entry.widgetLayoutResource)
+                    assertTrue("Standalone entries remain selectable", entry.isSelectable)
                     entry.performClick()
                     settleNavigation()
                     assertTrue("$entryKey must open its standalone page", currentPage() !== parent)
@@ -184,6 +202,169 @@ class PreferenceNavigationUiTest {
             assertPreferencePageVisible(currentPage())
         }
         assertEquals(standaloneKeys, visited)
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun selectionDialogsFallBackToSettingTitles() {
+        for (key in listOf(tv.withaibuild.customiuizer.utils.AppLocaleController.LOCALE_PREF_KEY,
+            "pref_key_miuizer_settingsiconpos")) {
+            val preference = requireNotNull((currentPage() as MainFragment).findPreference<ListPreference>(key))
+            compose.onNodeWithTag("settings.list").performScrollToNode(hasTestTag(key))
+            compose.onNodeWithTag(key).performClick()
+            compose.onNode(hasText(preference.title.toString()) and hasAnyAncestor(isDialog())).assertIsDisplayed()
+            compose.onNodeWithText("null").assertDoesNotExist()
+            val layouts = ArrayList<TextLayoutResult>()
+            compose.onNode(hasText((preference as ListPreference).entries.first().toString()) and
+                hasAnyAncestor(isDialog()), useUnmergedTree = true)
+                .performSemanticsAction(SemanticsActions.GetTextLayoutResult) { action -> assertTrue(action(layouts)) }
+            val style = layouts.single().layoutInput.style
+            assertEquals(16.sp, style.fontSize)
+            assertEquals(TextMotion.Animated, style.textMotion)
+            assertEquals(androidx.core.content.ContextCompat.getColor(activity, R.color.preference_primary_text_color), style.color.toArgb())
+            compose.onNodeWithText(activity.getString(android.R.string.cancel)).performClick()
+        }
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun systemDirectoryGroupsAutomationUnderTheAppsHeading() {
+        val home = currentPage() as MainFragment
+        home.onPreferenceTreeClick(requireNotNull(home.findPreference<Preference>("pref_key_system")))
+        settleNavigation()
+        compose.onNodeWithText(activity.getString(R.string.prefs_group_apps)).assertIsDisplayed()
+        compose.onNodeWithTag("pref_key_system_cat_automation").assertIsDisplayed()
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    class RippleProbeFragment : Fragment() {
+        var hasOverscroll = false
+        var hasRipple = false
+        override fun onCreateView(inflater: LayoutInflater, container: android.view.ViewGroup?, state: Bundle?): View = settingsView {
+            val overscroll = LocalOverscrollFactory.current
+            val ripple = LocalRippleConfiguration.current
+            SideEffect { hasOverscroll = overscroll != null; hasRipple = ripple != null }
+            Text("Moving text", style = MaterialTheme.typography.bodyLarge)
+        }
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun nativeOverscrollIsAvailableAndRipplesLeaveWithTheirPage() {
+        val page = RippleProbeFragment()
+        activity.supportFragmentManager.beginTransaction().replace(R.id.fragment_container, page).commitNow()
+        settleNavigation()
+        assertTrue(page.hasOverscroll)
+        assertTrue(page.hasRipple)
+        controller.pause()
+        shadowOf(Looper.getMainLooper()).idle()
+        compose.waitForIdle()
+        assertFalse("An exiting page must detach its pressed indication", page.hasRipple)
+        controller.resume()
+        shadowOf(Looper.getMainLooper()).idle()
+        compose.waitForIdle()
+        assertTrue("Returning to the page restores native feedback", page.hasRipple)
+    }
+
+    @Test
+    fun lightSystemBarsMatchTheSettingsBackground() = assertSystemBarBackground(0xffefeff4.toInt())
+
+    @Test
+    fun mainWindowResizesForTheImeWithoutConsumingComposeInsets() {
+        val mode = android.view.WindowManager.LayoutParams.SOFT_INPUT_MASK_ADJUST
+        assertEquals(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE,
+            activity.window.attributes.softInputMode and mode)
+        val content = activity.findViewById<android.view.ViewGroup>(android.R.id.content)
+        assertFalse(content.getChildAt(0).fitsSystemWindows)
+        val root = content.getChildAt(0) as android.view.ViewGroup
+        assertFalse((root.getChildAt(0) as androidx.compose.ui.platform.ComposeView).consumeWindowInsets)
+        assertFalse(activity.findViewById<androidx.compose.ui.platform.ComposeView>(R.id.preference_compose).consumeWindowInsets)
+    }
+
+    @Test @Config(qualifiers = "w411dp-h891dp-night")
+    fun darkSystemBarsMatchTheSettingsBackground() = assertSystemBarBackground(0xff000000.toInt())
+
+    @Suppress("DEPRECATION")
+    private fun assertSystemBarBackground(expected: Int) {
+        assertEquals(expected, activity.window.statusBarColor)
+        assertEquals(expected, activity.window.navigationBarColor)
+        val translucent = android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS or
+            android.view.WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION
+        assertEquals(0, activity.window.attributes.flags and translucent)
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun overflowKeepsRestartActionsInTheirOwnCompactSubmenu() {
+        compose.onNodeWithTag("menu.expand").performClick()
+        compose.onNodeWithTag("menu.item:" + R.id.restart_menu).assertIsDisplayed()
+        compose.onNodeWithTag("menu.item:" + R.id.restartlauncher).assertDoesNotExist()
+        compose.onNodeWithTag("menu.item:" + R.id.restart_menu).performClick()
+        compose.onNodeWithTag("menu.item:" + R.id.restartlauncher).assertIsDisplayed()
+        compose.onNodeWithTag("menu.item:" + R.id.backuprestore).assertDoesNotExist()
+        compose.onNodeWithTag("menu.back").performClick()
+        compose.onNodeWithTag("menu.item:" + R.id.backuprestore).assertIsDisplayed()
+        compose.onNodeWithTag("menu.item:" + R.id.about).performClick()
+        settleNavigation()
+        assertTrue(currentPage() is AboutFragment)
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun homeSearchStartsCollapsedAndBackClosesAnEmptyOrPopulatedSearch() {
+        compose.onAllNodes(hasSetTextAction()).assertCountEquals(0)
+        for (query in listOf("", "brightness")) {
+            compose.onNodeWithTag("search.expand").performClick()
+            compose.onNodeWithTag("home.search").assertIsFocused().performTextInput(query)
+            activity.onBackPressedDispatcher.onBackPressed()
+            settleNavigation()
+            compose.onAllNodes(hasSetTextAction()).assertCountEquals(0)
+            assertTrue(currentPage() is MainFragment)
+        }
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun searchNavigationClearsQueryAndFocusBeforeReturningHome() {
+        Helpers.getAllMods(activity, true)
+        compose.onNodeWithTag("search.expand").performClick()
+        val key = "pref_key_system_autobrightness_limitmin"
+        val title = Helpers.allModsList.single { it.key == key }.title
+        compose.onNodeWithTag("home.search").performTextInput(title)
+        compose.onNode(hasScrollToNodeAction()).performScrollToNode(hasTestTag("search.result:" + key))
+        compose.onNodeWithTag("search.result:" + key).performClick()
+        settleNavigation()
+        assertTrue(currentPage() is SubFragment)
+        pressToolbarBack()
+        compose.onAllNodes(hasSetTextAction()).assertCountEquals(0)
+        compose.onNodeWithTag("search.expand").performClick()
+        compose.onNodeWithTag("home.search").assert(SemanticsMatcher.expectValue(
+            androidx.compose.ui.semantics.SemanticsProperties.EditableText, androidx.compose.ui.text.AnnotatedString("")))
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun emptySearchHidesHomeContentAndClosingRestoresCategories() {
+        compose.onNodeWithTag("search.expand").performClick()
+        compose.onNodeWithTag("pref_key_system").assertDoesNotExist()
+        compose.onNodeWithTag("menu.expand").assertDoesNotExist()
+        activity.onBackPressedDispatcher.onBackPressed()
+        settleNavigation()
+        compose.onNodeWithTag("pref_key_system").assertIsDisplayed()
+        compose.onAllNodes(hasSetTextAction()).assertCountEquals(0)
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun recreationPreservesSearchTextWithoutRequestingInputFocus() {
+        compose.onNodeWithTag("search.expand").performClick()
+        compose.onNodeWithTag("home.search").performTextInput("brightness")
+        controller.recreate()
+        activity = controller.get()
+        settleNavigation()
+        compose.onNodeWithTag("home.search").assertIsNotFocused().assertTextEquals("brightness")
+    }
+
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    fun stoppingSearchReleasesFocusWithoutDiscardingTheQuery() {
+        compose.onNodeWithTag("search.expand").performClick()
+        compose.onNodeWithTag("home.search").performTextInput("brightness")
+        controller.pause().stop()
+        controller.start().resume().visible()
+        settleNavigation()
+        compose.onNodeWithTag("home.search").assertIsNotFocused().assertTextEquals("brightness")
     }
 
     @Test
@@ -243,11 +424,12 @@ class PreferenceNavigationUiTest {
         editor.onCreateOptionsMenu(menu, activity.menuInflater)
         assertTrue(menu.findItem(R.id.edit_confirm).isVisible)
         assertFalse(menu.findItem(R.id.restart_menu).isVisible)
-        val spinner = editor.requireView().findViewById<tv.withaibuild.customiuizer.prefs.SpinnerEx>(R.id.action)
-        spinner.setSelection(1)
+        val labels = activity.resources.getStringArray(R.array.global_actions_launcher)
+        val selected = activity.resources.getIntArray(R.array.global_actions_launcher_val)[1]
+        compose.onNodeWithText(activity.getString(R.string.launcher_gestures_action)).performClick()
+        compose.onAllNodesWithText(labels[1]).onLast().performClick()
         settleNavigation()
-        val selected = spinner.getSelectedArrayValue()
-        assertTrue("The action selector follows the available width", spinner.width > 240 * resourcesDensity())
+        assertTrue("The Compose action editor follows the available width", editor.requireView().width > 240 * resourcesDensity())
         capturePage("action-landscape-night-zh")
         assertTrue(editor.onOptionsItemSelected(menu.findItem(R.id.edit_confirm)))
         settleNavigation()
@@ -282,7 +464,7 @@ class PreferenceNavigationUiTest {
         val floating = requireNotNull(page.findPreference<CheckBoxPreferenceEx>("pref_key_system_island_hide_in_floating_window"))
         assertTrue(media.isEnabled); assertTrue(swipe.isChecked); assertFalse(swipe.isEnabled)
         assertFalse(floating.isEnabled)
-        assertTrue(media.widgetLayoutResource != R.layout.preference_widget_disclosure)
+        assertTrue(media is CheckBoxPreferenceEx)
         media.isChecked = true; assertTrue(swipe.isEnabled); assertTrue(floating.isEnabled)
         media.isChecked = false; assertFalse(swipe.isEnabled); assertFalse(floating.isEnabled)
         pressToolbarBack(); pressToolbarBack(); pressToolbarBack()
@@ -324,32 +506,38 @@ class PreferenceNavigationUiTest {
         requireNotNull(island.findPreference<Preference>("pref_key_system_island_actions_cat")).performClick(); settleNavigation()
         val gestures = currentPage() as SubFragment
         requireNotNull(gestures.findPreference<CheckBoxPreferenceEx>("pref_key_system_island_media_return")).isChecked = true
-        requireNotNull(gestures.findPreference<Preference>("pref_key_system_island_media_return_apps")).performClick()
-        settleNavigation()
-        val selector = currentPage() as tv.withaibuild.customiuizer.subs.AppSelector
-        val fields = requireNotNull(selector.view).findViewById<View>(R.id.fields)
-        val header = fields.findViewById<View>(R.id.searchView)
-        val list = requireNotNull(selector.listView)
-        list.adapter = android.widget.ArrayAdapter(activity, android.R.layout.simple_list_item_1,
-            (1..120).map { "Application $it" })
-        val originalHeader = android.graphics.Rect()
-        for (height in listOf(640, 310)) {
-            fields.measure(View.MeasureSpec.makeMeasureSpec(320, View.MeasureSpec.EXACTLY),
-                View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
-            fields.layout(0, 0, 320, height)
-            list.setSelection(80)
-            fields.measure(View.MeasureSpec.makeMeasureSpec(320, View.MeasureSpec.EXACTLY),
-                View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY))
-            fields.layout(0, 0, 320, height)
-            val headerBounds = android.graphics.Rect(); header.getGlobalVisibleRect(headerBounds)
-            val listPosition = IntArray(2); list.getLocationOnScreen(listPosition)
-            assertTrue("Rows must stay below the fixed search field", listPosition[1] >= headerBounds.bottom)
-            assertTrue("Only the list viewport shrinks for the keyboard", list.height in 1 until height)
-            assertTrue("The regression must exercise a scrolled list", list.firstVisiblePosition > 0)
-            if (originalHeader.isEmpty) originalHeader.set(headerBounds)
-            else assertEquals("Scrolling and resizing must leave search in place", originalHeader, headerBounds)
-            assertTrue("Overscrolled children must remain inside the list viewport",
-                (list.parent as android.view.ViewGroup).clipChildren)
+        val apps = (1..120).map { index -> tv.withaibuild.customiuizer.utils.AppData().apply {
+            label = "Application $index"; pkgName = "example.$index"; enabled = true; prepareForList()
+        } }
+        val originalApps = AppHelper.installedAppsList
+        try {
+            // Feed the real async loader; replacing appRows can race its pending result.
+            AppHelper.installedAppsList = ArrayList(apps)
+            requireNotNull(gestures.findPreference<Preference>("pref_key_system_island_media_return_apps")).performClick()
+            settleNavigation()
+            val selector = currentPage() as tv.withaibuild.customiuizer.subs.AppSelector
+            val rows = ReflectionHelpers.getField<androidx.compose.runtime.MutableState<List<AppSelectionRow>>>(selector, "appRows\$delegate")
+            compose.waitUntil(timeoutMillis = 5_000) {
+                shadowOf(Looper.getMainLooper()).idle()
+                rows.value.size == apps.size &&
+                    compose.onAllNodesWithText(apps.first().label).fetchSemanticsNodes().size == 1
+            }
+            var originalTop: Float? = null
+            for (height in listOf(640, 310)) {
+                val container = activity.findViewById<View>(R.id.fragment_container)
+                container.layoutParams = (container.layoutParams as android.widget.LinearLayout.LayoutParams).apply {
+                    this.height = height; weight = 0f
+                }
+                settleNavigation()
+                compose.onNodeWithTag("selector.list").performScrollToIndex(80)
+                val header = compose.onNodeWithTag("selector.search").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+                val list = compose.onNodeWithTag("selector.list").fetchSemanticsNode().boundsInRoot
+                assertTrue("Rows stay below fixed search", list.top >= header.bottom)
+                assertTrue("Only the list viewport shrinks", list.height > 0 && list.height < height)
+                if (originalTop == null) originalTop = header.top else assertEquals(originalTop!!, header.top, .5f)
+            }
+        } finally {
+            AppHelper.installedAppsList = originalApps
         }
     }
 
@@ -369,26 +557,14 @@ class PreferenceNavigationUiTest {
         assertTrue(wave.callChangeListener("2"))
         wave.value = "2"
         assertTrue(gain.isEnabled)
-        val waveRow = LayoutInflater.from(activity).inflate(wave.layoutResource, null)
-        wave.onBindViewHolder(PreferenceViewHolder.createInstanceForTests(waveRow))
-        assertEquals(activity.getString(R.string.system_island_waveform_real),
-            waveRow.findViewById<TextView>(android.R.id.hint).text.toString())
+        compose.onNodeWithTag("settings.list").performScrollToNode(hasTestTag(wave.key))
+        compose.onNodeWithText(activity.getString(R.string.system_island_waveform_real)).assertIsDisplayed()
         val expected = activity.getString(R.string.system_island_waveform_mode_summ)
-        val detail = waveRow.findViewById<TextView>(android.R.id.summary)
-        assertEquals(View.VISIBLE, detail.visibility)
-        assertEquals(expected, detail.text.toString())
-        waveRow.measure(View.MeasureSpec.makeMeasureSpec((320 * activity.resources.displayMetrics.density).toInt(), View.MeasureSpec.EXACTLY),
-            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED))
-        waveRow.layout(0, 0, waveRow.measuredWidth, waveRow.measuredHeight)
-        fun bounds(view: View) = android.graphics.Rect(0, 0, view.width, view.height).also {
-            (waveRow as android.view.ViewGroup).offsetDescendantRectToMyCoords(view, it)
-        }
-        val descriptionBounds = bounds(detail)
-        assertTrue(descriptionBounds.top >= bounds(waveRow.findViewById(android.R.id.title)).bottom)
-        assertTrue(descriptionBounds.bottom <= waveRow.height)
-        assertTrue(descriptionBounds.right <= bounds(waveRow.findViewById(android.R.id.hint)).left)
-        val adapter = page.listView.adapter as androidx.preference.PreferenceGroupAdapter
-        page.listView.scrollToPosition(adapter.getPreferenceAdapterPosition(wave))
+        val detail = compose.onNodeWithText(expected, useUnmergedTree = true).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        val title = compose.onNodeWithText(wave.title.toString(), useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+        val selected = compose.onNodeWithText(wave.entry.toString(), useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+        assertTrue(detail.top >= title.bottom)
+        assertTrue("Selected value follows the explanation without competing for its width", selected.top >= detail.bottom)
         settleNavigation()
         capturePage("island-waveform-320-zh")
     }
@@ -450,9 +626,12 @@ class PreferenceNavigationUiTest {
         assertTrue(left.isEnabled)
         left.performClick(); settleNavigation()
         val editor=currentPage() as SubFragment
-        val spinner=editor.requireView().findViewById<tv.withaibuild.customiuizer.prefs.SpinnerEx>(R.id.action)
-        assertEquals(87,spinner.getSelectedArrayValue())
-        spinner.setSelection(requireNotNull(spinner.entryValues).indexOf(18)); settleNavigation()
+        val labels = activity.resources.getStringArray(R.array.global_actions_island_music)
+        val values = activity.resources.getIntArray(R.array.global_actions_island_music_val)
+        compose.onNodeWithText(labels[values.indexOf(87)]).assertIsDisplayed()
+        compose.onNodeWithText(activity.getString(R.string.launcher_gestures_action)).performClick()
+        compose.onAllNodesWithText(labels[values.indexOf(18)]).onLast().performClick()
+        settleNavigation()
         capturePage("music-action-320-zh")
         val menu=PopupMenu(activity,editor.requireView()).menu
         editor.onCreateOptionsMenu(menu,activity.menuInflater)
@@ -487,8 +666,107 @@ class PreferenceNavigationUiTest {
         assertTrue(requireNotNull(AppHelper.appPrefs).getStringSet(allowed.key,emptySet())!!.isEmpty())
     }
 
+    @Test fun automationDirectoryOwnsTheAppAndNetworkRulesWithoutDuplicateOldEntries() {
+        val home = currentPage() as MainFragment
+        assertTrue(home.onPreferenceTreeClick(requireNotNull(home.findPreference<Preference>("pref_key_system"))))
+        settleNavigation()
+        val directory = currentPage() as SubFragment
+        assertPreferencePageVisible(directory)
+        SettingsPreferenceList(directory.preferenceScreen).use { model ->
+            assertEquals(PreferenceGroupChrome.Kind.SECTION_HEADER, model.chrome.first().kind)
+            assertEquals(activity.getString(R.string.prefs_group_apps), model.rows.first().preference.title)
+            assertEquals("Automation follows its section heading", "pref_key_system_cat_automation", model.rows[1].preference.key)
+        }
+        compose.onNodeWithTag("pref_key_system_cat_automation").assertIsDisplayed()
+        requireNotNull(directory.findPreference<Preference>("pref_key_system_cat_automation")).performClick()
+        settleNavigation()
+        val page = currentPage() as SubFragment
+        for (key in listOf("appbehavior", "wifiauto", "vpnauto"))
+            assertTrue(requireNotNull(page.findPreference<Preference>("pref_key_system_${key}_cat")).isVisible)
+        pressToolbarBack()
+        requireNotNull((currentPage() as SubFragment).findPreference<Preference>("pref_key_system_cat_screen")).performClick()
+        settleNavigation()
+        assertNull((currentPage() as SubFragment).findPreference<Preference>("pref_key_system_appbehavior_cat"))
+        pressToolbarBack()
+        requireNotNull((currentPage() as SubFragment).findPreference<Preference>("pref_key_system_cat_other")).performClick()
+        settleNavigation()
+        assertNull((currentPage() as SubFragment).findPreference<Preference>("pref_key_system_wifiauto_cat"))
+        assertNull((currentPage() as SubFragment).findPreference<Preference>("pref_key_system_vpnauto_cat"))
+    }
+
+    @Test fun wifiAutomaticSettingsEditsIndependentRulesWithoutActivatingDefaultActions() {
+        val config = tv.withaibuild.customiuizer.utils.WifiAutomaticSettings
+        val existing = tv.withaibuild.customiuizer.utils.WifiAutomaticSettings.Rule("home", "Home", "home", dnd = 2)
+        AppHelper.appPrefs!!.edit().putString("pref_key_system_wifiauto_rules", config.encode(listOf(existing))).apply()
+        openSettingsPage("pref_key_system", "pref_key_system_cat_automation")
+        requireNotNull((currentPage() as SubFragment).findPreference<Preference>("pref_key_system_wifiauto_cat")).performClick()
+        settleNavigation()
+        val page = currentPage() as tv.withaibuild.customiuizer.subs.System_WifiAutomatic
+        assertPreferencePageVisible(page)
+        assertFalse(requireNotNull(page.findPreference<CheckBoxPreferenceEx>("pref_key_system_wifiauto_enabled")).isChecked)
+        assertFalse(requireNotNull(page.findPreference<Preference>("pref_key_system_wifiauto_rules")).isVisible)
+        requireNotNull(page.findPreference<Preference>("pref_key_system_wifiauto_add")).performClick()
+        shadowOf(Looper.getMainLooper()).idle()
+        val editor = ShadowDialog.getLatestDialog() as AlertDialog
+        editor.findViewById<View>(android.R.id.content)!!.findViewWithTag<android.widget.EditText>("name").setText("Office")
+        editor.findViewById<View>(android.R.id.content)!!.findViewWithTag<android.widget.EditText>("ssid").setText("office")
+        editor.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+        val saved = config.decode(AppHelper.appPrefs!!.getString("pref_key_system_wifiauto_rules", "").orEmpty())
+        assertEquals(2, saved.size)
+        assertEquals("office", saved[1].ssid)
+        assertFalse(saved[1].manages)
+        val list = requireNotNull(page.findPreference<androidx.preference.PreferenceCategory>("pref_key_system_wifiauto_list"))
+        list.getPreference(0).performClick()
+        shadowOf(Looper.getMainLooper()).idle()
+        val edit = ShadowDialog.getLatestDialog() as AlertDialog
+        edit.findViewById<View>(android.R.id.content)!!.findViewWithTag<android.widget.EditText>("priority").setText("10")
+        edit.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+        assertEquals(10, config.decode(AppHelper.appPrefs!!.getString("pref_key_system_wifiauto_rules", "").orEmpty())[0].priority)
+        list.getPreference(0).performClick()
+        shadowOf(Looper.getMainLooper()).idle()
+        (ShadowDialog.getLatestDialog() as AlertDialog).getButton(AlertDialog.BUTTON_NEUTRAL).performClick()
+        shadowOf(Looper.getMainLooper()).idle()
+        assertEquals(1, config.decode(AppHelper.appPrefs!!.getString("pref_key_system_wifiauto_rules", "").orEmpty()).size)
+    }
+
+    @Test fun appBehaviorUsesSeparateSwitchesAndStoresBrightnessPerApplication() {
+        val prefix = "pref_key_system_appbehavior_"
+        AppHelper.appPrefs!!.edit().putStringSet(prefix + "brightness_apps", setOf("app.a", "app.b")).apply()
+        openSettingsPage("pref_key_system", "pref_key_system_cat_automation")
+        requireNotNull((currentPage() as SubFragment).findPreference<Preference>(prefix + "cat")).performClick()
+        settleNavigation()
+        val page = currentPage() as tv.withaibuild.customiuizer.subs.System_AppBehavior
+        assertPreferencePageVisible(page)
+        for (name in listOf("rotation", "volume", "brightness", "block")) {
+            val toggle = requireNotNull(page.findPreference<CheckBoxPreferenceEx>(prefix + name))
+            val apps = requireNotNull(page.findPreference<Preference>(prefix + name + "_apps"))
+            assertFalse(toggle.isChecked)
+            assertFalse(apps.isEnabled)
+            toggle.isChecked = true
+            assertTrue(apps.isEnabled)
+        }
+        val app = requireNotNull(page.findPreference<ListPreference>(prefix + "edit_app"))
+        val level = requireNotNull(page.findPreference<SeekBarPreference>(prefix + "edit_level"))
+        assertEquals(listOf("app.a", "app.b"), app.entryValues.map { it.toString() })
+        assertEquals(0, level.getValue())
+        assertTrue(level.callChangeListener(45))
+        assertTrue(app.callChangeListener("app.b")); app.value = "app.b"
+        assertEquals(0, level.getValue())
+        assertTrue(level.callChangeListener(70))
+        assertTrue(app.callChangeListener("app.a")); app.value = "app.a"
+        assertEquals(45, level.getValue())
+        assertTrue(level.callChangeListener(0))
+        assertEquals("app.b=70", AppHelper.appPrefs!!.getString(prefix + "brightness_values", ""))
+        requireNotNull(page.findPreference<Preference>(prefix + "rotation_apps")).performClick()
+        settleNavigation()
+        val picker = currentPage() as tv.withaibuild.customiuizer.subs.AppSelector
+        assertTrue(requireNotNull(picker.arguments).getBoolean("multi"))
+        pressToolbarBack()
+        assertTrue(currentPage() is tv.withaibuild.customiuizer.subs.System_AppBehavior)
+    }
+
     @Test fun vpnRulesUseOneClientOrProfileAndAMultiAppSelector() {
-        openSettingsPage("pref_key_system", "pref_key_system_cat_other")
+        openSettingsPage("pref_key_system", "pref_key_system_cat_automation")
         requireNotNull((currentPage() as SubFragment).findPreference<Preference>("pref_key_system_vpnauto_cat")).performClick()
         settleNavigation()
         val page = currentPage() as tv.withaibuild.customiuizer.subs.System_VpnAutoSwitch
@@ -545,13 +823,10 @@ class PreferenceNavigationUiTest {
         view.measure(View.MeasureSpec.makeMeasureSpec(view.width, View.MeasureSpec.EXACTLY),
             View.MeasureSpec.makeMeasureSpec(view.height, View.MeasureSpec.EXACTLY))
         view.layout(view.left, view.top, view.right, view.bottom)
-        val community = view.findViewById<View>(R.id.about_community_row)
-        assertTrue(community.isShown)
-        assertTrue(community.width > 0 && community.height > 0)
-        assertEquals(BuildConfig.COMMUNITY_URL.removePrefix("https://"),
-            view.findViewById<TextView>(R.id.about_community_summary).text.toString())
+        compose.onNodeWithTag("about_community").assertIsDisplayed()
+        compose.onNodeWithText(BuildConfig.COMMUNITY_URL.removePrefix("https://")).assertIsDisplayed()
         capturePage("about-community", view)
-        community.performClick()
+        compose.onNodeWithTag("about_community").performClick()
         val intent = requireNotNull(shadowOf(activity).nextStartedActivity)
         assertEquals(Intent.ACTION_VIEW, intent.action)
         assertEquals(BuildConfig.COMMUNITY_URL, intent.dataString)
@@ -603,7 +878,7 @@ class PreferenceNavigationUiTest {
     }
 
     @Test
-    fun removedDockMaterialMigratesToPanelAndKeepsBothGlassMaterialsSelectable() {
+    fun retiredDockMaterialsMigrateToPanelAndNativeGlassStaysSelectable() {
         val key = "pref_key_launcher_dock_background_material"
         requireNotNull(AppHelper.appPrefs).edit().putString(key, "1").commit()
         val home = currentPage() as MainFragment
@@ -614,7 +889,7 @@ class PreferenceNavigationUiTest {
         settleNavigation()
         val page = currentPage() as SubFragment
         val material = requireNotNull(page.findPreference<ListPreference>(key))
-        assertEquals(listOf("0", "2", "3"), material.entryValues.map { it.toString() })
+        assertEquals(listOf("0", "2"), material.entryValues.map { it.toString() })
         assertEquals("0", material.value)
         assertEquals("0", requireNotNull(AppHelper.appPrefs).getString(key, null))
         material.value = "2"
@@ -626,7 +901,7 @@ class PreferenceNavigationUiTest {
         pressToolbarBack()
         requireNotNull((currentPage() as SubFragment).findPreference<Preference>("pref_key_launcher_cat_dock")).performClick()
         settleNavigation()
-        assertEquals("3", (currentPage() as SubFragment).findPreference<ListPreference>(key)?.value)
+        assertEquals("0", (currentPage() as SubFragment).findPreference<ListPreference>(key)?.value)
     }
 
     @Test
@@ -640,20 +915,16 @@ class PreferenceNavigationUiTest {
         settleNavigation()
         val page = currentPage() as SubFragment
         val inset = requireNotNull(page.findPreference<SeekBarPreference>(key))
-        val row = LayoutInflater.from(activity).inflate(R.layout.preference_seekbar12, page.listView, false)
-        inset.onBindViewHolder(PreferenceViewHolder.createInstanceForTests(row))
-        val label = row.findViewById<TextView>(R.id.seekbar_value)
         for ((stored, displayed) in listOf(12 to "12 dp", 17 to "17 dp", 24 to "24 dp")) {
             inset.setValue(stored, true)
-            assertEquals(displayed, label.text.toString())
+            assertEquals(displayed, inset.composeDisplay())
             assertEquals(stored, requireNotNull(AppHelper.appPrefs).getInt(key, -1))
         }
         val shrinkKey = "pref_key_launcher_dock_background_shrink"
         val shrink = requireNotNull(page.findPreference<SeekBarPreference>(shrinkKey))
-        shrink.onBindViewHolder(PreferenceViewHolder.createInstanceForTests(row))
         for ((stored, displayed) in listOf(12 to "-5 dp", 17 to "0 dp", 22 to "+5 dp", 34 to "+17 dp")) {
             shrink.setValue(stored, true)
-            assertEquals(displayed, label.text.toString())
+            assertEquals(displayed, shrink.composeDisplay())
             assertEquals(stored, requireNotNull(AppHelper.appPrefs).getInt(shrinkKey, -1))
             assertEquals(24, requireNotNull(AppHelper.appPrefs).getInt(key, -1))
         }
@@ -688,11 +959,9 @@ class PreferenceNavigationUiTest {
         assertTrue(position.callChangeListener("2"))
         position.value = "2"
         val center = requireNotNull(page.findPreference<SeekBarPreference>("pref_key_system_toast_center"))
-        val row = LayoutInflater.from(activity).inflate(R.layout.preference_seekbar12, page.listView, false)
-        center.onBindViewHolder(PreferenceViewHolder.createInstanceForTests(row))
         for ((stored, displayed) in listOf(0 to "-400 dp", 400 to "0 dp", 430 to "+30 dp", 800 to "+400 dp")) {
             center.setValue(stored, true)
-            assertEquals(displayed, row.findViewById<TextView>(R.id.seekbar_value).text.toString())
+            assertEquals(displayed, center.composeDisplay())
         }
         pressToolbarBack()
         requireNotNull((currentPage() as SubFragment).findPreference<Preference>("pref_key_system_cat_toasts")).performClick()
@@ -761,6 +1030,7 @@ class PreferenceNavigationUiTest {
         assertTrue(page.requireView().translationX > 0f)
         set.reverse()
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1))
+        compose.waitForIdle()
         assertEquals(0f, page.requireView().translationX, 0.01f)
     }
 
@@ -1062,6 +1332,7 @@ class PreferenceNavigationUiTest {
     private fun settleNavigation() {
         activity.supportFragmentManager.executePendingTransactions()
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1))
+        compose.waitForIdle()
     }
 
     private fun assertPreferencePageVisible(fragment: Fragment) {
@@ -1071,7 +1342,7 @@ class PreferenceNavigationUiTest {
         assertEquals("The page must end inside the viewport", 0f, view.translationX, 0.01f)
         assertEquals(1f, view.alpha, 0.01f)
         assertTrue("Preference XML must load rows", page.preferenceScreen.preferenceCount > 0)
-        assertTrue("The preference adapter must contain visible options", (page.listView.adapter?.itemCount ?: 0) > 0)
+        SettingsPreferenceList(page.preferenceScreen).use { assertTrue("Generated page has visible options", it.rows.isNotEmpty()) }
         val menu = PopupMenu(activity, view).menu
         page.onCreateOptionsMenu(menu, activity.menuInflater)
         for (id in intArrayOf(R.id.restartlauncher, R.id.restartsystemui, R.id.restartsecuritycenter, R.id.softreboot)) {

@@ -44,4 +44,70 @@ object StatusBarNetworkSpeedDispatcher {
             applier(state, payload)
         }
     }
+
+    /**
+     * Process-owned latest-value slot for the second-row mirror, not native sampling/events.
+     * [post] must enqueue on the existing main looper, never execute inline. One reusable task
+     * and one pending payload bound a burst; updates during delivery yield to a later main turn.
+     * No View/owner/snapshot is retained. Delivery and failed posts release their pending data.
+     */
+    internal class LatestDelivery(
+        private val post: (Runnable) -> Boolean,
+        private val deliver: (NetworkSpeedPayload, Long) -> Unit,
+    ) : Runnable {
+        private val lock = Any()
+        private var pending: NetworkSpeedPayload? = null
+        private var pendingSequence = 0L
+        private var lastSubmittedSequence = Long.MIN_VALUE
+        private var scheduled = false
+
+        fun submit(payload: NetworkSpeedPayload, sequence: Long) {
+            synchronized(lock) {
+                // A producer may reach this lock after a newer publication already did.
+                if (sequence <= lastSubmittedSequence) return
+                lastSubmittedSequence = sequence
+                pending = payload
+                pendingSequence = sequence
+                if (!scheduled) {
+                    scheduled = true
+                    enqueueLocked()
+                }
+            }
+        }
+
+        override fun run() {
+            val payload: NetworkSpeedPayload
+            val sequence: Long
+            synchronized(lock) {
+                payload = pending ?: return
+                sequence = pendingSequence
+                pending = null
+            }
+            // Reflection/UI work must never hold the producer lock. The caller guards ordinary
+            // UI failures; an escaping failure releases everything and preserves its identity.
+            try {
+                deliver(payload, sequence)
+            } catch (t: Throwable) {
+                synchronized(lock) { releaseLocked() }
+                throw t
+            }
+            synchronized(lock) {
+                if (pending == null) scheduled = false else enqueueLocked()
+            }
+        }
+
+        private fun enqueueLocked() {
+            try {
+                if (!post(this)) releaseLocked()
+            } catch (t: Throwable) {
+                releaseLocked()
+                throw t
+            }
+        }
+
+        private fun releaseLocked() {
+            pending = null
+            scheduled = false
+        }
+    }
 }

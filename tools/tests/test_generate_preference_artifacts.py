@@ -7,6 +7,8 @@ import sys
 import tempfile
 import unittest
 import xml.etree.ElementTree as ET
+from tools.settings_schema import read_element, preference_sources
+from tools import generate_preference_artifacts as production_generator
 from pathlib import Path
 
 
@@ -43,6 +45,7 @@ CATEGORY_SOURCES = {
 
 EXPECTED_SPLITS = {
     "pref_key_system_cat_screen": "prefs_system_screen.xml",
+    "pref_key_system_cat_automation": "prefs_system_automation.xml",
     "pref_key_system_cat_audio": "prefs_system_audio.xml",
     "pref_key_system_cat_vibration": "prefs_system_vibration.xml",
     "pref_key_system_cat_toasts": "prefs_system_toasts.xml",
@@ -78,6 +81,18 @@ EXPECTED_SPLITS = {
     "pref_key_various_cat_gboard": "prefs_various_gboard.xml",
 }
 
+def model_page(path):
+    if path.name == "mod_search_index.xml":
+        return ET.parse(path).getroot()
+    if path.parent == SOURCE_DIR or path.suffix == ".json":
+        return read_element(path)
+    for category in production_generator.CATEGORY_SOURCES:
+        pages = production_generator._structured_categories(category, read_element(SOURCE_DIR / category.source_name), path.parent)
+        if path.stem in pages:
+            return pages[path.stem]
+    raise AssertionError(f"Missing generated Compose model: {path.name}")
+
+
 def _signature(element: ET.Element) -> tuple:
     return (
         element.tag,
@@ -89,7 +104,7 @@ def _signature(element: ET.Element) -> tuple:
 def _source_search_entries() -> list[dict[str, str]]:
     entries: list[dict[str, str]] = []
     for category, (source_name, category_title) in CATEGORY_SOURCES.items():
-        root = ET.parse(SOURCE_DIR / source_name).getroot()
+        root = model_page(SOURCE_DIR / source_name)
         parents = {child: parent for parent in root.iter() for child in parent}
         for page in root.iter():
             page_key = page.get(ANDROID_KEY)
@@ -164,20 +179,20 @@ class GeneratePreferenceArtifactsTest(unittest.TestCase):
     def test_every_structured_category_is_an_exact_single_category_slice(self) -> None:
         found_keys: set[str] = set()
         for category in ("system", "launcher", "controls", "various"):
-            source_root = ET.parse(SOURCE_DIR / f"prefs_{category}.xml").getroot()
+            source_root = model_page(SOURCE_DIR / f"prefs_{category}.xml")
             for source_category in source_root.iter():
                 key = source_category.get(ANDROID_KEY, "")
                 if key not in EXPECTED_SPLITS:
                     continue
                 found_keys.add(key)
-                split_root = ET.parse(self.xml_dir / EXPECTED_SPLITS[key]).getroot()
+                split_root = model_page(self.xml_dir / EXPECTED_SPLITS[key])
                 self.assertEqual(1, len(split_root))
                 self.assertEqual(_signature(source_category), _signature(split_root[0]))
 
         self.assertEqual(set(EXPECTED_SPLITS), found_keys)
 
     def test_various_groups_preserve_every_real_preference_once(self) -> None:
-        source_root = ET.parse(SOURCE_DIR / "prefs_various.xml").getroot()
+        source_root = model_page(SOURCE_DIR / "prefs_various.xml")
         source_preferences = [
             _signature(child) for child in source_root.iter()
             if child is not source_root and child.tag != PREFERENCE_CATEGORY
@@ -187,7 +202,7 @@ class GeneratePreferenceArtifactsTest(unittest.TestCase):
             key = page.get(ANDROID_KEY)
             if key not in EXPECTED_SPLITS:
                 continue
-            split_root = ET.parse(self.xml_dir / EXPECTED_SPLITS[key]).getroot()
+            split_root = model_page(self.xml_dir / EXPECTED_SPLITS[key])
             generated_preferences.extend(
                 _signature(child) for child in split_root.iter()
                 if child is not split_root and child.tag != PREFERENCE_CATEGORY
@@ -196,7 +211,7 @@ class GeneratePreferenceArtifactsTest(unittest.TestCase):
 
     def test_every_dependency_target_remains_in_the_same_lazy_page(self) -> None:
         for output_name in EXPECTED_SPLITS.values():
-            root = ET.parse(self.xml_dir / output_name).getroot()
+            root = model_page(self.xml_dir / output_name)
             keys = {
                 element.get(ANDROID_KEY)
                 for element in root.iter()
@@ -212,8 +227,8 @@ class GeneratePreferenceArtifactsTest(unittest.TestCase):
     def test_category_selectors_are_derived_from_generated_slices(self) -> None:
         for category in CATEGORY_SOURCES:
             suffix = category.removeprefix("pref_key_")
-            source = ET.parse(SOURCE_DIR / f"prefs_{suffix}.xml").getroot()
-            selector = ET.parse(self.xml_dir / f"prefs_{suffix}_cat.xml").getroot()
+            source = model_page(SOURCE_DIR / f"prefs_{suffix}.xml")
+            selector = model_page(self.xml_dir / f"prefs_{suffix}_cat.xml")
             expected = [(child.get(ANDROID_KEY), child.get(ANDROID_TITLE)) for child in source.iter()
                         if child.get(ANDROID_KEY) in EXPECTED_SPLITS]
             actual = [(child.get(ANDROID_KEY), child.get(ANDROID_TITLE)) for child in selector.iter()
@@ -221,10 +236,18 @@ class GeneratePreferenceArtifactsTest(unittest.TestCase):
             self.assertEqual(expected, actual)
             self.assertEqual([child.get(ANDROID_TITLE) for child in source],
                              [child.get(ANDROID_TITLE) for child in selector])
-            self.assertTrue(all(child.tag == PREFERENCE_CATEGORY and len(child) for child in selector))
+            sections = list(selector)
+            if category == "pref_key_system":
+                first = sections[0]
+                self.assertEqual(PREFERENCE_CATEGORY, first.tag)
+                self.assertEqual("@string/prefs_group_apps", first.get(ANDROID_TITLE))
+                entry = first[0]
+                self.assertEqual("tv.withaibuild.customiuizer.prefs.PreferenceEx", entry.tag)
+                self.assertEqual("pref_key_system_cat_automation", entry.get(ANDROID_KEY))
+            self.assertTrue(all(child.tag == PREFERENCE_CATEGORY and len(child) for child in sections))
 
     def test_search_index_matches_page_ownership_sections_and_adapter_order(self) -> None:
-        entries = _generated_search_entries(ET.parse(self.xml_dir / "mod_search_index.xml").getroot())
+        entries = _generated_search_entries(model_page(self.xml_dir / "mod_search_index.xml"))
         generated = [{key: item.get(key, "") for key in (
             "title", "key", "category", "categoryTitle", "breadcrumbSubTitle",
             "breadcrumbSubSubTitle", "routeSub", "order",
@@ -237,8 +260,16 @@ class GeneratePreferenceArtifactsTest(unittest.TestCase):
             self.assertEqual("@string/prefs_group_material", item["breadcrumbSubSubTitle"])
         self.assertEqual("pref_key_various_cat_exclusive", by_key["pref_key_various_disable_miui_daemon"]["routeSub"])
 
+    def test_application_and_network_rules_share_the_automation_directory(self) -> None:
+        entries = _generated_search_entries(model_page(self.xml_dir / "mod_search_index.xml"))
+        for suffix in ("appbehavior", "wifiauto", "vpnauto"):
+            matches = [item for item in entries if item["key"] == f"pref_key_system_{suffix}_cat"]
+            self.assertEqual(1, len(matches))
+            self.assertEqual("pref_key_system_cat_automation", matches[0]["routeSub"])
+            self.assertEqual("@string/system_mods_automation", matches[0]["breadcrumbSubTitle"])
+
     def test_island_subpages_preserve_feedback_gesture_keys_and_search_targets(self) -> None:
-        entries = _generated_search_entries(ET.parse(self.xml_dir / "mod_search_index.xml").getroot())
+        entries = _generated_search_entries(model_page(self.xml_dir / "mod_search_index.xml"))
         for suffix, keys in (
             ("feedback", [f"pref_key_system_island_feedback_{kind}" for kind in
                           ("dnd", "ringer", "dark", "airplane", "nfc", "hotspot", "torch", "wifi", "data", "bluetooth")]),
@@ -247,65 +278,65 @@ class GeneratePreferenceArtifactsTest(unittest.TestCase):
             for key in keys:
                 match = [entry for entry in entries if entry["key"] == key]
                 self.assertEqual(1, len(match), key)
-                self.assertEqual(f"@xml/prefs_system_island_{suffix}", match[0]["page"])
+                self.assertEqual(f"@id/prefs_system_island_{suffix}", match[0]["page"])
                 self.assertEqual("System", match[0]["pageFragment"])
                 self.assertEqual(f"pref_key_system_island_{suffix}_cat", match[0]["routeSub"])
-        source = ET.parse(SOURCE_DIR / "prefs_system.xml").getroot()
+        source = model_page(SOURCE_DIR / "prefs_system.xml")
         island = next(e for e in source.iter() if e.get(ANDROID_KEY) == "pref_key_system_cat_island")
         self.assertEqual([f"@string/system_island_{name}_group" for name in
                           ("basic", "feedback", "appearance", "interaction")],
                          [e.get(ANDROID_TITLE) for e in island])
         keys = {e.get(ANDROID_KEY) for e in island.iter()}
         self.assertNotIn("pref_key_system_island_waveform_mode", keys)
-        music = ET.parse(SOURCE_DIR / "prefs_system_island_music.xml").getroot()
+        music = model_page(SOURCE_DIR / "prefs_system_island_music.xml")
         self.assertNotIn("pref_key_system_island_waveform_mode", {e.get(ANDROID_KEY) for e in music.iter()})
-        effects = ET.parse(SOURCE_DIR / "prefs_system_island_effects.xml").getroot()
+        effects = model_page(SOURCE_DIR / "prefs_system_island_effects.xml")
         wave = next(e for e in effects.iter() if e.get(ANDROID_KEY) == "pref_key_system_island_waveform_mode")
         self.assertIsNone(wave.get("{http://schemas.android.com/apk/res/android}dependency"))
         self.assertEqual("@string/system_island_waveform_mode_summ", wave.get("{http://schemas.android.com/apk/res/android}summary"))
         match = [entry for entry in entries if entry["key"] == "pref_key_system_island_waveform_mode"]
         self.assertEqual(1, len(match))
-        self.assertEqual("@xml/prefs_system_island_effects", match[0]["page"])
+        self.assertEqual("@id/prefs_system_island_effects", match[0]["page"])
         self.assertEqual("pref_key_system_island_effects_cat", match[0]["routeSub"])
         self.assertIn("pref_key_system_island_layout_cat", keys)
         self.assertIn("pref_key_system_island_notifications_cat", keys)
         self.assertNotIn("pref_key_system_island_waveform", keys)
 
     def test_every_standalone_preference_is_searchable_with_its_real_page(self) -> None:
-        entries = _generated_search_entries(ET.parse(self.xml_dir / "mod_search_index.xml").getroot())
+        entries = _generated_search_entries(model_page(self.xml_dir / "mod_search_index.xml"))
         pages = {item["page"] for item in entries if item["page"]}
-        standalone_files = set(SOURCE_DIR.glob("prefs_*.xml")) - {
-            SOURCE_DIR / name for name in ("prefs_main.xml", *(item[0] for item in CATEGORY_SOURCES.values()))
+        standalone_files = set(preference_sources(SOURCE_DIR)) - {
+            SOURCE_DIR.parents[3] / "settings" / name.replace(".xml", ".json") for name in ("prefs_main.xml", *(item[0] for item in CATEGORY_SOURCES.values()))
         }
-        self.assertEqual({f"@xml/{path.stem}" for path in standalone_files}, pages)
+        self.assertEqual({f"@id/{path.stem}" for path in standalone_files}, pages)
         identities = [(item["category"], item["page"], item["key"]) for item in entries]
         self.assertEqual(len(identities), len(set(identities)))
         for path in standalone_files:
             with self.subTest(page=path.name):
                 expected = {
                     element.get(ANDROID_KEY): element.get(ANDROID_TITLE)
-                    for element in ET.parse(path).getroot().iter()
+                    for element in model_page(path).iter()
                     if element.tag != PREFERENCE_CATEGORY
                     and element.get(ANDROID_KEY)
                     and element.get(f"{{{AUTO_NS}}}isPreferenceVisible", "true").lower() != "false"
                     and element.get(ANDROID_TITLE, "").startswith("@")
                 }
-                actual = {item["key"]: item["title"] for item in entries if item["page"] == f"@xml/{path.stem}"}
+                actual = {item["key"]: item["title"] for item in entries if item["page"] == f"@id/{path.stem}"}
                 self.assertEqual(expected, actual)
         hide_wifi = next(item for item in entries if item["key"] == "pref_key_system_statusbaricons_wifi")
-        self.assertEqual("@xml/prefs_system_hideicons", hide_wifi["page"])
+        self.assertEqual("@id/prefs_system_hideicons", hide_wifi["page"])
         self.assertEqual("System", hide_wifi["pageFragment"])
         self.assertEqual("pref_key_system_statusbaricons_cat", hide_wifi["routeSub"])
         self.assertEqual("@string/system_statusbaricons_title", hide_wifi["pageTitle"])
 
     def test_retired_a14_preferences_have_no_source_or_search_entry(self) -> None:
-        for path in SOURCE_DIR.glob("prefs_*.xml"):
-            root = ET.parse(path).getroot()
+        for path in preference_sources(SOURCE_DIR):
+            root = model_page(path)
             attributes = {value for element in root.iter() for value in element.attrib.values()}
             with self.subTest(page=path.name):
                 self.assertFalse(RETIRED_A14_KEYS & attributes)
 
-        entries = _generated_search_entries(ET.parse(self.xml_dir / "mod_search_index.xml").getroot())
+        entries = _generated_search_entries(model_page(self.xml_dir / "mod_search_index.xml"))
         searchable = {item["key"] for item in entries}
         self.assertFalse(RETIRED_A14_KEYS & searchable)
         retained = {
@@ -324,7 +355,7 @@ class GeneratePreferenceArtifactsTest(unittest.TestCase):
         self.assertTrue(retained <= searchable, f"Retained settings missing from search: {retained - searchable}")
 
     def test_custom_tile_colors_depend_on_the_visible_color_switch(self) -> None:
-        root = ET.parse(SOURCE_DIR / "prefs_system_controlcenter_themestyle.xml").getroot()
+        root = model_page(SOURCE_DIR / "prefs_system_controlcenter_themestyle.xml")
         preferences = {element.get(ANDROID_KEY): element for element in root.iter() if element.get(ANDROID_KEY)}
         master_key = "pref_key_system_cc_tile_enabled_color"
         self.assertIn(master_key, preferences)
@@ -417,17 +448,11 @@ class GeneratePreferenceArtifactsTest(unittest.TestCase):
         self.assertIn("variant.sources.kotlin!!.addGeneratedSourceDirectory", build_script)
         self.assertNotIn("afterEvaluate", build_script)
 
-        expected_files = set(EXPECTED_SPLITS.values()) | {
-            "prefs_system_cat.xml",
-            "prefs_launcher_cat.xml",
-            "prefs_controls_cat.xml",
-            "prefs_various_cat.xml",
-            "mod_search_index.xml",
-        }
+        expected_files = {"mod_search_index.xml"}
         self.assertEqual(expected_files, {path.name for path in self.xml_dir.glob("*.xml")})
         canonical_size = sum(
             path.stat().st_size
-            for path in SOURCE_DIR.glob("prefs_*.xml")
+            for path in preference_sources(SOURCE_DIR)
             if path.name != "prefs_main.xml"
         )
         self.assertLess(

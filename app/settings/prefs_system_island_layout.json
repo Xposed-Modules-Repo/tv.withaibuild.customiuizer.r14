@@ -1,0 +1,155 @@
+{
+  "type": "screen",
+  "attributes": {
+    "android:key": "pref_key_system_island_layout_cat"
+  },
+  "children": [
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/system_island_position_title"
+      },
+      "children": [
+        {
+          "type": "choice",
+          "attributes": {
+            "android:key": "pref_key_system_island_position",
+            "android:title": "@string/system_island_position_title",
+            "android:entries": "@array/island_positions",
+            "android:entryValues": "@array/island_positions_val",
+            "android:defaultValue": "1",
+            "app:valueAsSummary": "true"
+          }
+        },
+        {
+          "type": "slider",
+          "attributes": {
+            "android:key": "pref_key_system_island_horizontal_offset",
+            "android:title": "@string/system_island_horizontal_offset_title",
+            "android:defaultValue": "80",
+            "app:minValue": "0",
+            "app:maxValue": "160",
+            "app:negativeShift": "80",
+            "app:showplus": "true",
+            "app:format": "%d dp"
+          }
+        },
+        {
+          "type": "slider",
+          "attributes": {
+            "android:key": "pref_key_system_strong_toast_island_offset",
+            "android:title": "@string/system_strong_toast_island_offset_title",
+            "android:summary": "@string/system_strong_toast_island_offset_summ",
+            "android:defaultValue": "24",
+            "app:indentLevel": "1",
+            "app:minValue": "0",
+            "app:maxValue": "48",
+            "app:stepValue": "1",
+            "app:negativeShift": "24",
+            "app:showplus": "true",
+            "app:format": "%d dp"
+          }
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/system_island_height_title"
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_island_height_auto",
+            "android:title": "@string/system_island_height_auto_title",
+            "android:summary": "@string/system_island_height_auto_summ",
+            "android:defaultValue": "true",
+            "android:disableDependentsState": "true"
+          }
+        },
+        {
+          "type": "slider",
+          "attributes": {
+            "android:dependency": "pref_key_system_island_height_auto",
+            "android:key": "pref_key_system_island_height",
+            "android:title": "@string/system_island_height_title",
+            "android:summary": "@string/system_island_height_summ",
+            "android:defaultValue": "40",
+            "app:maxValue": "64",
+            "app:minValue": "32",
+            "app:stepValue": "1",
+            "app:format": "%d dp"
+          }
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/system_island_width_group"
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_island_width_auto",
+            "android:title": "@string/system_island_width_auto_title",
+            "android:summary": "@string/system_island_width_auto_summ",
+            "android:defaultValue": "true",
+            "android:disableDependentsState": "true"
+          }
+        },
+        {
+          "type": "slider",
+          "attributes": {
+            "android:key": "pref_key_system_island_width_short",
+            "android:title": "@string/system_island_width_short_title",
+            "android:summary": "@string/system_island_width_short_summ",
+            "android:defaultValue": "184",
+            "android:dependency": "pref_key_system_island_width_auto",
+            "app:maxValue": "320",
+            "app:minValue": "96",
+            "app:format": "%d dp",
+            "app:indentLevel": "1"
+          }
+        },
+        {
+          "type": "slider",
+          "attributes": {
+            "android:key": "pref_key_system_island_width_medium",
+            "android:title": "@string/system_island_width_medium_title",
+            "android:summary": "@string/system_island_width_medium_summ",
+            "android:defaultValue": "240",
+            "android:dependency": "pref_key_system_island_width_auto",
+            "app:maxValue": "400",
+            "app:minValue": "120",
+            "app:format": "%d dp",
+            "app:indentLevel": "1"
+          }
+        },
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_island_idle_width_auto",
+            "android:title": "@string/system_island_idle_width_auto_title",
+            "android:defaultValue": "true",
+            "android:disableDependentsState": "true"
+          }
+        },
+        {
+          "type": "slider",
+          "attributes": {
+            "android:key": "pref_key_system_island_idle_width",
+            "android:title": "@string/system_island_idle_width_title",
+            "android:defaultValue": "100",
+            "android:dependency": "pref_key_system_island_idle_width_auto",
+            "app:minValue": "48",
+            "app:maxValue": "120",
+            "app:format": "%d dp"
+          }
+        }
+      ]
+    }
+  ]
+}

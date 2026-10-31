@@ -77,7 +77,7 @@ internal class LauncherWindowAbsorption private constructor(private val api: Acc
         fun root(): View? = (launcher.invoke(null) as? Activity)?.window?.decorView
         fun capture(surface: SurfaceControl, width: Int, height: Int): Bitmap? {
             if (!surface.isValid || width <= 0 || height <= 0) return null
-            val factor = minOf(1f, 1024f / width, sqrt(2_097_152.0 / (width.toDouble() * height)).toFloat())
+            val factor = captureScale(width, height)
             val request = builder.newInstance(surface)
             crop.invoke(request, Rect(0, 0, width, height)); scale.invoke(request, factor)
             children.invoke(request, true); secureCapture.invoke(request, false)
@@ -86,7 +86,8 @@ internal class LauncherWindowAbsorption private constructor(private val api: Acc
             return try {
                 if (secure.invoke(captured) == true || hdr.invoke(captured) == true ||
                     hardware.usage and HardwareBuffer.USAGE_PROTECTED_CONTENT != 0L ||
-                    hardware.width > 1025 || hardware.width.toLong() * hardware.height > 2_100_000L) null
+                    hardware.width > MAX_CAPTURE_WIDTH + 1 ||
+                    hardware.width.toLong() * hardware.height > MAX_CAPTURE_PIXELS) null
                 else Bitmap.wrapHardwareBuffer(hardware, space.invoke(captured) as? ColorSpace)
             } finally { hardware.close() }
         }
@@ -320,6 +321,13 @@ internal class LauncherWindowAbsorption private constructor(private val api: Acc
     }
 
     companion object {
+        internal const val MAX_CAPTURE_WIDTH = 768
+        internal const val MAX_CAPTURE_PIXELS = 512 * 1024
+        internal fun captureScale(width: Int, height: Int): Float =
+            minOf(1f, MAX_CAPTURE_WIDTH.toFloat() / width,
+                // Leave headroom for compositor rounding while enforcing the hard result cap.
+                sqrt((MAX_CAPTURE_PIXELS - 4096).toDouble() / (width.toDouble() * height)).toFloat())
+
         fun resolve(loader: ClassLoader, handler: Handler): Pair<Access, LauncherWindowAbsorption>? = try {
             val api = Access(loader)
             api to LauncherWindowAbsorption(api, handler)

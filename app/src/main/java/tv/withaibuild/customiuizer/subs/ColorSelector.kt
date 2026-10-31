@@ -1,154 +1,104 @@
 package tv.withaibuild.customiuizer.subs
 
 import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.SeekBar
-import android.widget.TextView
+import android.view.ViewGroup
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color as ComposeColor
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import tv.withaibuild.customiuizer.R
 import tv.withaibuild.customiuizer.SubFragment
+import tv.withaibuild.customiuizer.ui.SettingsSection
+import tv.withaibuild.customiuizer.ui.settingsView
 import tv.withaibuild.customiuizer.utils.AppHelper
-import tv.withaibuild.customiuizer.utils.ColorCircle
-import tv.withaibuild.customiuizer.utils.Helpers
 import java.util.Locale
+import kotlin.math.roundToInt
 
-class ColorSelector : SubFragment(), ColorCircle.ColorListener {
-
+@OptIn(ExperimentalLayoutApi::class)
+class ColorSelector : SubFragment() {
     private var key: String? = null
-    private var colorCircle: ColorCircle? = null
-    private var white: TextView? = null
-    private var black: TextView? = null
-    private var auto: TextView? = null
-    private var selectedColorHint: TextView? = null
-    private var selectedColorView: View? = null
-    private var hsvBar: SeekBar? = null
+    private var hue by mutableFloatStateOf(0f)
+    private var saturation by mutableFloatStateOf(0f)
+    private var brightness by mutableFloatStateOf(1f)
+    private var opacity by mutableIntStateOf(255)
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        padded = false
         super.onCreate(savedInstanceState)
-    }
-
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-
-        val v = view ?: return
         key = arguments?.getString("key")
-        val mKey = key ?: return
+        val saved = savedInstanceState?.getFloatArray("color.hsv")
+        if (saved != null && saved.size == 3) {
+            hue = saved[0]; saturation = saved[1]; brightness = saved[2]
+            opacity = savedInstanceState?.getInt("color.alpha", 255) ?: 255
+        } else setColor(AppHelper.getIntOfAppPrefs(key, Color.WHITE))
+    }
 
-        selectedColorView = v.findViewById(R.id.selected_color)
-        selectedColorView?.setBackgroundResource(R.drawable.rounded_corners)
-        selectedColorHint = v.findViewById(R.id.selected_color_hint)
-        colorCircle = v.findViewById(R.id.color_circle)
-
-        val prefColor = AppHelper.getIntOfAppPrefs(mKey, Color.WHITE)
-        colorCircle?.init(prefColor)
-        colorCircle?.setListener(this)
-        if (savedInstanceState != null) {
-            val savedColor = savedInstanceState.getInt("colorCircleColor")
-            colorCircle?.setColor(savedColor, true)
-        }
-        val currentColor = colorCircle?.getColor() ?: prefColor
-        updateSelColor(currentColor)
-
-        hsvBar = v.findViewById(R.id.hsv_value)
-        hsvBar?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                if (!fromUser) return
-                colorCircle?.setValue(progress / 100f)
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar) {}
-        })
+    private fun setColor(color: Int) {
         val hsv = FloatArray(3)
-        Color.RGBToHSV(Color.red(currentColor), Color.green(currentColor), Color.blue(currentColor), hsv)
-        hsvBar?.setProgress((hsv[2] * 100).toInt(), false)
+        Color.colorToHSV(color, hsv)
+        hue = hsv[0]; saturation = hsv[1]; brightness = hsv[2]; opacity = Color.alpha(color)
+    }
+    private fun color() = Color.HSVToColor(opacity, floatArrayOf(hue, saturation, brightness))
 
-        val alphaBar = v.findViewById<SeekBar>(R.id.alpha_value)
-        alphaBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
-                if (!fromUser) return
-                colorCircle?.setAlphaVal(progress)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View = settingsView {
+        var hexOpen by rememberSaveable { mutableStateOf(false) }
+        val selected = color()
+        val formatted = String.format(Locale.US, "#%08X", selected)
+        Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Box(Modifier.fillMaxWidth().height(88.dp).background(Brush.linearGradient(
+                listOf(ComposeColor.White, ComposeColor.Black)))) {
+                Box(Modifier.fillMaxSize().background(ComposeColor(selected)))
             }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar) {}
-        })
-        alphaBar.setProgress(Color.alpha(currentColor), false)
-
-        white = v.findViewById(R.id.white_color)
-        black = v.findViewById(R.id.black_color)
-        auto = v.findViewById(R.id.auto_color)
-
-        white?.isSelected = currentColor == Color.WHITE
-        white?.setOnClickListener {
-            setSelected(1)
-            colorCircle?.setColor(Color.WHITE)
-            hsvBar?.setProgress(100, false)
-        }
-
-        black?.isSelected = currentColor == Color.BLACK
-        black?.setOnClickListener {
-            setSelected(2)
-            colorCircle?.setColor(Color.BLACK)
-            hsvBar?.setProgress(0, false)
-        }
-
-        auto?.apply {
-            if (mKey.contains("pref_key_system_batteryindicator")) visibility = View.VISIBLE
-            isSelected = currentColor == Color.TRANSPARENT
-            setOnClickListener {
-                setSelected(3)
-                colorCircle?.setColor(Color.TRANSPARENT)
-                hsvBar?.setProgress(0, false)
+            TextButton(onClick = { hexOpen = true }) { Text(formatted, style = MaterialTheme.typography.titleMedium) }
+            SettingsSection(stringResource(R.string.settings_color_hue) + " · " + hue.roundToInt() + "°")
+            Slider(hue, { hue = it }, valueRange = 0f..360f)
+            SettingsSection(stringResource(R.string.settings_color_saturation) + " · " + (saturation * 100).roundToInt() + "%")
+            Slider(saturation, { saturation = it })
+            SettingsSection(stringResource(R.string.settings_color_brightness) + " · " + (brightness * 100).roundToInt() + "%")
+            Slider(brightness, { brightness = it })
+            SettingsSection(stringResource(R.string.settings_color_opacity) + " · " + (opacity * 100 / 255) + "%")
+            Slider(opacity.toFloat(), { opacity = it.roundToInt() }, valueRange = 0f..255f)
+            FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(onClick = { setColor(Color.WHITE) }) { Text(stringResource(R.string.white_color)) }
+                OutlinedButton(onClick = { setColor(Color.BLACK) }) { Text(stringResource(R.string.black_color)) }
+                if (key?.contains("pref_key_system_batteryindicator") == true)
+                    OutlinedButton(onClick = { setColor(Color.TRANSPARENT) }) { Text(stringResource(R.string.auto_color)) }
             }
         }
-
-        selectedColorHint?.setOnClickListener {
-            AppHelper.showInputDialog(activity, selectedColorHint?.text?.toString(), R.string.array_static, 0, 1, object : Helpers.InputCallback {
-                override fun onInputFinished(key: String?, text: String?) {
-                    if (key != null && !text?.trim().isNullOrEmpty()) {
-                        try {
-                            colorCircle?.setColor(Color.parseColor(text), true)
-                        } catch (_: IllegalArgumentException) {
-                        }
-                    }
-                }
-            }, false)
+        if (hexOpen) {
+            var input by rememberSaveable { mutableStateOf(formatted) }
+            var invalid by remember { mutableStateOf(false) }
+            AlertDialog(onDismissRequest = { hexOpen = false }, modifier = Modifier.imePadding().safeDrawingPadding().padding(vertical = 12.dp),
+                properties = DialogProperties(decorFitsSystemWindows = false),
+                title = { Text(settingTitle) }, text = {
+                OutlinedTextField(input, { input = it; invalid = false }, singleLine = true,
+                    isError = invalid, supportingText = { if (invalid) Text(stringResource(R.string.settings_color_invalid)) })
+            }, confirmButton = { TextButton(onClick = {
+                try { setColor(Color.parseColor(input.trim())); hexOpen = false }
+                catch (_: IllegalArgumentException) { invalid = true }
+            }) { Text(stringResource(android.R.string.ok)) } }, dismissButton = {
+                TextButton(onClick = { hexOpen = false }) { Text(stringResource(android.R.string.cancel)) }
+            })
         }
     }
 
-    override fun onColorSelected(color: Int) {
-        updateSelColor(color)
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putFloatArray("color.hsv", floatArrayOf(hue, saturation, brightness))
+        outState.putInt("color.alpha", opacity)
+        super.onSaveInstanceState(outState)
     }
-
-    private fun updateSelColor(color: Int) {
-        val gd = selectedColorView?.background as? GradientDrawable
-        gd?.colors = if (color == Color.TRANSPARENT) intArrayOf(Color.WHITE, Color.BLACK) else intArrayOf(color, color)
-        selectedColorHint?.text = String.format(Locale.US, "#%08X", color)
-    }
-
-    private fun setSelected(btn: Int) {
-        white?.isSelected = false
-        black?.isSelected = false
-        auto?.isSelected = false
-        when (btn) {
-            1 -> white?.isSelected = true
-            2 -> black?.isSelected = true
-            3 -> auto?.isSelected = true
-        }
-    }
-
-    override fun onSaveInstanceState(savedInstanceState: Bundle) {
-        colorCircle?.getColor()?.let { savedInstanceState.putInt("colorCircleColor", it) }
-        super.onSaveInstanceState(savedInstanceState)
-    }
-
-    override fun saveSharedPrefs() {
-        key?.let { AppHelper.appPrefs!!.edit().putInt(it, colorCircle?.getColor() ?: Color.WHITE).apply() }
-        super.saveSharedPrefs()
-    }
-
+    override fun saveSharedPrefs() { key?.let { AppHelper.appPrefs?.edit()?.putInt(it, color())?.apply() } }
     override fun loadSharedPrefs() {}
 }

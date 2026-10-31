@@ -13,7 +13,7 @@ class ColorPreferenceEx(context: Context, attrs: AttributeSet?) : PreferenceEx(c
     init {
         setOnPreferenceClickListener {
             val args = Bundle().apply { putString("key", key) }
-            (context as? MainActivity)?.navToSubFragment(ColorSelector(), args, AppHelper.SettingsType.Edit, AppHelper.ActionBarType.Edit, title?.toString() ?: "", R.layout.fragment_selectcolor)
+            (context as? MainActivity)?.navToSubFragment(ColorSelector(), args, AppHelper.SettingsType.Edit, AppHelper.ActionBarType.Edit, title?.toString() ?: "", R.id.fragment_selectcolor)
             true
         }
     }

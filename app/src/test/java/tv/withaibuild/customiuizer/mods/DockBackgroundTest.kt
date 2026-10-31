@@ -31,6 +31,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
 import org.robolectric.util.ReflectionHelpers
 import tv.withaibuild.customiuizer.utils.PrefMap
+import tv.withaibuild.customiuizer.mods.utils.XposedHelpers
 import kotlin.math.PI
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -52,7 +53,65 @@ class DockBackgroundTest {
         NativeMaterial.supported = true
         NativeMaterial.failure = null
         NativeMaterial.googleSupported = false
+        NativeMaterial.inheritedAlphaGetter = false
         BlendLayer.failure = null
+    }
+
+    @Test
+    fun fullOpacityRestoresAfterUnlockWithTheNativeInheritedAlphaGetter() {
+        NativeMaterial.googleSupported = true
+        NativeMaterial.inheritedAlphaGetter = true
+        LauncherDockBackground.attach(host, DockBackgroundConfig(material = 2, opacity = 100), materialConstructor)
+        layout(); host.viewTreeObserver.dispatchOnPreDraw()
+        val decoration = host.getChildAt(0) as DockBackgroundView
+        val material = decoration.getChildAt(0) as NativeMaterial
+        fun window(value: Int) = ReflectionHelpers.callInstanceMethod<Unit>(decoration,
+            "onWindowVisibilityChanged", ReflectionHelpers.ClassParameter.from(Int::class.javaPrimitiveType!!, value))
+        repeat(3) {
+            window(View.GONE)
+            assertEquals(0, material.writtenAlpha)
+            window(View.VISIBLE)
+            host.viewTreeObserver.dispatchOnPreDraw()
+            assertEquals("The framework getter cannot verify its private blur alpha", 255, material.background.alpha)
+            assertEquals("Unlock must issue the opaque write even when getAlpha already returns 255", 255, material.writtenAlpha)
+            val writes = material.alphaSubmissions
+            repeat(120) { decoration.onPreDraw() }
+            assertEquals("Settled frames do not resubmit alpha", writes, material.alphaSubmissions)
+        }
+        host.removeView(decoration)
+        assertNull(ReflectionHelpers.getField<Any?>(decoration, "opacityDrawable"))
+    }
+
+    @Test
+    fun nativeWindowVisibilityRestoresBlurWithoutAnAggregatedVisibilityNotification() {
+        NativeMaterial.googleSupported = true
+        for (style in listOf(0, 2, 3)) {
+            LauncherDockBackground.attach(host, DockBackgroundConfig(material = style), materialConstructor)
+            layout(); host.viewTreeObserver.dispatchOnPreDraw()
+            val decoration = host.getChildAt(0) as DockBackgroundView
+            val material = decoration.getChildAt(0) as NativeMaterial
+            val radius = material.appliedBlurRadius
+            assertTrue(material.appliedEnabled)
+            fun windowVisibility(value: Int) = ReflectionHelpers.callInstanceMethod<Unit>(decoration,
+                "onWindowVisibilityChanged", ReflectionHelpers.ClassParameter.from(Int::class.javaPrimitiveType!!, value))
+            windowVisibility(View.GONE)
+            assertFalse("A hidden window must release its native blur", material.appliedEnabled)
+            assertNull(material.background)
+            windowVisibility(View.VISIBLE)
+            host.viewTreeObserver.dispatchOnPreDraw()
+            assertTrue(material.appliedEnabled)
+            assertEquals(radius, material.appliedBlurRadius)
+            assertNotNull(material.background)
+            val calls = material.enableCalls
+            repeat(20) { windowVisibility(View.VISIBLE); host.viewTreeObserver.dispatchOnPreDraw() }
+            assertEquals("Repeated visible callbacks cannot re-register blur", calls, material.enableCalls)
+            host.removeView(decoration)
+            assertFalse(material.appliedEnabled)
+            val detachedCalls = material.enableCalls
+            windowVisibility(View.VISIBLE)
+            assertEquals("A detached owner cannot restore blur", detachedCalls, material.enableCalls)
+            assertNull(material.parent)
+        }
     }
 
     @Test
@@ -252,7 +311,7 @@ class DockBackgroundTest {
     fun effectiveBlurOpacityIncludesAncestorsAndRetiredViewsStopObserving() {
         NativeMaterial.googleSupported = true
         val native = nativeHost()
-        LauncherDockBackground.attach(native, DockBackgroundConfig(material = 3), materialConstructor)
+        LauncherDockBackground.attach(native, DockBackgroundConfig(material = 2), materialConstructor)
         repeat(3) { layout(); native.viewTreeObserver.dispatchOnPreDraw() }
         val decoration = native.getChildAt(0) as DockBackgroundView
         val material = decoration.getChildAt(0) as NativeMaterial
@@ -283,7 +342,7 @@ class DockBackgroundTest {
     fun editingBlurUsesTheExactNativeTransformationWithoutAdvancingOrReplacingItsAnimation() {
         NativeMaterial.googleSupported = true
         val native = nativeHost()
-        LauncherDockBackground.attach(native, DockBackgroundConfig(material = 3), materialConstructor)
+        LauncherDockBackground.attach(native, DockBackgroundConfig(material = 2), materialConstructor)
         repeat(3) { layout(); native.viewTreeObserver.dispatchOnPreDraw() }
         val decoration = native.getChildAt(0) as DockBackgroundView
         val material = decoration.getChildAt(0) as NativeMaterial
@@ -317,12 +376,12 @@ class DockBackgroundTest {
     @Test
     fun anUnownedNativeAnimationDoesNotReadTransformationArguments() {
         val animation = android.view.animation.AnimationSet(false)
-        var calls = 0; var reads = 0
+        var calls = 0; var reads = 0; var receiverReads = 0
         val chain = Proxy.newProxyInstance(XposedInterface.Chain::class.java.classLoader,
             arrayOf(XposedInterface.Chain::class.java)) { _, method, args ->
             when (method.name) {
                 "proceed" -> { assertTrue(args.isNullOrEmpty()); calls++; true }
-                "getThisObject" -> animation
+                "getThisObject" -> { receiverReads++; animation }
                 "getArg" -> { reads++; android.view.animation.Transformation() }
                 else -> error("Unexpected chain read: ${method.name}")
             }
@@ -331,6 +390,118 @@ class DockBackgroundTest {
         repeat(120) { assertEquals(true, hook.intercept(chain)) }
         assertEquals(120, calls)
         assertEquals(0, reads)
+        assertEquals("An idle Dock must not look up any animation owner", 0, receiverReads)
+    }
+
+    @Test fun editingOwnerHandoffIgnoresStaleReleaseAndDoesNotUseGlobalAdditionalFields() {
+        NativeMaterial.googleSupported = true
+        val native = nativeHost()
+        LauncherDockBackground.attach(native, DockBackgroundConfig(), materialConstructor)
+        layout()
+        val decoration = native.getChildAt(0) as DockBackgroundView
+        val animation = CountingEditingAnimation()
+        native.startAnimation(animation)
+        decoration.bindEditingAnimation(animation, showing = true)
+        assertNull("Dock frame ownership must not occupy the shared field table",
+            XposedHelpers.getAdditionalInstanceField(animation, "customiuizer_dock_editing_owner"))
+        val other = DockBackgroundView(activity.get(), DockBackgroundConfig(), null)
+        LauncherDockBackground.clearEditingOwner(animation, other)
+        val output = android.view.animation.Transformation().apply { alpha = .4f }
+        var reads = 0
+        val chain = Proxy.newProxyInstance(XposedInterface.Chain::class.java.classLoader,
+            arrayOf(XposedInterface.Chain::class.java)) { _, method, _ ->
+            when (method.name) {
+                "proceed" -> true
+                "getThisObject" -> animation
+                "getArg" -> { reads++; output }
+                else -> error("Unexpected chain read: ${method.name}")
+            }
+        } as XposedInterface.Chain
+        val hook = LauncherDockBackground.editingTransformationHook()
+        hook.intercept(chain)
+        assertEquals(1, reads)
+        assertEquals(92, decoration.getChildAt(0).background.alpha)
+        native.removeView(decoration) // Detach must also remove the frame owner.
+        hook.intercept(chain)
+        assertEquals(1, reads)
+    }
+
+    @Test
+    fun releasingOneEditingOwnerPreservesOtherAnimationsAndTheLastReleaseReturnsToIdle() {
+        val first = android.view.animation.AnimationSet(false)
+        val second = android.view.animation.AnimationSet(false)
+        val firstOwner = DockBackgroundView(activity.get(), DockBackgroundConfig(), null)
+        val secondOwner = DockBackgroundView(activity.get(), DockBackgroundConfig(), null)
+        var current = first
+        var reads = 0; var receiverReads = 0; var calls = 0
+        val chain = Proxy.newProxyInstance(XposedInterface.Chain::class.java.classLoader,
+            arrayOf(XposedInterface.Chain::class.java)) { _, method, _ ->
+            when (method.name) {
+                "proceed" -> { calls++; false }
+                "getThisObject" -> { receiverReads++; current }
+                "getArg" -> { reads++; android.view.animation.Transformation() }
+                else -> error("Unexpected chain read: ${method.name}")
+            }
+        } as XposedInterface.Chain
+        val hook = LauncherDockBackground.editingTransformationHook()
+        try {
+            LauncherDockBackground.setEditingOwner(first, firstOwner)
+            LauncherDockBackground.setEditingOwner(second, secondOwner)
+            assertEquals(false, hook.intercept(chain))
+            assertEquals(1, reads)
+            LauncherDockBackground.clearEditingOwner(first, firstOwner)
+            hook.intercept(chain)
+            assertEquals("A released animation cannot acquire another owner's output", 1, reads)
+            current = second
+            hook.intercept(chain)
+            assertEquals("Releasing one owner must preserve the other", 2, reads)
+            LauncherDockBackground.clearEditingOwner(second, secondOwner)
+            receiverReads = 0
+            repeat(120) { assertEquals(false, hook.intercept(chain)) }
+            assertEquals(0, receiverReads)
+            assertEquals(2, reads)
+            assertEquals(123, calls)
+        } finally {
+            LauncherDockBackground.clearEditingOwner(first, firstOwner)
+            LauncherDockBackground.clearEditingOwner(second, secondOwner)
+        }
+    }
+
+    @Test
+    fun layoutHooksProceedOnceWithoutArgumentCopiesAndPreserveFailureBoundaries() {
+        val row = FrameLayout(activity.get()).also { host.addView(it) }
+        for ((hook, target) in listOf(LauncherDockBackground.hotseatMeasureHook() to host,
+            LauncherDockBackground.contentLayoutHook() to row)) {
+            val expected = Any()
+            var calls = 0
+            var failure: Throwable? = null
+            var ownerFailure: Throwable? = null
+            var ownerReads = 0
+            val chain = Proxy.newProxyInstance(XposedInterface.Chain::class.java.classLoader,
+                arrayOf(XposedInterface.Chain::class.java)) { _, method, args ->
+                when (method.name) {
+                    "proceed" -> { assertTrue(args.isNullOrEmpty()); calls++; failure?.let { throw it }; expected }
+                    "getThisObject" -> { ownerReads++; ownerFailure?.let { throw it }; target }
+                    else -> error("Unexpected argument or member read: ${method.name}")
+                }
+            } as XposedInterface.Chain
+            assertSame(expected, hook.intercept(chain))
+            assertEquals(1, calls)
+            assertEquals(1, ownerReads)
+            val original = IllegalStateException("native layout")
+            failure = original
+            assertSame(original, assertThrows(IllegalStateException::class.java) { hook.intercept(chain) })
+            assertEquals("Failed native layout does not notify the decoration", 1, ownerReads)
+            val fatal = OutOfMemoryError("native layout")
+            failure = java.lang.reflect.InvocationTargetException(fatal)
+            assertSame(fatal, assertThrows(OutOfMemoryError::class.java) { hook.intercept(chain) })
+            failure = null
+            ownerFailure = IllegalStateException("decoration update")
+            assertSame(expected, hook.intercept(chain))
+            ownerFailure = java.lang.reflect.InvocationTargetException(fatal)
+            assertSame(fatal, assertThrows(OutOfMemoryError::class.java) { hook.intercept(chain) })
+            assertEquals(5, calls)
+        }
     }
 
     @Test
@@ -584,71 +755,6 @@ class DockBackgroundTest {
     }
 
     @Test
-    fun g4HeadingIsSymmetricMonotoneAndFlatToFourthOrderAtTheStraightEdge() {
-        assertEquals(0.0, DockCornerGeometry.heading(0.0), 0.0)
-        assertEquals(PI / 4, DockCornerGeometry.heading(0.5), 1e-12)
-        assertEquals(PI / 2, DockCornerGeometry.heading(1.0), 1e-12)
-        var previous = 0.0
-        for (i in 0..100) {
-            val t = i / 100.0
-            val heading = DockCornerGeometry.heading(t)
-            assertTrue(heading >= previous)
-            assertEquals(PI / 2, heading + DockCornerGeometry.heading(1 - t), 1e-12)
-            previous = heading
-        }
-        assertTrue(DockCornerGeometry.heading(0.001) < 1e-10)
-    }
-
-    @Test
-    fun g4RasterIsSymmetricClampedAndContainsNoCutouts() {
-        for (radius in floatArrayOf(0f, 24f, 1000f)) {
-            val bitmap = Bitmap.createBitmap(240, 80, Bitmap.Config.ARGB_8888)
-            try {
-                val nativeShape = DockBackgroundTint().apply {
-                    color = Color.WHITE
-                    this.radius = radius
-                    setBounds(0, 0, 240, 80)
-                }
-                nativeShape.draw(Canvas(bitmap))
-                var nativeDelta = 0
-                for (y in 0 until 80) for (x in 0 until 240) {
-                    val alpha = Color.alpha(bitmap.getPixel(x, y))
-                    nativeDelta = maxOf(nativeDelta,
-                        kotlin.math.abs(alpha - Color.alpha(bitmap.getPixel(239 - x, y))),
-                        kotlin.math.abs(alpha - Color.alpha(bitmap.getPixel(x, 79 - y))))
-                }
-                bitmap.eraseColor(Color.TRANSPARENT)
-                val shape = Path().apply { DockCornerGeometry.build(this, 240f, 80f, radius) }
-                Canvas(bitmap).drawPath(shape, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE })
-                assertEquals(Color.WHITE, bitmap.getPixel(120, 40))
-                var g4Delta = 0
-                for (y in 0 until 80) {
-                    var entered = false
-                    var exited = false
-                    for (x in 0 until 240) {
-                        val alpha = Color.alpha(bitmap.getPixel(x, y))
-                        val mirrorX = Color.alpha(bitmap.getPixel(239 - x, y))
-                        val mirrorY = Color.alpha(bitmap.getPixel(x, 79 - y))
-                        g4Delta = maxOf(g4Delta, kotlin.math.abs(alpha - mirrorX), kotlin.math.abs(alpha - mirrorY))
-                        if (alpha > 0) {
-                            assertFalse(exited)
-                            entered = true
-                        } else if (entered) exited = true
-                    }
-                }
-                // Skia's analytic AA is direction-sensitive even for its own round rectangles.
-                // Compare against that native baseline rather than assuming exact pixel alpha.
-                assertTrue("r=$radius G4 AA difference=$g4Delta native=$nativeDelta", g4Delta <= nativeDelta)
-            } finally { bitmap.recycle() }
-        }
-        val path = Path()
-        DockCornerGeometry.build(path, 240f, 80f, 1000f)
-        val bounds = RectF()
-        path.computeBounds(bounds, true)
-        assertEquals(RectF(0f, 0f, 240f, 80f), bounds)
-    }
-
-    @Test
     fun invalidPersistedValuesStayWithinTheSupportedGeometryAndOpacity() {
         assertEquals(DockBackgroundConfig(), DockBackgroundConfig.read(PrefMap()))
         val config = DockBackgroundConfig.read(PrefMap().apply {
@@ -665,7 +771,7 @@ class DockBackgroundTest {
         assertEquals(2, DockBackgroundConfig.read(PrefMap().apply {
             put("launcher_dock_background_material", "2")
         }).material)
-        assertEquals(3, DockBackgroundConfig.read(PrefMap().apply {
+        assertEquals(0, DockBackgroundConfig.read(PrefMap().apply {
             put("launcher_dock_background_material", "3")
         }).material)
         assertEquals(0, DockBackgroundConfig.read(PrefMap().apply {
@@ -1550,13 +1656,14 @@ class DockBackgroundTest {
         var enableCalls = 0
         var cornerCalls = 0
         var alphaSubmissions = 0
+        var writtenAlpha = 255
         @JvmField val mBlurLayerHolder = BlendLayer()
         init {
-            // BackgroundBlurDrawable keeps exact alpha; ColorDrawable quantizes low alpha twice.
+            // Most tests inspect exact writes. The A14 regression mode preserves Drawable.getAlpha == 255.
             background = object : ColorDrawable(Color.WHITE) {
                 private var opacity = 255
-                override fun getAlpha() = opacity
-                override fun setAlpha(value: Int) { alphaSubmissions++; opacity = value; super.setAlpha(value) }
+                override fun getAlpha() = if (NativeMaterial.inheritedAlphaGetter) 255 else opacity
+                override fun setAlpha(value: Int) { alphaSubmissions++; writtenAlpha = value; opacity = value; super.setAlpha(value) }
             }
         }
         private var retainedBackground = background
@@ -1581,6 +1688,7 @@ class DockBackgroundTest {
             var supported = true
             var failure: Throwable? = null
             var googleSupported = false
+            var inheritedAlphaGetter = false
         }
     }
 

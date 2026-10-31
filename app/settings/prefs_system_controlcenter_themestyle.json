@@ -1,0 +1,147 @@
+{
+  "type": "screen",
+  "attributes": {},
+  "children": [
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/prefs_group_tiles"
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_cc_tile_roundedrect",
+            "android:title": "@string/system_cc_tile_roundedrect_title",
+            "android:defaultValue": "false"
+          }
+        },
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_cc_btandtorch_ascard",
+            "android:title": "@string/system_cc_btandtorch_ascard_title",
+            "android:defaultValue": "false"
+          }
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/prefs_group_color"
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_cc_tile_enabled_color",
+            "android:title": "@string/system_cc_tile_enabled_color_title"
+          }
+        },
+        {
+          "type": "color",
+          "attributes": {
+            "android:key": "pref_key_system_cc_tile_enabled_color_custom",
+            "android:title": "@string/common_background_color",
+            "android:dependency": "pref_key_system_cc_tile_enabled_color",
+            "app:indentLevel": "1"
+          }
+        },
+        {
+          "type": "color",
+          "attributes": {
+            "android:key": "pref_key_system_cc_tile_enabled_iconcolor_custom",
+            "android:title": "@string/common_icon_color",
+            "android:dependency": "pref_key_system_cc_tile_enabled_color",
+            "app:indentLevel": "1"
+          }
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/prefs_group_cards"
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_cc_card_enabled_color",
+            "android:title": "@string/system_cc_card_enabled_color_title"
+          }
+        },
+        {
+          "type": "color",
+          "attributes": {
+            "android:key": "pref_key_system_cc_card_enabled_color_custom",
+            "android:title": "@string/common_background_color",
+            "android:dependency": "pref_key_system_cc_card_enabled_color",
+            "app:indentLevel": "1"
+          }
+        },
+        {
+          "type": "color",
+          "attributes": {
+            "android:key": "pref_key_system_cc_card_enabled_iconcolor_custom",
+            "android:title": "@string/common_icon_color",
+            "android:dependency": "pref_key_system_cc_card_enabled_color",
+            "app:indentLevel": "1"
+          }
+        },
+        {
+          "type": "color",
+          "attributes": {
+            "android:key": "pref_key_system_cc_card_enabled_primary_textcolor",
+            "android:title": "@string/system_cc_card_enabled_primary_textcolor_title",
+            "android:dependency": "pref_key_system_cc_card_enabled_color",
+            "app:indentLevel": "1"
+          }
+        },
+        {
+          "type": "color",
+          "attributes": {
+            "android:key": "pref_key_system_cc_card_enabled_secondary_textcolor",
+            "android:title": "@string/system_cc_card_enabled_secondary_textcolor_title",
+            "android:dependency": "pref_key_system_cc_card_enabled_color",
+            "app:indentLevel": "1"
+          }
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/prefs_group_brightness"
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_cc_slider_color_enable",
+            "android:title": "@string/system_cc_slider_color_enable_title"
+          }
+        },
+        {
+          "type": "color",
+          "attributes": {
+            "android:key": "pref_key_system_cc_slider_progress_color",
+            "android:title": "@string/system_cc_slider_progress_color_title",
+            "android:dependency": "pref_key_system_cc_slider_color_enable",
+            "app:indentLevel": "1"
+          }
+        },
+        {
+          "type": "color",
+          "attributes": {
+            "android:key": "pref_key_system_cc_slider_icon_color",
+            "android:title": "@string/common_icon_color",
+            "android:dependency": "pref_key_system_cc_slider_color_enable",
+            "app:indentLevel": "1"
+          }
+        }
+      ]
+    }
+  ]
+}

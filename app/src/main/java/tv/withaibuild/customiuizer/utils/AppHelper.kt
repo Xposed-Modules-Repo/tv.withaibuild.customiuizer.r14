@@ -3,7 +3,6 @@ package tv.withaibuild.customiuizer.utils
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Configuration
-import android.content.res.Resources
 import android.text.InputType
 import android.util.Log
 import android.util.Pair
@@ -49,10 +48,6 @@ object AppHelper {
 
     enum class SettingsType {
         Preference, Edit
-    }
-
-    enum class AppAdapterType {
-        Default, Standalone, Mutli, CustomTitles, Activities
     }
 
     enum class ActionBarType {

@@ -1,18 +1,20 @@
 [versions]
-agp = "9.4.1"
+agp = "9.5.0"
 kotlin = "2.4.21"
 
 libxposed-api = "102.0.0"
 libxposed-service = "102.0.0"
 commons-lang3 = "3.21.0"
 androidx-preference = "1.2.1"
-androidx-palette = "1.0.0"
+androidx-palette = "1.1.0"
 androidx-appcompat = "1.8.0"
 androidx-fragment = "1.9.1"
 dexkit = "2.3.0"
 kotlinx-coroutines = "1.11.0"
 junit = "4.13.2"
 robolectric = "4.17"
+compose-bom = "2026.09.00"
+activity-compose = "1.13.0"
 
 [libraries]
 libxposed-api = { module = "io.github.libxposed:api", version.ref = "libxposed-api" }
@@ -29,6 +31,14 @@ kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 junit = { module = "junit:junit", version.ref = "junit" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "compose-bom" }
+compose-ui = { module = "androidx.compose.ui:ui" }
+compose-foundation = { module = "androidx.compose.foundation:foundation" }
+compose-material3 = { module = "androidx.compose.material3:material3" }
+activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
+compose-ui-test = { module = "androidx.compose.ui:ui-test-junit4" }
+compose-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

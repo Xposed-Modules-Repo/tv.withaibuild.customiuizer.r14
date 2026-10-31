@@ -58,7 +58,20 @@ class XposedHelpersAbiTest {
             Modifier.isPublic(it.modifiers) && Modifier.isStatic(it.modifiers)
         }
 
-        assertTrue("XposedHelpers should have many public static methods", publicStatic.size >= 80)
+        // Pin the consumed overloads; an arbitrary API count would require
+        // retaining unused upstream helpers without protecting any caller.
+        for (owner in listOf(Any::class.java, Class::class.java)) {
+            for (name in listOf("getAdditionalStaticField", "removeAdditionalStaticField")) {
+                val method = klass.getDeclaredMethod(name, owner, String::class.java)
+                assertTrue(Modifier.isPublic(method.modifiers) && Modifier.isStatic(method.modifiers))
+                assertEquals(Any::class.java, method.returnType)
+            }
+            val setter = klass.getDeclaredMethod(
+                "setAdditionalStaticField", owner, String::class.java, Any::class.java
+            )
+            assertTrue(Modifier.isPublic(setter.modifiers) && Modifier.isStatic(setter.modifiers))
+            assertEquals(Any::class.java, setter.returnType)
+        }
 
         val names = publicStatic.map { it.name }.toSet()
         assertTrue("log overload missing", names.contains("log"))

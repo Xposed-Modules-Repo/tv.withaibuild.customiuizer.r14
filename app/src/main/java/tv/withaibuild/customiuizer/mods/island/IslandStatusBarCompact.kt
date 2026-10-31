@@ -49,6 +49,8 @@ internal class IslandStatusBarCompact internal constructor(root: ViewGroup, cloc
     }
     private val kept = arrayOf(Kept(clock, true), Kept(battery, false))
     private val hidden = ArrayList<Hidden>()
+    // Only physically occluded leaves need to observe/own native alpha between geometry changes.
+    private val occluded = ArrayList<Hidden>()
     private val clips = ArrayList<Clip>()
     private val position = IntArray(2)
     private val windowPosition = IntArray(2)
@@ -199,7 +201,7 @@ internal class IslandStatusBarCompact internal constructor(root: ViewGroup, cloc
             val entry = entries.next()
             val view = entry.view.get()
             if (view == null || view !in seen) {
-                if (view != null && abs(view.alpha - entry.ownedAlpha) <= .001f) view.alpha = entry.alpha
+                if (entry.occluded) { releaseAlpha(entry); occluded.remove(entry) }
                 entries.remove()
                 clearSnapshot()
             }
@@ -263,7 +265,19 @@ internal class IslandStatusBarCompact internal constructor(root: ViewGroup, cloc
                 visibleBounds.offset(offsetX, offsetY)
                 overlaps = Rect.intersects(occlusionBounds, visibleBounds)
             }
-            if (entry.occluded != overlaps) { entry.occluded = overlaps; changed = true }
+            if (entry.occluded != overlaps) {
+                if (overlaps && view != null) {
+                    // Uncovered nodes have remained under native ownership, including animations.
+                    entry.alpha = view.alpha
+                    entry.ownedAlpha = entry.alpha
+                    occluded.add(entry)
+                } else {
+                    releaseAlpha(entry)
+                    occluded.remove(entry)
+                }
+                entry.occluded = overlaps
+                changed = true
+            }
         }
         // An entrance/morph may change which individual icons are covered. A previous
         // decoration must never duplicate an icon that is now completely clear.
@@ -272,19 +286,27 @@ internal class IslandStatusBarCompact internal constructor(root: ViewGroup, cloc
 
     private fun applyHiddenAlpha() {
         val fraction = if (snapshot != null) 0f else visibility
-        for (index in hidden.indices) {
-            val entry = hidden[index]
+        for (index in occluded.indices) {
+            val entry = occluded[index]
             val view = entry.view.get() ?: continue
             // A native visibility animator may update its target while our island is present.
-            if (abs(view.alpha - entry.ownedAlpha) > .001f) entry.alpha = view.alpha
-            val target = entry.alpha * if (entry.occluded) fraction else 1f
-            if (view.alpha != target) view.alpha = target
+            val current = view.alpha
+            if (abs(current - entry.ownedAlpha) > .001f) entry.alpha = current
+            val target = entry.alpha * fraction
+            if (current != target) view.alpha = target
             entry.ownedAlpha = target
         }
     }
 
+    private fun releaseAlpha(entry: Hidden) {
+        val view = entry.view.get() ?: return
+        val current = view.alpha
+        // A native target submitted in this same frame wins over our saved value.
+        if (abs(current - entry.ownedAlpha) <= .001f && current != entry.alpha) view.alpha = entry.alpha
+    }
+
     private fun capture(host: ViewGroup): Snapshot? {
-        if (hidden.none { it.occluded } || !host.isHardwareAccelerated || !blurEnabled() || host.width <= 0 || host.height <= 0 ||
+        if (occluded.isEmpty() || !host.isHardwareAccelerated || !blurEnabled() || host.width <= 0 || host.height <= 0 ||
             host.width.toLong() * host.height > MAX_SNAPSHOT_PIXELS) return null
         var pixels: Bitmap? = null
         return try {
@@ -293,9 +315,9 @@ internal class IslandStatusBarCompact internal constructor(root: ViewGroup, cloc
             host.getLocationOnScreen(position)
             val originX = position[0]
             val originY = position[1]
-            for (entry in hidden) {
+            for (entry in occluded) {
                 val view = entry.view.get() ?: continue
-                if (!entry.occluded || view.visibility != View.VISIBLE || view.width <= 0 || view.height <= 0 || entry.alpha <= 0f) continue
+                if (view.visibility != View.VISIBLE || view.width <= 0 || view.height <= 0 || entry.alpha <= 0f) continue
                 view.getLocationOnScreen(position)
                 val saved = canvas.save()
                 canvas.translate((position[0] - originX).toFloat(), (position[1] - originY).toFloat())
@@ -314,7 +336,7 @@ internal class IslandStatusBarCompact internal constructor(root: ViewGroup, cloc
 
     private fun transition(reveal: Boolean) {
         val host = root.get() ?: return restore()
-        if (hidden.none { it.occluded } || !host.isAttachedToWindow || !host.isShown || !animationsEnabled()) {
+        if (occluded.isEmpty() || !host.isAttachedToWindow || !host.isShown || !animationsEnabled()) {
             visibility = if (reveal) 1f else 0f
             applyHiddenAlpha()
             if (reveal) finishRestore()
@@ -453,9 +475,7 @@ internal class IslandStatusBarCompact internal constructor(root: ViewGroup, cloc
             }
             host.removeOnAttachStateChangeListener(attachment)
         }
-        for (entry in hidden) entry.view.get()?.let {
-            if (abs(it.alpha - entry.ownedAlpha) <= .001f) it.alpha = entry.alpha
-        }
+        for (entry in occluded) releaseAlpha(entry)
         for (item in kept) item.view.get()?.let { view ->
             if (abs(view.translationX - item.baseTranslation - item.shift) < .01f) view.translationX = item.baseTranslation
             if (item.suppressed && view.alpha == 0f) view.alpha = item.alpha
@@ -463,7 +483,7 @@ internal class IslandStatusBarCompact internal constructor(root: ViewGroup, cloc
             item.suppressed = false
         }
         for (entry in clips) entry.view.get()?.let { it.clipChildren = entry.children; it.clipToPadding = entry.padding }
-        hidden.clear(); clips.clear(); geometry.clear(); geometryDirty = true
+        hidden.clear(); occluded.clear(); clips.clear(); geometry.clear(); geometryDirty = true
     }
 
     companion object {

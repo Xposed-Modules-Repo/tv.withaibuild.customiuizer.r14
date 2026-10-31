@@ -1,9 +1,10 @@
 package tv.withaibuild.customiuizer
 
+import tv.withaibuild.customiuizer.testsupport.repositorySource as source
+
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.io.File
 
 /**
  * Contract tests for the system_server Global Action Receiver registered by
@@ -224,16 +225,6 @@ class GlobalActionSystemServerReceiverSafetyTest {
     }
 
     private fun source(): String = source(sourceFile)
-
-    private fun source(relativePath: String): String {
-        var directory = File(System.getProperty("user.dir")).absoluteFile
-        while (true) {
-            val candidate = File(directory, relativePath)
-            if (candidate.isFile) return candidate.readText()
-            directory = directory.parentFile
-                ?: error("Repository root not found while locating $relativePath")
-        }
-    }
 
     private fun String.section(start: String, end: String): String {
         val startIndex = indexOf(start)

@@ -113,14 +113,14 @@ class RecentsCardStyleTest {
 
     @Test
     fun prefsXmlUsesCheckBoxForRecentsCardStyle() {
-        val xml = source("app/src/main/res/xml/prefs_system.xml").readText()
-        val regex = Regex(
-            """<tv\.withaibuild\.customiuizer\.prefs\.(\w+)\s+android:key="pref_key_system_recents_card_style"\s+android:title="@string/system_recents_card_style_hide_title"(?:\s+android:summary="@string/system_recents_card_style_summ")?\s+android:defaultValue="false"\s*/>"""
-        )
-        val m = regex.find(xml)
-        assertNotNull("recents card style preference must match the CheckBox form", m)
-        assertEquals("CheckBoxPreferenceEx", m?.groupValues?.get(1))
-        assertFalse("must not reference recents_card_styles entries", m?.value?.contains("recents_card_styles") ?: true)
+        val data = source("app/settings/prefs_system.json").readText()
+        val prefix = data.substringBefore("pref_key_system_recents_card_style")
+        assertTrue(prefix.substringAfterLast("\"type\":").contains("\"toggle\""))
+        val block = data.substring(data.lastIndexOf("{", data.indexOf("pref_key_system_recents_card_style"))).substringBefore("}")
+        assertTrue(block.contains("pref_key_system_recents_card_style"))
+        assertTrue(block.contains("@string/system_recents_card_style_hide_title"))
+        assertTrue(block.contains("\"android:defaultValue\": \"false\""))
+        assertFalse(block.contains("recents_card_styles"))
     }
 
     private fun launcherSource(): String =

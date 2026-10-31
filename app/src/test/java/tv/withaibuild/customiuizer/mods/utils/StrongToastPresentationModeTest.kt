@@ -1,5 +1,7 @@
 package tv.withaibuild.customiuizer.mods.utils
 
+import tv.withaibuild.customiuizer.testsupport.repositorySource as source
+
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -8,7 +10,6 @@ import tv.withaibuild.customiuizer.mods.SystemUIStrongToastHooks
 import tv.withaibuild.customiuizer.mods.utils.feature.StrongToastPresentationFeature
 import tv.withaibuild.customiuizer.mods.utils.feature.StrongToastRuntimeState
 import tv.withaibuild.customiuizer.utils.PrefMap
-import java.io.File
 
 class StrongToastPresentationModeTest {
     @Test
@@ -66,22 +67,14 @@ class StrongToastPresentationModeTest {
 
     @Test
     fun islandOffsetPreferenceShiftStaysAlignedWithRuntime() {
-        val xml = source("app/src/main/res/xml/prefs_system_island_layout.xml")
+        val xml = source("app/settings/prefs_system_island_layout.json")
         val block = xml.substringAfter("pref_key_system_strong_toast_island_offset")
             .substringBefore("pref_key_system_statusbar_iconsize")
         val shift = StrongToastRuntimeState.ISLAND_OFFSET_SHIFT
-        assertTrue(block.contains("android:defaultValue=\"$shift\""))
-        assertTrue(block.contains("miuizer:negativeShift=\"$shift\""))
-        assertTrue(block.contains("miuizer:maxValue=\"${shift * 2}\""))
-        assertTrue(block.contains("miuizer:showplus=\"true\""))
+        assertTrue(block.contains("\"android:defaultValue\": \"$shift\""))
+        assertTrue(block.contains("\"app:negativeShift\": \"$shift\""))
+        assertTrue(block.contains("\"app:maxValue\": \"${shift * 2}\""))
+        assertTrue(block.contains("\"app:showplus\": \"true\""))
     }
 
-    private fun source(path: String): String {
-        var directory = File(System.getProperty("user.dir")!!).absoluteFile
-        while (true) {
-            val candidate = File(directory, path)
-            if (candidate.isFile) return candidate.readText()
-            directory = directory.parentFile ?: error("Repository root not found")
-        }
-    }
 }

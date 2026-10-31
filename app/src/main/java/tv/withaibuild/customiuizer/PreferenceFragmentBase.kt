@@ -1,14 +1,15 @@
 package tv.withaibuild.customiuizer
 
-import android.animation.Animator
-import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.animation.Animator
+import androidx.compose.runtime.*
+import tv.withaibuild.customiuizer.ui.*
+import android.animation.ObjectAnimator
 import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
@@ -17,18 +18,15 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewStub
 import android.view.animation.DecelerateInterpolator
 import android.widget.Toast
-import androidx.appcompat.app.ActionBar
+import tv.withaibuild.customiuizer.ui.SettingsActionBar as ActionBar
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.ListPreference
 import androidx.preference.PreferenceManager
-import androidx.recyclerview.widget.RecyclerView
 import java.util.Collections
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
@@ -41,17 +39,86 @@ import tv.withaibuild.customiuizer.mods.GlobalActions
 import tv.withaibuild.customiuizer.mods.utils.FatalErrors
 import tv.withaibuild.customiuizer.mods.utils.ModuleHelper
 import tv.withaibuild.customiuizer.utils.AppHelper
-import tv.withaibuild.customiuizer.utils.AppLocaleController
-import tv.withaibuild.customiuizer.utils.AppSelectionSanitizer
 import tv.withaibuild.customiuizer.utils.BackupRestore
 import tv.withaibuild.customiuizer.utils.Helpers
 import tv.withaibuild.customiuizer.utils.XposedServiceManager
 
-open class PreferenceFragmentBase : PreferenceFragmentCompat() {
+open class PreferenceFragmentBase : Fragment() {
 
     private var actContext: Context? = null
-    private var groupedList: RecyclerView? = null
-    private var groupedDecoration: PreferenceGroupDecoration? = null
+    lateinit var preferenceManager: PreferenceManager
+        private set
+    var preferenceScreen: androidx.preference.PreferenceScreen
+        get() = requireNotNull(preferenceManager.preferenceScreen)
+        set(value) { preferenceManager.setPreferences(value) }
+    private var preferencesAttached = false
+    private var dialogPreference by mutableStateOf<androidx.preference.Preference?>(null)
+    private var scrollTarget by mutableStateOf<String?>(null)
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        createPreferences(savedInstanceState)
+    }
+
+    // Retain AndroidX persistence and dependency dispatch behind the Compose presentation.
+    @SuppressLint("RestrictedApi")
+    private fun createPreferences(savedInstanceState: Bundle?) {
+        preferenceManager = PreferenceManager(requireContext()).apply {
+            sharedPreferencesName = AppHelper.prefsName
+            sharedPreferencesMode = Context.MODE_PRIVATE
+            onPreferenceTreeClickListener = PreferenceManager.OnPreferenceTreeClickListener { onPreferenceTreeClick(it) }
+            onDisplayPreferenceDialogListener = PreferenceManager.OnDisplayPreferenceDialogListener { dialogPreference = it }
+        }
+        onCreatePreferences(savedInstanceState, null)
+        savedInstanceState?.getBundle("settings.preferences")?.let { preferenceManager.preferenceScreen?.restoreHierarchyState(it) }
+        savedInstanceState?.getString("settings.dialog")?.let { dialogPreference = findPreference(it) }
+    }
+
+    fun <T : androidx.preference.Preference> findPreference(key: CharSequence): T? = preferenceManager.findPreference(key)
+
+    protected fun setSettingsPage(page: Int) {
+        preferenceScreen = tv.withaibuild.customiuizer.prefs.ComposeSettingsPages.create(page, requireContext(), preferenceManager)
+    }
+
+    open fun onPreferenceTreeClick(preference: androidx.preference.Preference): Boolean = false
+
+    protected fun requestPreferenceScroll(key: String) { scrollTarget = key }
+
+    override fun onCreateView(inflater: android.view.LayoutInflater, container: android.view.ViewGroup?,
+        savedInstanceState: Bundle?): View = settingsView {
+        val screen = preferenceScreen
+        val model = remember(screen) { SettingsPreferenceList(screen) }
+        DisposableEffect(model) { onDispose { model.close() } }
+        SettingsContent(model)
+        dialogPreference?.let { preference ->
+            val row = model.rows.firstOrNull { it.preference === preference }
+            // Observe the same scalar invalidation as the visible row; an open editor cannot
+            // outlive a disabled/hidden setting or a removed page entry.
+            row?.revision?.intValue
+            if (row == null || !preference.isEnabled || !preference.isVisible) {
+                LaunchedEffect(preference) { dialogPreference = null }
+            } else key(preference) { SettingsPreferenceDialog(preference) { dialogPreference = null } }
+        }
+    }
+
+    @Composable
+    internal open fun SettingsContent(model: SettingsPreferenceList) {
+        SettingsPreferencePage(model, scrollTarget, { scrollTarget = null }, { dialogPreference = it })
+    }
+
+    override fun onStart() {
+        super.onStart()
+        preferenceManager.preferenceScreen?.let { if (!preferencesAttached) { it.onAttached(); preferencesAttached = true } }
+        (activity as? MainActivity)?.settingsBar?.bind(this)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        val hierarchy = Bundle()
+        preferenceManager.preferenceScreen?.saveHierarchyState(hierarchy)
+        outState.putBundle("settings.preferences", hierarchy)
+        dialogPreference?.key?.let { outState.putString("settings.dialog", it) }
+        super.onSaveInstanceState(outState)
+    }
 
     /**
      * AndroidX invokes change listeners before ListPreference persists its new value. A listener
@@ -76,20 +143,14 @@ open class PreferenceFragmentBase : PreferenceFragmentCompat() {
     @JvmField
     protected var isCustomActionBar = false
 
-    @JvmField
-    protected var headLayoutId = 0
-
-    @JvmField
-    protected var tailLayoutId = 0
-
     protected open fun getActionBar(): ActionBar? {
         val act = activity as AppCompatActivity?
-        return act?.supportActionBar
+        return (act as? MainActivity)?.settingsBar
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         if (toolbarMenu) {
-            inflater.inflate(R.menu.menu_mods, menu)
+            tv.withaibuild.customiuizer.ui.populateSettingsMenu(menu)
         }
         if (isCustomActionBar) {
             for (i in 0 until menu.size()) {
@@ -102,6 +163,7 @@ open class PreferenceFragmentBase : PreferenceFragmentCompat() {
                 val item = menu.getItem(i)
                 val menuId = item.itemId
                 item.isVisible = when {
+                    menuId == R.id.search_btn -> isMainFragment
                     menuId == R.id.restart_menu -> isMainFragment
                     menuId == R.id.restartlauncher ||
                         menuId == R.id.restartsystemui ||
@@ -122,7 +184,7 @@ open class PreferenceFragmentBase : PreferenceFragmentCompat() {
 
     open fun confirmEdit() {}
 
-    override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+    open fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
         preferenceManager.sharedPreferencesName = AppHelper.prefsName
         preferenceManager.sharedPreferencesMode = Context.MODE_PRIVATE
     }
@@ -378,7 +440,6 @@ open class PreferenceFragmentBase : PreferenceFragmentCompat() {
     }
 
     private fun initFragment() {
-        setHasOptionsMenu(toolbarMenu)
         val actionBar = getActionBar() ?: return
 
         val showBack = if (this is MainFragment) {
@@ -390,60 +451,15 @@ open class PreferenceFragmentBase : PreferenceFragmentCompat() {
         actionBar.setDisplayHomeAsUpEnabled(showBack)
     }
 
-    @SuppressLint("WorldReadableFiles")
-    open fun onCreate(savedInstanceState: Bundle?, prefDefaults: Int) {
-        super.onCreate(savedInstanceState)
-        try {
-            PreferenceManager.setDefaultValues(getValidContext(), prefDefaults, false)
-        } catch (throwable: Throwable) {
-            throwable.printStackTrace()
-        }
-    }
-
-    protected open fun fixStubLayout(view: View, postion: Int) {}
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        if (headLayoutId > 0) {
-            val stub = view.findViewById<ViewStub>(R.id.head_stub)
-            stub.setLayoutResource(headLayoutId)
-            fixStubLayout(stub.inflate(), 1)
-        }
-        if (tailLayoutId > 0) {
-            val stub = view.findViewById<ViewStub>(R.id.tail_stub)
-            stub.setLayoutResource(tailLayoutId)
-            fixStubLayout(stub.inflate(), 2)
-        }
         initFragment()
-        attachGroupedPreferenceChrome()
-    }
-
-    private fun attachGroupedPreferenceChrome() {
-        val list = try {
-            getListView()
-        } catch (t: Throwable) {
-            FatalErrors.rethrowIfFatal(t)
-            null
-        } ?: return
-        setDivider(null)
-        setDividerHeight(0)
-        groupedDecoration?.let {
-            groupedList?.removeItemDecoration(it)
-            it.dispose()
-        }
-        val decoration = PreferenceGroupDecoration { preferenceScreen }
-        groupedList = list
-        groupedDecoration = decoration
-        list.addItemDecoration(decoration)
     }
 
     override fun onDestroyView() {
-        groupedDecoration?.let {
-            groupedList?.removeItemDecoration(it)
-            it.dispose()
-        }
-        groupedDecoration = null
-        groupedList = null
+        dialogPreference = null
+        if (preferencesAttached) preferenceManager.preferenceScreen?.onDetached()
+        preferencesAttached = false
         super.onDestroyView()
     }
 
@@ -499,7 +515,6 @@ open class PreferenceFragmentBase : PreferenceFragmentCompat() {
             existingArgs.putAll(fragmentArgs)
         }
 
-        finishNavigationFeedback()
         fragmentManager.beginTransaction()
             .setReorderingAllowed(true)
             .setCustomAnimations(
@@ -511,34 +526,6 @@ open class PreferenceFragmentBase : PreferenceFragmentCompat() {
             .replace(R.id.fragment_container, fragment)
             .addToBackStack(null)
             .commit()
-    }
-
-    /**
-     * Finishes the source row's ripple before both fragments are translated side by side.
-     * Preference pages clean the visible RecyclerView rows. Edit pages have no Preference
-     * list; that is a valid state and only the fragment root is cleared.
-     */
-    private fun finishNavigationFeedback() {
-        val fragmentView = view ?: return
-        val preferenceList = getListView() as RecyclerView?
-        val plan = NavigationFeedback.plan(
-            hasFragmentView = true,
-            hasPreferenceList = preferenceList != null,
-        )
-        if (plan.clearFragmentRoot) {
-            fragmentView.isPressed = false
-            fragmentView.jumpDrawablesToCurrentState()
-        }
-        if (!plan.cleanPreferenceList) return
-        val list = preferenceList ?: return
-        list.stopScroll()
-        list.isPressed = false
-        list.jumpDrawablesToCurrentState()
-        for (index in 0 until list.childCount) {
-            val row = list.getChildAt(index)
-            row.isPressed = false
-            row.jumpDrawablesToCurrentState()
-        }
     }
 
     override fun onCreateAnimator(transit: Int, enter: Boolean, nextAnim: Int): Animator? {
@@ -600,7 +587,9 @@ open class PreferenceFragmentBase : PreferenceFragmentCompat() {
 
     open fun reloadPreferences() {
         if (!isAdded) return
-        preferenceScreen = null
+        if (preferencesAttached) preferenceManager.preferenceScreen?.onDetached()
+        preferencesAttached = false
+        preferenceManager.setPreferences(null)
         onCreatePreferences(null, null)
         parentFragmentManager.beginTransaction()
             .setReorderingAllowed(true)

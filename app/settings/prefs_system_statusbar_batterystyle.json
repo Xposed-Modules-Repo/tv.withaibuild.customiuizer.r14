@@ -1,0 +1,140 @@
+{
+  "type": "screen",
+  "attributes": {},
+  "children": [
+    {
+      "type": "toggle",
+      "attributes": {
+        "android:key": "pref_key_system_statusbar_batterystyle",
+        "android:title": "@string/enable_mod",
+        "android:defaultValue": "false"
+      }
+    },
+    {
+      "type": "toggle",
+      "attributes": {
+        "android:key": "pref_key_system_statusbaricons_swap_batteryicon_percentage",
+        "android:title": "@string/system_statusbaricons_swap_batteryicon_percentage_title",
+        "android:dependency": "pref_key_system_statusbar_batterystyle",
+        "android:defaultValue": "false"
+      }
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/system_statusbar_batterystyle_digit_title",
+        "android:dependency": "pref_key_system_statusbar_batterystyle",
+        "app:state": "2"
+      },
+      "children": [
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/prefs_group_text"
+          },
+          "children": [
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterystyle_fontsize",
+                "android:title": "@string/launcher_titlefontsize_title",
+                "android:defaultValue": "15",
+                "app:minValue": "15",
+                "app:maxValue": "40",
+                "app:stepValue": "1",
+                "app:offtext": "@string/array_default",
+                "app:displayDividerValue": "2",
+                "app:format": "%s dp"
+              }
+            },
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterystyle_mark_fontsize",
+                "android:title": "@string/system_statusbar_batterystyle_mark_fontsize_title",
+                "android:defaultValue": "15",
+                "app:minValue": "15",
+                "app:maxValue": "40",
+                "app:stepValue": "1",
+                "app:offtext": "@string/array_default",
+                "app:displayDividerValue": "2",
+                "app:format": "%s dp"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterystyle_bold",
+                "android:title": "@string/system_statusbar_mobiletype_single_bold_title",
+                "android:defaultValue": "false"
+              }
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "attributes": {
+            "android:title": "@string/prefs_group_spacing"
+          },
+          "children": [
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterystyle_leftmargin",
+                "android:title": "@string/system_statusbar_mobiletype_single_leftmargin_title",
+                "android:defaultValue": "0",
+                "app:minValue": "0",
+                "app:maxValue": "16",
+                "app:stepValue": "1",
+                "app:displayDividerValue": "2",
+                "app:format": "%s dp"
+              }
+            },
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterystyle_rightmargin",
+                "android:title": "@string/system_statusbar_dualsimin2rows_rightmargin_title",
+                "android:defaultValue": "0",
+                "app:minValue": "0",
+                "app:maxValue": "16",
+                "app:stepValue": "1",
+                "app:displayDividerValue": "2",
+                "app:format": "%s dp"
+              }
+            },
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterystyle_verticaloffset",
+                "android:title": "@string/system_statusbar_mobiletype_single_verticaloffset",
+                "android:defaultValue": "8",
+                "app:minValue": "0",
+                "app:maxValue": "16",
+                "app:stepValue": "1",
+                "app:negativeShift": "8",
+                "app:displayDividerValue": "2",
+                "app:format": "%s dp"
+              }
+            },
+            {
+              "type": "slider",
+              "attributes": {
+                "android:key": "pref_key_system_statusbar_batterystyle_mark_verticaloffset",
+                "android:title": "@string/system_statusbar_batterystyle_mark_verticaloffset_title",
+                "android:defaultValue": "17",
+                "app:minValue": "0",
+                "app:maxValue": "17",
+                "app:stepValue": "1",
+                "app:negativeShift": "8",
+                "app:displayDividerValue": "2",
+                "app:offtext": "@string/array_default",
+                "app:format": "%s dp"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

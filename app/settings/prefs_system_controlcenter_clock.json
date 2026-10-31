@@ -1,0 +1,90 @@
+{
+  "type": "screen",
+  "attributes": {},
+  "children": [
+    {
+      "type": "toggle",
+      "attributes": {
+        "android:key": "pref_key_system_cc_clocktweak",
+        "android:title": "@string/enable_mod",
+        "android:defaultValue": "false"
+      }
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/prefs_group_text",
+        "android:dependency": "pref_key_system_cc_clocktweak"
+      },
+      "children": [
+        {
+          "type": "slider",
+          "attributes": {
+            "android:key": "pref_key_system_cc_clock_fontsize",
+            "android:title": "@string/launcher_titlefontsize_title",
+            "android:defaultValue": "9",
+            "app:minValue": "9",
+            "app:maxValue": "80",
+            "app:stepValue": "1",
+            "app:offtext": "@string/array_default",
+            "app:format": "%d dp"
+          }
+        },
+        {
+          "type": "slider",
+          "attributes": {
+            "android:key": "pref_key_system_cc_clock_verticaloffset",
+            "android:title": "@string/system_statusbar_mobiletype_single_verticaloffset",
+            "android:defaultValue": "10",
+            "app:minValue": "0",
+            "app:maxValue": "20",
+            "app:stepValue": "1",
+            "app:negativeShift": "10",
+            "app:format": "%d dp"
+          }
+        },
+        {
+          "type": "text",
+          "attributes": {
+            "android:key": "pref_key_system_cc_clock_customformat",
+            "android:title": "@string/system_clock_customformat_setting_title",
+            "android:dialogMessage": "@string/system_clock_customformat_help_summ",
+            "app:useSimpleSummaryProvider": "true",
+            "android:defaultValue": ""
+          }
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/prefs_group_behavior"
+      },
+      "children": [
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_qs_force_systemfonts",
+            "android:title": "@string/system_qs_force_systemfonts_title",
+            "android:defaultValue": "false"
+          }
+        },
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_qs_disable_fakeclock_anim",
+            "android:title": "@string/system_qs_disable_fakeclock_anim_title"
+          }
+        },
+        {
+          "type": "toggle",
+          "attributes": {
+            "android:key": "pref_key_system_cc_clock_centeralign",
+            "android:title": "@string/system_betterpopups_center_title",
+            "android:defaultValue": "false"
+          }
+        }
+      ]
+    }
+  ]
+}

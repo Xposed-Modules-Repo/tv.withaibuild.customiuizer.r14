@@ -24,6 +24,69 @@ import java.time.Duration
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class IslandStatusBarCompactTest {
+    @Test fun sharedAncestorsHaveOneMatrixCheckPerUnchangedFrame() {
+        val activity = Robolectric.buildActivity(Activity::class.java).setup().visible().get()
+        val root = FrameLayout(activity)
+        class Group : FrameLayout(activity) {
+            var matrixReads = 0
+            override fun getMatrix(): android.graphics.Matrix { matrixReads++; return super.getMatrix() }
+        }
+        val group = Group()
+        val clock = View(activity); val battery = View(activity)
+        root.addView(clock); root.addView(battery); root.addView(group)
+        repeat(12) { index -> group.addView(View(activity).apply { layout(120 + index * 10, 0, 129 + index * 10, 40) }) }
+        activity.setContentView(root)
+        root.layout(0, 0, 400, 50); group.layout(0, 0, 400, 50)
+        clock.layout(12, 0, 70, 50); battery.layout(340, 0, 388, 50)
+        repeat(12) { index -> group.getChildAt(index).layout(120 + index * 10, 0, 129 + index * 10, 40) }
+        val compact = IslandStatusBarCompact(root, clock, battery, animationsEnabled = { false })
+        try {
+            compact.show(180); root.viewTreeObserver.dispatchOnPreDraw()
+            group.matrixReads = 0
+            repeat(120) { root.viewTreeObserver.dispatchOnPreDraw() }
+            assertEquals("Shared ancestors must not be rechecked for every icon", 120, group.matrixReads)
+        } finally { compact.restore(); activity.finish() }
+    }
+    @Test fun clearIconsDoNoAlphaWorkUntilOccludedAndReleaseTheLatestNativeValue() {
+        val activity = Robolectric.buildActivity(Activity::class.java).setup().visible().get()
+        val root = FrameLayout(activity)
+        val clock = View(activity); val battery = View(activity)
+        class Icon : View(activity) {
+            var reads = 0
+            override fun getAlpha(): Float { reads++; return super.getAlpha() }
+        }
+        val covered = Icon().apply { alpha = .6f }
+        val clear = Icon().apply { alpha = .8f }
+        listOf(clock, battery, covered, clear).forEach(root::addView)
+        activity.setContentView(root)
+        root.layout(0, 0, 400, 50)
+        clock.layout(12, 0, 70, 50); battery.layout(340, 0, 388, 50)
+        covered.layout(140, 0, 160, 50); clear.layout(300, 0, 320, 50)
+        val compact = IslandStatusBarCompact(root, clock, battery, animationsEnabled = { false })
+        try {
+            compact.show(180)
+            clear.reads = 0; covered.reads = 0
+            repeat(120) { root.viewTreeObserver.dispatchOnPreDraw() }
+            assertEquals("Uncovered native alpha belongs entirely to the host", 0, clear.reads)
+            assertTrue("Covered native updates must still be observed", covered.reads > 0)
+            clear.alpha = .42f
+            root.viewTreeObserver.dispatchOnPreDraw()
+            assertEquals(0, clear.reads)
+            clear.translationX = -150f
+            root.viewTreeObserver.dispatchOnPreDraw()
+            assertEquals(0f, clear.alpha)
+            clear.alpha = .31f
+            clear.translationX = 0f // Native target and geometry change in the same frame.
+            root.viewTreeObserver.dispatchOnPreDraw()
+            assertEquals(.31f, clear.alpha)
+            clear.reads = 0
+            repeat(120) { root.viewTreeObserver.dispatchOnPreDraw() }
+            compact.restore()
+            assertEquals("Release must stop Alpha reads, including final teardown", 0, clear.reads)
+            assertEquals(.31f, clear.alpha)
+        } finally { compact.restore(); activity.finish() }
+    }
+
     @Test fun frameChecksShareTheWindowOffsetAndStillFollowNativeIconTransforms() {
         val activity = Robolectric.buildActivity(Activity::class.java).setup().visible().get()
         val root = FrameLayout(activity)

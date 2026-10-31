@@ -34,7 +34,8 @@ class StatusBarActionDiscoveryTest {
     }
 
     @Test fun doubleTapTogglesUseTheSameDiscoveryAndDefaultEntriesInstallNothing() {
-        assertFalse(hasConfiguredGlobalActions())
+        for (code in 2..34) assertFalse(hasConfiguredActionCode(code))
+        assertFalse(hasConfiguredToggle(6))
         for (key in keys) {
             reset()
             MainModule.mPrefs.put(key + "_action", 10)

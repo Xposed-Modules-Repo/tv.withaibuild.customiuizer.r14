@@ -1,0 +1,787 @@
+{
+  "type": "screen",
+  "attributes": {
+    "android:key": "pref_key_launcher"
+  },
+  "children": [
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/prefs_group_appearance"
+      },
+      "children": [
+        {
+          "type": "section",
+          "attributes": {
+            "android:key": "pref_key_launcher_cat_other",
+            "android:title": "@string/launcher_mods_other"
+          },
+          "children": [
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_layout"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_unlockgrids",
+                    "android:title": "@string/launcher_unlockgrids_title",
+                    "android:summary": "@string/launcher_unlockgrids_summ",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "slider",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_horizmargin",
+                    "android:title": "@string/launcher_horizmargin_title",
+                    "android:defaultValue": "0",
+                    "app:minValue": "0",
+                    "app:maxValue": "41",
+                    "app:negativeShift": "21",
+                    "app:format": "%d dp",
+                    "app:offtext": "@string/array_default"
+                  }
+                },
+                {
+                  "type": "slider",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_topmargin",
+                    "android:title": "@string/launcher_topmargin_title",
+                    "android:defaultValue": "0",
+                    "app:minValue": "0",
+                    "app:maxValue": "81",
+                    "app:negativeShift": "21",
+                    "app:format": "%d dp",
+                    "app:offtext": "@string/array_default"
+                  }
+                },
+                {
+                  "type": "slider",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_iconscale",
+                    "android:title": "@string/launcher_iconscale_title",
+                    "android:defaultValue": "45",
+                    "app:minValue": "45",
+                    "app:maxValue": "200",
+                    "app:stepValue": "5",
+                    "app:displayDividerValue": "100",
+                    "app:format": "x%s",
+                    "app:offtext": "@string/array_default"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_sensorportrait",
+                    "android:title": "@string/launcher_sensorportrait_title"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_widgets"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_system_resizablewidgets",
+                    "android:title": "@string/system_resizablewidgets_title"
+                  }
+                },
+                {
+                  "type": "slider",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_horizwidgetmargin",
+                    "android:title": "@string/launcher_horizwidgetmargin_title",
+                    "android:defaultValue": "0",
+                    "app:minValue": "0",
+                    "app:maxValue": "41",
+                    "app:negativeShift": "21",
+                    "app:format": "%d dp",
+                    "app:offtext": "@string/array_default"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_nowidgetonly",
+                    "android:title": "@string/launcher_nowidgetonly_title",
+                    "android:summary": "@string/launcher_nowidgetonly_summ"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_display"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_infinitescroll",
+                    "android:title": "@string/launcher_infinitescroll_title",
+                    "android:summary": "@string/launcher_infinitescroll_summ"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_closedrawer",
+                    "android:title": "@string/launcher_closedrawer_title",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_noclockhide",
+                    "android:title": "@string/launcher_noclockhide_title",
+                    "android:summary": "@string/launcher_noclockhide_summ"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_hideseekpoints",
+                    "android:title": "@string/launcher_hideseekpoints_title",
+                    "android:summary": "@string/launcher_hideseekpoints_summ"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_hideseekpoints_edit",
+                    "android:title": "@string/launcher_hideseekpoints_edit_title",
+                    "android:defaultValue": "false",
+                    "android:dependency": "pref_key_launcher_hideseekpoints",
+                    "app:indentLevel": "1"
+                  }
+                },
+                {
+                  "type": "slider",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_indicatorheight",
+                    "android:title": "@string/launcher_indicatorheight_title",
+                    "android:defaultValue": "9",
+                    "app:minValue": "9",
+                    "app:maxValue": "30",
+                    "app:format": "%d dp",
+                    "app:offtext": "@string/array_default"
+                  }
+                },
+                {
+                  "type": "slider",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_indicator_topmargin",
+                    "android:title": "@string/launcher_indicator_topmargin_title",
+                    "android:defaultValue": "0",
+                    "app:minValue": "0",
+                    "app:maxValue": "61",
+                    "app:negativeShift": "21",
+                    "app:format": "%d dp",
+                    "app:offtext": "@string/array_default"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_animation_wallpaper"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_nounlockanim",
+                    "android:title": "@string/launcher_nounlockanim_title"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_oldlaunchanim",
+                    "android:title": "@string/launcher_oldlaunchanim_title"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_disable_wallpaperscale",
+                    "android:title": "@string/launcher_disable_wallpaperscale_title",
+                    "android:summary": "@string/launcher_disable_wallpaperscale_summ",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "choice",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_wallpaper_colormode",
+                    "android:title": "@string/launcher_wallpaper_colormode_title",
+                    "android:entries": "@array/launcher_wallpaper_colormodes",
+                    "android:entryValues": "@array/onoff_val",
+                    "android:defaultValue": "1"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "attributes": {
+            "android:key": "pref_key_launcher_cat_titles",
+            "android:title": "@string/launcher_titles"
+          },
+          "children": [
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_display"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_hidetitles",
+                    "android:title": "@string/launcher_hidetitles_title",
+                    "android:defaultValue": "false",
+                    "android:disableDependentsState": "true"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_docktitles",
+                    "android:title": "@string/launcher_docktitles_title",
+                    "android:defaultValue": "false",
+                    "android:dependency": "pref_key_launcher_hidetitles"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_renameapps",
+                    "android:title": "@string/launcher_renameapps_title",
+                    "android:defaultValue": "false",
+                    "android:dependency": "pref_key_launcher_hidetitles"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_renameapps_list",
+                    "android:title": "@string/launcher_renameapps_list_title",
+                    "android:dependency": "pref_key_launcher_renameapps",
+                    "app:dynamic": "true",
+                    "app:indentLevel": "1"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_style"
+              },
+              "children": [
+                {
+                  "type": "slider",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_titlefontsize",
+                    "android:title": "@string/launcher_titlefontsize_title",
+                    "android:defaultValue": "5",
+                    "android:dependency": "pref_key_launcher_hidetitles",
+                    "app:minValue": "5",
+                    "app:maxValue": "20",
+                    "app:format": "%d sp",
+                    "app:offtext": "@string/array_default"
+                  }
+                },
+                {
+                  "type": "slider",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_titletopmargin",
+                    "android:title": "@string/launcher_titletopmargin_title",
+                    "android:defaultValue": "0",
+                    "android:dependency": "pref_key_launcher_hidetitles",
+                    "app:minValue": "0",
+                    "app:maxValue": "21",
+                    "app:negativeShift": "11",
+                    "app:format": "%d dp",
+                    "app:offtext": "@string/array_default"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_darkershadow",
+                    "android:title": "@string/launcher_darkershadow_title",
+                    "android:defaultValue": "false",
+                    "android:dependency": "pref_key_launcher_hidetitles"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "attributes": {
+            "android:key": "pref_key_launcher_cat_dock",
+            "android:title": "@string/launcher_dock_category"
+          },
+          "children": [
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_material"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_dock_background",
+                    "android:title": "@string/launcher_dock_background_title",
+                    "android:summary": "@string/launcher_dock_background_summ",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_dock_background_full_width",
+                    "android:title": "@string/launcher_dock_background_full_width_title",
+                    "android:summary": "@string/launcher_dock_background_full_width_summ",
+                    "android:defaultValue": "false",
+                    "android:dependency": "pref_key_launcher_dock_background"
+                  }
+                },
+                {
+                  "type": "choice",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_dock_background_material",
+                    "android:title": "@string/launcher_dock_background_material_title",
+                    "android:summary": "@string/launcher_dock_background_material_summ",
+                    "android:dependency": "pref_key_launcher_dock_background",
+                    "android:entries": "@array/launcher_dock_background_material",
+                    "android:entryValues": "@array/launcher_dock_background_material_values",
+                    "android:defaultValue": "0"
+                  }
+                },
+                {
+                  "type": "slider",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_dock_background_opacity",
+                    "android:title": "@string/launcher_dock_background_opacity_title",
+                    "android:dependency": "pref_key_launcher_dock_background",
+                    "android:defaultValue": "90",
+                    "app:minValue": "0",
+                    "app:maxValue": "100",
+                    "app:format": "%d%%"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/launcher_dock_background_geometry"
+              },
+              "children": [
+                {
+                  "type": "slider",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_dock_background_shrink",
+                    "android:title": "@string/launcher_dock_background_shrink_title",
+                    "android:summary": "@string/launcher_dock_background_shrink_summ",
+                    "android:dependency": "pref_key_launcher_dock_background",
+                    "android:defaultValue": "17",
+                    "app:minValue": "0",
+                    "app:maxValue": "34",
+                    "app:negativeShift": "17",
+                    "app:showplus": "true",
+                    "app:format": "%d dp"
+                  }
+                },
+                {
+                  "type": "slider",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_dock_background_radius",
+                    "android:title": "@string/launcher_dock_background_radius_title",
+                    "android:summary": "@string/launcher_dock_background_radius_summ",
+                    "android:dependency": "pref_key_launcher_dock_background",
+                    "android:defaultValue": "0",
+                    "app:minValue": "0",
+                    "app:maxValue": "80",
+                    "app:format": "%d dp",
+                    "app:offtext": "@string/launcher_dock_background_auto"
+                  }
+                },
+                {
+                  "type": "slider",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_dock_background_inset",
+                    "android:title": "@string/launcher_dock_background_inset_title",
+                    "android:summary": "@string/launcher_dock_background_inset_summ",
+                    "android:dependency": "pref_key_launcher_dock_background",
+                    "android:defaultValue": "0",
+                    "app:minValue": "0",
+                    "app:maxValue": "40",
+                    "app:format": "%d dp",
+                    "app:offtext": "@string/launcher_dock_background_auto"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_layout"
+              },
+              "children": [
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_unlockhotseat",
+                    "android:title": "@string/launcher_unlockhotseat_title"
+                  }
+                },
+                {
+                  "type": "slider",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_dock_height",
+                    "android:title": "@string/launcher_dock_height_title",
+                    "android:defaultValue": "60",
+                    "app:minValue": "60",
+                    "app:maxValue": "120",
+                    "app:stepValue": "2",
+                    "app:format": "%d dp",
+                    "app:offtext": "@string/array_default"
+                  }
+                },
+                {
+                  "type": "slider",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_dock_topmargin",
+                    "android:title": "@string/launcher_dock_topmargin_title",
+                    "android:defaultValue": "0",
+                    "app:minValue": "0",
+                    "app:maxValue": "40",
+                    "app:format": "%d dp",
+                    "app:offtext": "@string/array_default"
+                  }
+                },
+                {
+                  "type": "slider",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_dock_bottommargin",
+                    "android:title": "@string/launcher_dock_bottommargin_title",
+                    "android:defaultValue": "0",
+                    "app:minValue": "0",
+                    "app:maxValue": "40",
+                    "app:format": "%d dp",
+                    "app:offtext": "@string/array_default"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "attributes": {
+            "android:key": "pref_key_launcher_cat_folders",
+            "android:title": "@string/launcher_folders"
+          },
+          "children": [
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_behavior"
+              },
+              "children": [
+                {
+                  "type": "choice",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_closefolders",
+                    "android:title": "@string/launcher_closefolder_title",
+                    "android:summary": "@string/launcher_closefolder_summ",
+                    "android:entries": "@array/onoff",
+                    "android:entryValues": "@array/onoff_val",
+                    "android:defaultValue": "1"
+                  }
+                },
+                {
+                  "type": "slider",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_folderblur_opacity",
+                    "android:title": "@string/launcher_folderblur",
+                    "android:defaultValue": "0",
+                    "app:minValue": "0",
+                    "app:maxValue": "100",
+                    "app:format": "%d%%",
+                    "app:offtext": "@string/array_default"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_folderblur_disable",
+                    "android:title": "@string/launcher_folderblur_disable",
+                    "android:summary": "@string/launcher_folderblur_disable_summ",
+                    "android:defaultValue": "false"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_folder_icon_blur",
+                    "android:title": "@string/launcher_folder_icon_blur_title",
+                    "android:summary": "@string/launcher_folder_icon_blur_summ",
+                    "android:defaultValue": "false"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_layout"
+              },
+              "children": [
+                {
+                  "type": "slider",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_folder_cols",
+                    "android:title": "@string/launcher_folder_cols_title",
+                    "android:defaultValue": "1",
+                    "app:minValue": "1",
+                    "app:maxValue": "6",
+                    "app:format": "%d",
+                    "app:offtext": "@string/array_default"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_folderwidth",
+                    "android:title": "@string/launcher_folderwidth_title",
+                    "android:defaultValue": "false",
+                    "app:indentLevel": "1"
+                  }
+                },
+                {
+                  "type": "toggle",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_folderspace",
+                    "android:title": "@string/launcher_folderspace_title",
+                    "android:defaultValue": "false",
+                    "app:indentLevel": "1"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/prefs_group_interaction"
+      },
+      "children": [
+        {
+          "type": "section",
+          "attributes": {
+            "android:key": "pref_key_launcher_cat_gestures",
+            "android:title": "@string/launcher_gestures",
+            "app:dynamic": "true"
+          },
+          "children": [
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/prefs_group_workspace_gestures"
+              },
+              "children": [
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_swipedown",
+                    "android:title": "@string/launcher_swipedownaction_title"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_swipeup",
+                    "android:title": "@string/launcher_swipeupaction_title"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_swipedown2",
+                    "android:title": "@string/launcher_swipedownaction2_title"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_swipeup2",
+                    "android:title": "@string/launcher_swipeupaction2_title"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_doubletap",
+                    "android:summary": "@string/launcher_doubletap_summ",
+                    "android:title": "@string/launcher_doubletap_title"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_pinch",
+                    "android:title": "@string/launcher_pinch_title"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_spread",
+                    "android:title": "@string/launcher_spread_title"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/launcher_dock_category"
+              },
+              "children": [
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_swipeleft",
+                    "android:title": "@string/launcher_swipeleftaction_title"
+                  }
+                },
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_swiperight",
+                    "android:title": "@string/launcher_swiperightaction_title"
+                  }
+                }
+              ]
+            },
+            {
+              "type": "section",
+              "attributes": {
+                "android:title": "@string/system_mods_other"
+              },
+              "children": [
+                {
+                  "type": "action",
+                  "attributes": {
+                    "android:key": "pref_key_launcher_shake",
+                    "android:title": "@string/launcher_shakeaction_title"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "attributes": {
+            "android:key": "pref_key_launcher_cat_privacyapps",
+            "android:title": "@string/launcher_privacyapps"
+          },
+          "children": [
+            {
+              "type": "action",
+              "attributes": {
+                "android:key": "pref_key_launcher_privacyapps_list",
+                "android:title": "@string/launcher_privacyapps_list_title"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_launcher_privacyapps_gest",
+                "android:title": "@string/launcher_privacyapps_gest_title",
+                "android:summary": "@string/launcher_privacyapps_gest_summ",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_various_privacyapps_column_nums4",
+                "android:title": "@string/various_privacyapps_column_nums4_title",
+                "android:defaultValue": "false"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/prefs_group_compatibility"
+      },
+      "children": [
+        {
+          "type": "section",
+          "attributes": {
+            "android:key": "pref_key_launcher_cat_bugfixes",
+            "android:title": "@string/launcher_bugfixes"
+          },
+          "children": [
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_launcher_disable_log",
+                "android:title": "@string/launcher_disable_log_title",
+                "android:defaultValue": "true"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_launcher_fixanim",
+                "android:title": "@string/launcher_fixanim_title",
+                "android:summary": "@string/launcher_fixanim_summ",
+                "android:defaultValue": "false"
+              }
+            },
+            {
+              "type": "toggle",
+              "attributes": {
+                "android:key": "pref_key_launcher_fixlaunch",
+                "android:title": "@string/launcher_fixlaunch_title",
+                "android:summary": "@string/launcher_fixlaunch_summ",
+                "android:defaultValue": "false"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

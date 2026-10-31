@@ -2,8 +2,8 @@
 """Offline ROM sample inventory scanner.
 
 Scans a directory of local APK/JAR/zip/dex samples, computes SHA-256,
-extracts package and version information where possible, and optionally
-invokes apkanalyzer/jadx/javap when they are available on the local system.
+extracts package/version and ABI metadata directly, and optionally uses
+apkanalyzer as a manifest fallback when it is available on the local system.
 It generates class/method/field manifests from the samples and writes a
 JSON/CSV catalog.
 
@@ -16,24 +16,27 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
-import io
 import json
 import os
-import re
 import shutil
 import struct
 import subprocess
 import sys
-import tempfile
 import time
 import zipfile
+from xml.etree.ElementTree import ParseError
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 
+try:
+    from tools.rom_catalog import MANIFEST_LIMIT, manifest_attributes
+except ModuleNotFoundError:
+    from rom_catalog import MANIFEST_LIMIT, manifest_attributes
+
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
-EXTERNAL_TOOLS = ("apkanalyzer", "jadx", "javap")
+EXTERNAL_TOOLS = ("apkanalyzer",)
 
 SAMPLE_FIELDS = (
     "sampleId",
@@ -156,39 +159,6 @@ def apkanalyzer_manifest(apk: Path, tools: dict[str, Optional[str]]) -> dict[str
             else:
                 result[key] = out
     return result
-
-
-def javap_manifest(jar: Path, tools: dict[str, Optional[str]]) -> dict[str, Any]:
-    binary = tools.get("javap")
-    if not binary:
-        return {}
-    code, out, err = run_external(
-        "javap", [binary, "-classpath", str(jar), "-public", "-p", "-s"], timeout=120
-    )
-    if code != 0:
-        return {"warnings": [f"javap failed: {err.strip()[:200]}"]}
-    return {"raw_javap": out[:50_000]}
-
-
-def jadx_manifest(path: Path, tools: dict[str, Optional[str]]) -> dict[str, Any]:
-    binary = tools.get("jadx")
-    if not binary:
-        return {}
-    with tempfile.TemporaryDirectory() as tmp:
-        out_dir = Path(tmp) / "out"
-        code, out, err = run_external(
-            "jadx",
-            [binary, "-d", str(out_dir), "--no-res", "--no-src", str(path)],
-            timeout=300,
-        )
-        if code != 0:
-            return {"warnings": [f"jadx failed: {err.strip()[:200]}"]}
-        classes: list[str] = []
-        for root, _, files in os.walk(out_dir):
-            for f in files:
-                if f.endswith(".java"):
-                    classes.append(str(Path(root, f).relative_to(out_dir)))
-        return {"decompiled_sources": classes}
 
 
 # ---------------------------------------------------------------------------
@@ -571,27 +541,20 @@ def manifest_from_class_entries(zf: zipfile.ZipFile) -> dict[str, Any]:
 def parse_apk_manifest(path: Path, tools: dict[str, Optional[str]]) -> dict[str, Any]:
     result: dict[str, Any] = {}
     try:
-        from pyaxmlparser.core import APK
-
-        apk = APK(str(path))
-        result["packageName"] = apk.package
-        result["versionName"] = apk.version_name
-        result["versionCode"] = apk.version_code
-        try:
-            result["minSdkVersion"] = int(apk.get_min_sdk_version())
-        except Exception:
-            pass
-        try:
-            result["targetSdkVersion"] = int(apk.get_target_sdk_version())
-        except Exception:
-            pass
-        result["uses_pyaxmlparser"] = True
-    except ImportError:
-        result = apkanalyzer_manifest(path, tools)
-        if result:
-            result["uses_apkanalyzer"] = True
-    except Exception as exc:
-        result["warnings"] = [f"pyaxmlparser failed: {exc}"]
+        with zipfile.ZipFile(path) as archive:
+            if archive.getinfo("AndroidManifest.xml").file_size > MANIFEST_LIMIT:
+                raise ValueError("Manifest exceeds metadata budget")
+            data = archive.read("AndroidManifest.xml")
+        attrs = manifest_attributes(data)
+        for target, name in (("packageName", "package"), ("versionName", "versionName"), ("versionCode", "versionCode")):
+            if name in attrs:
+                result[target] = attrs[name]
+        sdk = manifest_attributes(data, "uses-sdk")
+        for target, name in (("minSdkVersion", "minSdkVersion"), ("targetSdkVersion", "targetSdkVersion")):
+            if name in sdk:
+                result[target] = int(sdk[name]) if sdk[name].isdigit() else sdk[name]
+    except (OSError, ValueError, IndexError, KeyError, struct.error, zipfile.BadZipFile, ParseError) as exc:
+        result["warnings"] = [f"Manifest metadata failed: {exc}"]
         fallback = apkanalyzer_manifest(path, tools)
         if fallback:
             result.update(fallback)
@@ -668,11 +631,6 @@ def manifest_from_jar(path: Path, tools: dict[str, Optional[str]]) -> dict[str, 
             classes = manifest_from_class_entries(zf)["classes"]
     except zipfile.BadZipFile as exc:
         result["errors"] = [f"bad JAR zip: {exc}"]
-
-    javap = javap_manifest(path, tools)
-    if javap:
-        result["external"] = result.get("external", {})
-        result["external"]["javap"] = javap
 
     result["classCount"] = len(classes)
     result["methodCount"] = sum(len(c["methods"]) for c in classes)

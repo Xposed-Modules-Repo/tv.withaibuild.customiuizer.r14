@@ -16,11 +16,11 @@ import tv.withaibuild.customiuizer.MainModule
  * bootstrap miss permanently poisons the cache and custom status-bar actions
  * are never installed even when the snapshot later becomes ready.
  *
- * Note: [hasConfiguredGlobalActions] uses [android.util.SparseBooleanArray] to
+ * Note: [hasConfiguredActionCode] uses [android.util.SparseBooleanArray] to
  * communicate configured action codes. In the JVM unit-test environment
  * [SparseBooleanArray] does not behave like it does on a real device, so these
  * tests verify the cache-ready gate and the snapshot values rather than the
- * exact return value of [hasConfiguredGlobalActions].
+ * exact return value of [hasConfiguredActionCode].
  */
 class GlobalActionBootstrapReadinessTest {
 
@@ -64,7 +64,7 @@ class GlobalActionBootstrapReadinessTest {
         assertTrue(shouldSetupGlobalActionStatusBar(prefReady = true, alreadyDone = false))
 
         // Simulates the call that the real coordinator would make after the gate opens.
-        hasConfiguredGlobalActions()
+        hasConfiguredActionCode(2)
         assertTrue("Cache must be built once the ready snapshot is evaluated", isCacheReady())
     }
 
@@ -79,7 +79,7 @@ class GlobalActionBootstrapReadinessTest {
         assertEquals(5, MainModule.mPrefs.getInt("launcher_shake_action", 1))
         assertTrue(shouldSetupGlobalActionStatusBar(prefReady = true, alreadyDone = false))
 
-        hasConfiguredGlobalActions()
+        hasConfiguredActionCode(2)
         assertTrue("Cache must be built from the newly ready snapshot", isCacheReady())
     }
 
@@ -88,7 +88,7 @@ class GlobalActionBootstrapReadinessTest {
         // Case 4: the done flag prevents repeated setupStatusBar scans.
         MainModule.mPrefs.put("controls_powerdt_action", 3)
         assertTrue(shouldSetupGlobalActionStatusBar(prefReady = true, alreadyDone = false))
-        hasConfiguredGlobalActions()
+        hasConfiguredActionCode(2)
         assertTrue(isCacheReady())
 
         // Even if prefReady flips around, a done gate stays closed and the cache

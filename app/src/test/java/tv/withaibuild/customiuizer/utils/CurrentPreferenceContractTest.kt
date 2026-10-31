@@ -6,6 +6,18 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class CurrentPreferenceContractTest {
+    @Test fun appBrightnessAndSceneExceptionsSurviveTheExistingBackupValidation() {
+        val values = mapOf<String, Any>(
+            "pref_key_system_appbehavior_brightness_values" to "app.a=45;app.b=70",
+            "pref_key_system_appbehavior_exceptions" to "app.a/app.a.Scanner",
+            "pref_key_system_appbehavior_brightness_apps" to setOf("app.a", "app.b"),
+        )
+        for (key in values.keys) assertTrue(CurrentPreferenceContract.isExportable(key))
+        val (restored, counts) = BackupRestore.validateAndNormalizeEntries(values)
+        assertEquals(values, restored)
+        assertEquals(0, counts.unknownIgnored)
+        assertEquals(0, counts.invalidSkipped)
+    }
 
     @Test fun retiredIslandPanelWidthIsDroppedAndCannotReturnFromABackup() {
         assertEquals(CurrentPreferenceContract.Kind.DROPPED,

@@ -86,8 +86,7 @@ internal class MediaScreenshotConfigFeature(
         try {
             MainModule.loadDexKit()
             XposedHelpers.createBridge(lpparam.applicationInfo.sourceDir)
-            ModsSystem.ScreenshotConfigHook(lpparam)
-            return FeatureInstallResult.INSTALLED
+            return ModsSystem.ScreenshotConfigHook(lpparam)
         } finally {
             XposedHelpers.closeBridge()
         }

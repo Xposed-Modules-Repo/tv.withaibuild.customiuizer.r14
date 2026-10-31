@@ -33,7 +33,7 @@ except ModuleNotFoundError:
     from git_changes import changed_paths
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-REQUIRED_JAVA_MAJOR = 25
+REQUIRED_JAVA_MAJOR = 27
 
 # Gradle wrapper name depends on the host.
 GRADLEW = "gradlew.bat" if os.name == "nt" else "gradlew"
@@ -88,7 +88,7 @@ def parse_java_major(output: str) -> int | None:
 
 
 def check_java_runtime() -> int:
-    """Require the system-selected build runtime to be JDK 25."""
+    """Require the system-selected build runtime to be JDK 27."""
     env = command_environment()
     java_home = env.get("JAVA_HOME", "").strip()
     if java_home:
@@ -255,15 +255,15 @@ def check_static_rules() -> int:
     require_in_text(build, r'compileSdk\s*=\s*3[4-9]', "compileSdk >= 34")
     require_in_text(build, r'minSdk\s*=\s*34', "minSdk 34")
     require_in_text(build, r'targetSdk\s*=\s*34', "targetSdk 34")
-    require_in_text(build, r'sourceCompatibility\s*=\s*JavaVersion\.VERSION_25', "Java source compatibility 25")
-    require_in_text(build, r'targetCompatibility\s*=\s*JavaVersion\.VERSION_25', "Java target compatibility 25")
-    require_in_text(build, r'jvmTarget\.set\(org\.jetbrains\.kotlin\.gradle\.dsl\.JvmTarget\.JVM_25\)', "Kotlin JVM target 25")
-    require_in_text(build, r'languageVersion\s*=\s*JavaLanguageVersion\.of\(25\)', "Java toolchain 25")
+    require_in_text(build, r'sourceCompatibility\s*=\s*JavaVersion\.VERSION_26', "Java source compatibility 26")
+    require_in_text(build, r'targetCompatibility\s*=\s*JavaVersion\.VERSION_26', "Java target compatibility 26")
+    require_in_text(build, r'jvmTarget\.set\(org\.jetbrains\.kotlin\.gradle\.dsl\.JvmTarget\.JVM_26\)', "Kotlin JVM target 26")
+    require_in_text(build, r'languageVersion\s*=\s*JavaLanguageVersion\.of\(27\)', "Java toolchain 27")
 
     daemon_criteria = REPO_ROOT / "gradle" / "gradle-daemon-jvm.properties"
     if not daemon_criteria.is_file():
         fail("gradle daemon JVM criteria not found")
-    require_in_text(daemon_criteria.read_text(encoding="utf-8"), r'(?m)^toolchainVersion=25$', "Gradle daemon JDK 25")
+    require_in_text(daemon_criteria.read_text(encoding="utf-8"), r'(?m)^toolchainVersion=27$', "Gradle daemon JDK 27")
 
     require_in_text(prop, r"minApiVersion\s*=\s*102", "module.prop minApiVersion=102")
     require_in_text(prop, r"targetApiVersion\s*=\s*102", "module.prop targetApiVersion=102")

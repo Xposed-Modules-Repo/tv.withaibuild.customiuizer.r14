@@ -11,6 +11,7 @@ import java.nio.file.StandardCopyOption
 
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.compose.compiler)
 }
 
 abstract class GeneratePreferenceArtifacts : Exec() {
@@ -31,7 +32,7 @@ kotlin {
         // Align stable language/API with compiler and stdlib 2.4.
         languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_4)
         apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_4)
-        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25)
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_26)
     }
 }
 
@@ -63,8 +64,8 @@ if (officialRelease) {
     }
 }
 
-val lastVersion = 258
-val lastVersionName = "r14.25.9"
+val lastVersion = 265
+val lastVersionName = "r14.26.5"
 
 fun resolveBuildRevision(): String {
     val prop = project.findProperty("buildRevision")?.toString()
@@ -124,6 +125,8 @@ val generatePreferenceArtifacts = tasks.register<GeneratePreferenceArtifacts>("g
     description = "Generates lazy preference pages, search index, and current preference catalog"
     group = "build"
     inputs.file(preferenceArtifactGenerator)
+    inputs.files(rootProject.file("tools/settings_schema.py"), rootProject.file("tools/compose_preferences.py"))
+    inputs.dir(layout.projectDirectory.dir("settings"))
     inputs.dir(preferenceSourceDir)
     inputs.files(preferenceFeatureSources).withPathSensitivity(PathSensitivity.RELATIVE)
     resourcesOutputDirectory.set(generatedPreferenceResourcesDir)
@@ -220,16 +223,17 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_25
-        targetCompatibility = JavaVersion.VERSION_25
+        sourceCompatibility = JavaVersion.VERSION_26
+        targetCompatibility = JavaVersion.VERSION_26
     }
     java {
         toolchain {
-            languageVersion = JavaLanguageVersion.of(25)
+            languageVersion = JavaLanguageVersion.of(27)
         }
     }
     buildFeatures {
         buildConfig = true
+        compose = true
     }
     androidResources {
         // These Open With samples need seekable asset FDs. Match only their names,
@@ -275,51 +279,27 @@ val releaseSourceCommit = providers.exec {
     value.trim().also { require(it.matches(Regex("^[0-9a-f]{40}$"))) { "Release source commit must be a full SHA" } }
 }
 
-val writeDebugBuildProvenance = tasks.register<WriteBuildProvenance>("writeDebugBuildProvenance") {
-    description = "Writes build-provenance.properties for the debug variant"
+// Each variant owns its provenance directory; registration and fields have one owner.
+fun registerBuildProvenance(variant: String) = tasks.register<WriteBuildProvenance>(
+    "write${variant.replaceFirstChar { it.uppercaseChar() }}BuildProvenance"
+) {
+    description = "Writes build-provenance.properties for the $variant variant"
     group = "build"
-    outputDirectory.set(buildProvenanceDir.map { it.dir("debug") })
+    outputDirectory.set(buildProvenanceDir.map { it.dir(variant) })
     destinationFile.set(outputDirectory.file("build-provenance.properties"))
     properties(
         mapOf(
             "revision" to buildRevision,
             "versionName" to lastVersionName,
             "versionCode" to lastVersion.toString(),
-            "buildType" to "debug",
-        )
+            "buildType" to variant,
+        ) + if (variant == "release") mapOf("sourceCommit" to releaseSourceCommit) else emptyMap()
     )
 }
 
-val writeDevelopBuildProvenance = tasks.register<WriteBuildProvenance>("writeDevelopBuildProvenance") {
-    description = "Writes build-provenance.properties for the develop variant"
-    group = "build"
-    outputDirectory.set(buildProvenanceDir.map { it.dir("develop") })
-    destinationFile.set(outputDirectory.file("build-provenance.properties"))
-    properties(
-        mapOf(
-            "revision" to buildRevision,
-            "versionName" to lastVersionName,
-            "versionCode" to lastVersion.toString(),
-            "buildType" to "develop",
-        )
-    )
-}
-
-val writeReleaseBuildProvenance = tasks.register<WriteBuildProvenance>("writeReleaseBuildProvenance") {
-    description = "Writes build-provenance.properties for the release variant"
-    group = "build"
-    outputDirectory.set(buildProvenanceDir.map { it.dir("release") })
-    destinationFile.set(outputDirectory.file("build-provenance.properties"))
-    properties(
-        mapOf(
-            "revision" to buildRevision,
-            "sourceCommit" to releaseSourceCommit,
-            "versionName" to lastVersionName,
-            "versionCode" to lastVersion.toString(),
-            "buildType" to "release",
-        )
-    )
-}
+val writeDebugBuildProvenance = registerBuildProvenance("debug")
+val writeDevelopBuildProvenance = registerBuildProvenance("develop")
+val writeReleaseBuildProvenance = registerBuildProvenance("release")
 
 androidComponents {
     onVariants(selector().all()) { variant ->
@@ -393,6 +373,13 @@ dependencies {
     implementation(libs.androidx.preference)
     implementation(libs.androidx.palette)
     implementation(libs.androidx.appcompat)
+    implementation(platform(libs.compose.bom))
+    implementation(libs.compose.ui)
+    implementation(libs.compose.foundation)
+    implementation(libs.compose.material3)
+    implementation(libs.activity.compose)
+    testImplementation(libs.compose.ui.test)
+    debugImplementation(libs.compose.test.manifest)
     constraints {
         implementation(libs.androidx.fragment.ktx) {
             because("Keep the transitive Fragment KTX companion aligned with Fragment")

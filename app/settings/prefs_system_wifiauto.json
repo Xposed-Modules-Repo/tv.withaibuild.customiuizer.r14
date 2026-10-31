@@ -1,0 +1,86 @@
+{
+  "type": "screen",
+  "children": [
+    {
+      "type": "toggle",
+      "attributes": {
+        "android:key": "pref_key_system_wifiauto_enabled",
+        "android:title": "@string/wifiauto_title",
+        "android:summary": "@string/wifiauto_activation",
+        "android:defaultValue": "false"
+      }
+    },
+    {
+      "type": "action",
+      "attributes": {
+        "android:key": "pref_key_system_wifiauto_add",
+        "android:title": "@string/wifiauto_add",
+        "app:dynamic": "true"
+      }
+    },
+    {
+      "type": "action",
+      "attributes": {
+        "android:key": "pref_key_system_wifiauto_current",
+        "android:title": "@string/wifiauto_current",
+        "app:dynamic": "true"
+      }
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:key": "pref_key_system_wifiauto_list",
+        "android:title": "@string/wifiauto_rules"
+      }
+    },
+    {
+      "type": "section",
+      "attributes": {
+        "android:title": "@string/wifiauto_permissions"
+      },
+      "children": [
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_wifiauto_dnd_access",
+            "android:title": "@string/system_statusbaricons_dnd_title",
+            "android:summary": "@string/wifiauto_dnd_access"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_wifiauto_location",
+            "android:title": "@string/wifi_location_title",
+            "android:summary": "@string/wifiauto_location"
+          }
+        },
+        {
+          "type": "action",
+          "attributes": {
+            "android:key": "pref_key_system_wifiauto_vpn_target",
+            "android:title": "@string/system_vpnauto_title",
+            "android:summary": "@string/wifiauto_vpn"
+          }
+        }
+      ]
+    },
+    {
+      "type": "action",
+      "attributes": {
+        "android:title": "@string/wifiauto_priority",
+        "android:summary": "@string/wifiauto_order",
+        "android:selectable": "false",
+        "android:persistent": "false"
+      }
+    },
+    {
+      "type": "text",
+      "attributes": {
+        "android:key": "pref_key_system_wifiauto_rules",
+        "android:defaultValue": "",
+        "app:isPreferenceVisible": "false"
+      }
+    }
+  ]
+}

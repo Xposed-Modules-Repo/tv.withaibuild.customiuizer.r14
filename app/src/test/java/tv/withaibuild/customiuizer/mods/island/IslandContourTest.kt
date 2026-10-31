@@ -15,7 +15,7 @@ import org.robolectric.annotation.GraphicsMode
 @Config(sdk = [34])
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 class IslandContourTest {
-    @Test fun bothCapsUse64CubicsAndContactAddsOnlyItsTwoExistingCubics() {
+    @Test fun bothCapsUse32CubicsAndContactAddsOnlyItsTwoExistingCubics() {
         class CountedPath : Path() {
             var cubics = 0
             override fun cubicTo(x1: Float, y1: Float, x2: Float, y2: Float, x3: Float, y3: Float) {
@@ -25,10 +25,10 @@ class IslandContourTest {
         }
         val plain = CountedPath()
         IslandCapsuleGeometry.build(plain, 240f, 40f)
-        assertEquals(64, plain.cubics)
+        assertEquals(32, plain.cubics)
         val contact = CountedPath()
         IslandCapsuleGeometry.build(contact, 240f, 40f, 1f)
-        assertEquals(66, contact.cubics)
+        assertEquals(34, contact.cubics)
     }
     @Test fun directLocalControlsMatchThePreviousTransformAndReuseIneffectiveContact() {
         val shape = IslandShape()

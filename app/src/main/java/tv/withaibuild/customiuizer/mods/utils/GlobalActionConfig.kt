@@ -49,11 +49,6 @@ private fun ensureCustomActionMaps() {
     }
 }
 
-internal fun hasConfiguredGlobalActions(): Boolean {
-    ensureCustomActionMaps()
-    return customActionCodeMap!!.size() > 0
-}
-
 internal fun hasConfiguredActionCode(code: Int): Boolean {
     ensureCustomActionMaps()
     return customActionCodeMap!!.get(code)

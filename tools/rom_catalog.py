@@ -166,10 +166,12 @@ def connect(index, create=False):
     return db
 
 
-def manifest_attributes(data):
-    """Read just the manifest root attributes; never parse DEX or expand sources."""
+def manifest_attributes(data, element="manifest"):
+    """Read one manifest element's attributes; never parse DEX or expand sources."""
     if data.lstrip().startswith(b"<"):
-        return {key.rsplit("}", 1)[-1]: value for key, value in ET.fromstring(data).attrib.items()}
+        root = ET.fromstring(data)
+        node = root if element == "manifest" else root.find(element)
+        return {} if node is None else {key.rsplit("}", 1)[-1]: value for key, value in node.attrib.items()}
     def u16(pos):
         return struct.unpack_from("<H", data, pos)[0]
     def u32(pos):
@@ -206,7 +208,7 @@ def manifest_attributes(data):
                 strings.append(data[at:stop].decode("utf-8" if utf8 else "utf-16le", errors="replace"))
         elif tag == 0x102:
             ext = pos + header
-            if strings[u32(ext + 4)] == "manifest":
+            if strings[u32(ext + 4)] == element:
                 result = {}
                 attr_start, attr_size, count = u16(ext + 8), u16(ext + 10), u16(ext + 12)
                 if attr_size < 20 or ext + attr_start + attr_size * count > end:
@@ -223,6 +225,8 @@ def manifest_attributes(data):
                         result[strings[name]] = str(value)
                 return result
         pos = end
+    if element != "manifest":
+        return {}
     raise ValueError("Manifest root not found")
 
 

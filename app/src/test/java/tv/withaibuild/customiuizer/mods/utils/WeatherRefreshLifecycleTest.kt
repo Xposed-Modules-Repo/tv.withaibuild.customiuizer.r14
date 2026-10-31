@@ -96,6 +96,90 @@ class WeatherRefreshLifecycleTest {
         assertEquals("ordinary failures must allow the next refresh", 2, calls.get())
     }
 
+    @Test fun inactiveFormatsDoNotRegisterTicksOrQueryTheProvider() {
+        val context = QueryContext()
+        WeatherDataController.initContext(context, clock, enabled = false)
+        scopes.add(currentJob())
+        advanceInitialDelay()
+        repeat(120) {
+            WeatherDataController.refreshWeatherData(false)
+            awaitSettled(currentJob())
+        }
+        assertEquals(0, calls.get())
+        assertTrue(context.ticks.isEmpty())
+        assertTrue(context.screenReceivers.isEmpty())
+    }
+
+    @Test fun disablingDemandReleasesSubscriptionsAndReenablingRefreshesOnce() {
+        val context = QueryContext()
+        initialize(context)
+        advanceInitialDelay()
+        awaitSettled(currentJob())
+        assertEquals(1, calls.get())
+        WeatherDataController.setEnabled(false)
+        assertTrue(context.ticks.isEmpty())
+        repeat(120) { WeatherDataController.refreshWeatherData(true); awaitSettled(currentJob()) }
+        assertEquals(1, calls.get())
+        WeatherDataController.setEnabled(true)
+        scopes.add(currentJob())
+        awaitSettled(currentJob())
+        assertEquals(2, calls.get())
+        assertEquals(1, context.ticks.size)
+        repeat(20) { WeatherDataController.setEnabled(true) }
+        awaitSettled(currentJob())
+        assertEquals(2, calls.get())
+    }
+
+    @Test fun disablingDemandCancelsInFlightPublicationAndReplacementCanStayInactive() {
+        val context = QueryContext()
+        val provider = WeatherProvider()
+        val app = RuntimeEnvironment.getApplication()
+        provider.attachInfo(app, ProviderInfo().apply { authority = "weather" })
+        ShadowContentResolver.registerProviderInternal("weather", provider)
+        context.resolver = app.contentResolver
+        val query = blockNext(context)
+        initialize(context)
+        WeatherDataController.weatherInfo = "current"
+        advanceInitialDelay()
+        awaitEntered(query)
+        val oldJob = currentJob()
+        WeatherDataController.setEnabled(false)
+        query.release.countDown()
+        awaitSettled(oldJob)
+        assertEquals("current", WeatherDataController.weatherInfo)
+        assertEquals(0, clock.updates)
+        assertTrue(provider.cursor?.isClosed == true)
+        val replacement = QueryContext()
+        WeatherDataController.initContext(replacement, clock, enabled = false)
+        scopes.add(currentJob())
+        advanceInitialDelay()
+        assertTrue(replacement.ticks.isEmpty())
+        assertTrue(context.ticks.isEmpty())
+        assertEquals(1, calls.get())
+    }
+
+    @Test fun demandResumedWithScreenOffWaitsForScreenOn() {
+        val context = QueryContext()
+        val other = object : ScreenStateController.ScreenStateListener {
+            override fun onScreenStateChanged(isOn: Boolean) {}
+        }
+        ScreenStateController.addListener(context, other)
+        try {
+            WeatherDataController.initContext(context, clock, enabled = false)
+            scopes.add(currentJob())
+            screen(false)
+            WeatherDataController.setEnabled(true)
+            scopes.add(currentJob())
+            awaitSettled(currentJob())
+            assertEquals(0, calls.get())
+            assertTrue(context.ticks.isEmpty())
+            screen(true)
+            awaitSettled(currentJob())
+            assertEquals(1, calls.get())
+            assertEquals(1, clock.updates)
+        } finally { ScreenStateController.removeListener(other) }
+    }
+
     @Test
     fun screenOffCancelsTheQueryAndRetainsTheForcedUpdateForScreenOn() {
         val context = QueryContext()
@@ -236,7 +320,7 @@ class WeatherRefreshLifecycleTest {
         (field("controllerScope").get(null) as CoroutineScope).cancel()
         ScreenStateController.removeListener(WeatherDataController)
         for (name in listOf("context", "updateTarget", "timeTickReceiver")) field(name).set(null, null)
-        for (name in listOf("timeTickRegistered", "pendingForceRefresh", "queryFailureLogged")) {
+        for (name in listOf("timeTickRegistered", "pendingForceRefresh", "queryFailureLogged", "screenStateRegistered")) {
             field(name).setBoolean(null, false)
         }
         WeatherDataController.weatherInfo = ""
@@ -262,13 +346,15 @@ class WeatherRefreshLifecycleTest {
         var providerFailure: Throwable? = null
         val attempts = ConcurrentLinkedQueue<QueryAttempt>()
         val ticks = ArrayList<BroadcastReceiver>()
+        val screenReceivers = ArrayList<BroadcastReceiver>()
         override fun getApplicationContext(): Context = this
         override fun getSystemService(name: String): Any? = null
         override fun registerReceiver(receiver: BroadcastReceiver?, filter: IntentFilter?, flags: Int): Intent? {
             if (receiver != null && filter?.hasAction(Intent.ACTION_TIME_TICK) == true) ticks.add(receiver)
+            if (receiver != null && filter?.hasAction(Intent.ACTION_SCREEN_ON) == true) screenReceivers.add(receiver)
             return null
         }
-        override fun unregisterReceiver(receiver: BroadcastReceiver) { ticks.remove(receiver) }
+        override fun unregisterReceiver(receiver: BroadcastReceiver) { ticks.remove(receiver); screenReceivers.remove(receiver) }
         override fun getContentResolver(): ContentResolver {
             calls.incrementAndGet()
             attempts.poll()?.let {

@@ -1,6 +1,7 @@
 package tv.withaibuild.customiuizer.mods.utils
 
-import java.io.File
+import tv.withaibuild.customiuizer.testsupport.repositorySource as source
+
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -84,12 +85,4 @@ class VolumeModeButtonVisibilityContractTest {
         assertTrue(after.contains("applyVisibility(helper)"))
     }
 
-    private fun source(path: String): String {
-        var directory = File(System.getProperty("user.dir").orEmpty()).absoluteFile
-        while (true) {
-            val candidate = File(directory, path)
-            if (candidate.isFile) return candidate.readText()
-            directory = directory.parentFile ?: error("Repository root not found for $path")
-        }
-    }
 }

@@ -1,6 +1,7 @@
 package tv.withaibuild.customiuizer
 
-import java.io.File
+import tv.withaibuild.customiuizer.testsupport.repositorySource as source
+
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -53,16 +54,6 @@ class MainModuleSystemServerLoadMarkerTest {
             "HookSummary stage name must not be renamed",
             main.contains("HookDiagnostics.printSummaryForStage(\"onSystemServerStarting\");")
         )
-    }
-
-    private fun source(relativePath: String): String {
-        var directory = File(System.getProperty("user.dir")).absoluteFile
-        while (true) {
-            val candidate = File(directory, relativePath)
-            if (candidate.isFile) return candidate.readText()
-            directory = directory.parentFile
-                ?: error("Repository root not found while locating $relativePath")
-        }
     }
 
     private fun String.section(start: String, end: String): String {
