@@ -31,7 +31,7 @@
 
 当前源码版本：`r14.26.5`（versionCode 265）。维护者：`thetvplus`。应用 ID：`tv.withaibuild.customiuizer.r14`。
 
-r14.26.5 整合此前 Compose 与 API 102 改进，并调整文本运动、选项可读性及页面按压反馈，移除 Dock 轻量玻璃，见[更新记录](CHANGELOG.md)。当前处于正式发行验收，r14.26.3 暂保留；验证边界见[当前精修状态](docs/maintenance/A14_REFINEMENT_ROADMAP.md)。
+r14.26.5 整合此前 Compose 与 API 102 改进，并调整文本运动、选项可读性及页面按压反馈，移除 Dock 轻量玻璃，见[更新记录](CHANGELOG.md)。完整 CI、正式签名与双仓发布已通过；Develop 实机回归已通过，后续正式包安装复验按本轮范围不再执行，r14.26.3 有效变化已并入本版，旧独立发行已撤下。验证边界见[当前精修状态](docs/maintenance/A14_REFINEMENT_ROADMAP.md)。
 
 ## 支持与许可
 
