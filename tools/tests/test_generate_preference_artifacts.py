@@ -62,6 +62,7 @@ EXPECTED_SPLITS = {
     "pref_key_launcher_cat_privacyapps": "prefs_launcher_privacyapps.xml",
     "pref_key_launcher_cat_gestures": "prefs_launcher_gestures.xml",
     "pref_key_launcher_cat_bugfixes": "prefs_launcher_bugfixes.xml",
+    "pref_key_launcher_cat_dock": "prefs_launcher_dock.xml",
     "pref_key_launcher_cat_other": "prefs_launcher_other.xml",
     "pref_key_controls_cat_fingerprint": "prefs_controls_fingerprint.xml",
     "pref_key_controls_cat_power": "prefs_controls_power.xml",
@@ -503,6 +504,23 @@ class GeneratePreferenceArtifactsTest(unittest.TestCase):
         for retired_key in RETIRED_A14_KEYS:
             with self.subTest(key=retired_key):
                 self.assertNotIn(f'"{retired_key}"', catalog)
+
+    def test_scoped_feature_inputs_preserve_the_full_source_catalog(self) -> None:
+        java_dir = REPO_ROOT / "app/src/main/java"
+        feature_dir = java_dir / "tv/withaibuild/customiuizer/mods/utils/feature"
+        catalogs = []
+        for name, source in (("full", java_dir), ("scoped", feature_dir)):
+            catalog_dir = Path(self.temp_dir.name) / name
+            subprocess.run(
+                [sys.executable, str(GENERATOR), "--source-dir", str(SOURCE_DIR),
+                 "--output-dir", str(self.output_dir), "--catalog-output", str(catalog_dir),
+                 "--java-dir", str(source)],
+                cwd=REPO_ROOT,
+                check=True,
+            )
+            catalogs.append((catalog_dir / "tv/withaibuild/customiuizer/utils/CurrentPreferenceCatalog.kt").read_bytes())
+        self.assertEqual(catalogs[0], catalogs[1],
+                         "Feature preference keys outside the declared Gradle input would be lost")
 
 
 if __name__ == "__main__":

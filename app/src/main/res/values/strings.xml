@@ -1,9 +1,10 @@
 <resources>
     <string name="app_name" translatable="false">米客 A14</string>
+    <string name="app_name_full" translatable="false">米客 A14｜CustoMIUIzer A14</string>
     <string name="settings_title">Settings</string>
     <string name="app_slogan" translatable="false">适用于 HyperOS 1 / Android 14 的系统定制模块</string>
-    <string name="permission_broadcast_label" translatable="false">CustoMIUIzer broadcast control</string>
-    <string name="permission_broadcast_description" translatable="false">Allows the CustoMIUIzer module to send internal protected broadcasts.</string>
+    <string name="permission_broadcast_label" translatable="false">米客 A14｜CustoMIUIzer A14 broadcast control</string>
+    <string name="permission_broadcast_description" translatable="false">Allows 米客 A14｜CustoMIUIzer A14 to send internal protected broadcasts.</string>
     <string name="app_about">About</string>
     <string name="about_version">Version %1$s</string>
     <string name="about_maintainer">Development &amp; Maintenance: thetvplus</string>
@@ -1088,6 +1089,8 @@
     <string name="system_statusbar_duo_audio_summ">Wired or Bluetooth headphones appear for 3 seconds on a new connection, then restore Wi-Fi or the network glyph. Network warnings take priority.</string>
     <string name="system_statusbar_duo_bold_title">Bolder icon strokes</string>
     <string name="system_statusbar_duo_bold_summ">Thicker battery ring, Wi-Fi and headphone lines.</string>
+    <string name="system_statusbar_duo_horizontalpadding_title">Horizontal spacing</string>
+    <string name="system_statusbar_duo_horizontalpadding_summ">Space on each side; adjust by 0.5 dp while keeping the icon size.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Vertical adjustment</string>
     <string name="system_statusbar_duo_verticaloffset_summ">Center in the current row; adjust by 0.5 dp. Offset is limited and drawing shrinks at the edge to prevent clipping.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Headphone icon style</string>
@@ -1098,8 +1101,23 @@
     <string name="system_statusbar_duo_networkfallback_title">Replace disconnected Wi-Fi</string>
     <string name="system_statusbar_duo_networkfallback_summ">Without Wi-Fi, show cellular artwork or the current network type; unknown types use artwork.</string>
     <string name="system_statusbar_duo_btbattery_title">Bluetooth battery colors</string>
-    <string name="system_statusbar_duo_btbattery_summ">One device with a fresh system report: red up to 20%, amber up to 50%. Other or unknown levels use the system color; the ring stays phone battery.</string>
+    <string name="system_statusbar_duo_btbattery_summ" formatted="false">One device with a fresh system report: red up to 20%, amber up to 50%. Other or unknown levels use the system color; the ring stays phone battery.</string>
     <string name="system_statusbar_duo_cellularstyle_title">Cellular center style</string>
     <string name="system_statusbar_duo_cellular_graphic">Graphic</string>
     <string name="system_statusbar_duo_cellular_text">Text</string>
+    <string name="launcher_dock_category">Dock</string>
+    <string name="launcher_dock_background_title">Dock background</string>
+    <string name="launcher_dock_background_summ">Blends into the native Dock. Restart the launcher after changes.</string>
+    <string name="launcher_dock_background_material_title">Material</string>
+    <string name="launcher_dock_background_auto_glass">Native glass (automatic)</string>
+    <string name="launcher_dock_background_gaussian">Gaussian blur</string>
+    <string name="launcher_dock_background_material_summ">Softens the background while keeping icons clear. Uses a plain background if system materials are unavailable.</string>
+    <string name="launcher_dock_background_opacity_title">Opacity</string>
+    <string name="launcher_dock_background_radius_title">Corner radius</string>
+    <string name="launcher_dock_background_inset_title">Horizontal inset</string>
+    <string name="launcher_dock_background_radius_summ">Automatic follows the bottom screen corners and horizontal inset; all four corners share one radius.</string>
+    <string name="launcher_dock_background_inset_summ">Automatic adapts to the native icon row; adjust manually if needed.</string>
+    <string name="launcher_dock_background_shrink_title">Background shrink</string>
+    <string name="launcher_dock_background_shrink_summ">Adjusts all four edges. Positive values shrink, negative values expand; icon positions stay unchanged.</string>
+    <string name="launcher_dock_background_auto">Automatic</string>
 </resources>

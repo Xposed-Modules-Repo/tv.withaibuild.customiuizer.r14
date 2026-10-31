@@ -1054,6 +1054,8 @@
     <string name="system_statusbar_duo_audio_summ">Los auriculares por cable o Bluetooth aparecen durante 3 segundos con una nueva conexión y luego vuelve Wi-Fi o el símbolo de red. Los avisos de red tienen prioridad.</string>
     <string name="system_statusbar_duo_bold_title">Líneas más gruesas</string>
     <string name="system_statusbar_duo_bold_summ">Anillo de batería y líneas de Wi-Fi y auriculares más gruesos.</string>
+    <string name="system_statusbar_duo_horizontalpadding_title">Espaciado horizontal</string>
+    <string name="system_statusbar_duo_horizontalpadding_summ">Ajusta el espacio a cada lado en pasos de 0,5 dp, conservando el tamaño del icono.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Ajuste vertical</string>
     <string name="system_statusbar_duo_verticaloffset_summ">Centrado en la fila, pasos de 0,5 dp. Desplazamiento limitado; el icono se reduce en el borde para evitar recortes.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Estilo de auriculares</string>
@@ -1064,8 +1066,23 @@
     <string name="system_statusbar_duo_networkfallback_title">Sustituir Wi-Fi desconectado</string>
     <string name="system_statusbar_duo_networkfallback_summ">Sin Wi-Fi, muestra un icono o el tipo de red actual; los tipos desconocidos usan el icono.</string>
     <string name="system_statusbar_duo_btbattery_title">Colores de batería Bluetooth</string>
-    <string name="system_statusbar_duo_btbattery_summ">Un dispositivo y un informe reciente: rojo hasta 20 %, ámbar hasta 50 %. Otros niveles o batería desconocida usan el color del sistema; el anillo es del teléfono.</string>
+    <string name="system_statusbar_duo_btbattery_summ" formatted="false">Un dispositivo y un informe reciente: rojo hasta 20 %, ámbar hasta 50 %. Otros niveles o batería desconocida usan el color del sistema; el anillo es del teléfono.</string>
     <string name="system_statusbar_duo_cellularstyle_title">Estilo de red móvil en el centro</string>
     <string name="system_statusbar_duo_cellular_graphic">Icono</string>
     <string name="system_statusbar_duo_cellular_text">Texto</string>
+    <string name="launcher_dock_category">Dock</string>
+    <string name="launcher_dock_background_title">Fondo del Dock</string>
+    <string name="launcher_dock_background_summ">Integrado en el Dock nativo. Reinicia el lanzador tras los cambios.</string>
+    <string name="launcher_dock_background_material_title">Material</string>
+    <string name="launcher_dock_background_auto_glass">Cristal del sistema (automático)</string>
+    <string name="launcher_dock_background_gaussian">Desenfoque gaussiano</string>
+    <string name="launcher_dock_background_material_summ">Suaviza el fondo y mantiene los iconos nítidos. Usa un fondo sencillo si los materiales del sistema no están disponibles.</string>
+    <string name="launcher_dock_background_opacity_title">Opacidad</string>
+    <string name="launcher_dock_background_radius_title">Radio de las esquinas</string>
+    <string name="launcher_dock_background_inset_title">Márgenes laterales</string>
+    <string name="launcher_dock_background_radius_summ">El modo automático sigue las esquinas inferiores de la pantalla y el margen interior; las cuatro usan el mismo radio.</string>
+    <string name="launcher_dock_background_inset_summ">El modo automático mantiene un espacio lateral estrecho y estable; ajústalo manualmente si es necesario.</string>
+    <string name="launcher_dock_background_shrink_title">Contracción del fondo</string>
+    <string name="launcher_dock_background_shrink_summ">Ajusta los cuatro bordes. Los valores positivos contraen y los negativos expanden; los iconos mantienen su posición.</string>
+    <string name="launcher_dock_background_auto">Automático</string>
 </resources>

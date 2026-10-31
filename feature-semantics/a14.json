@@ -11093,7 +11093,7 @@
       "hotReloadable": false,
       "confidence": "CODE_VERIFIED",
       "evidence": "DuoStatusBarFeature.evaluateEnabled and DuoStatusBarHooks.install; target-device acceptance pending",
-      "notes": "API 101; original icons retained on missing ABI/state and restored on ordinary runtime failure. No polling or animation loop."
+      "notes": "API 102; original icons retained on missing ABI/state and restored on ordinary runtime failure. No polling or animation loop."
     },
     {
       "featureId": "system_statusbar_duo_cat",
@@ -11244,6 +11244,29 @@
       "confidence": "CODE_VERIFIED",
       "evidence": "DuoConfig.sizeDp, DuoStatusBarHooks.attach and DuoStatusBarView.onDraw",
       "notes": "Manual size is preserved across upgrades and used only with automatic size off; native row constraints still apply."
+    },
+    {
+      "featureId": "system_statusbar_duo_horizontalpadding",
+      "featureName": "Duo horizontal spacing",
+      "preferenceKeys": [
+        "system_statusbar_duo_horizontalpadding",
+        "pref_key_system_statusbar_duo_horizontalpadding"
+      ],
+      "xmlSource": "app/src/main/res/xml/prefs_system_statusbar_duo.xml",
+      "defaultValue": "3",
+      "sourceFile": "app/src/main/java/tv/withaibuild/customiuizer/mods/duostatusbar/DuoConfig.kt",
+      "installer": "app/src/main/java/tv/withaibuild/customiuizer/mods/duostatusbar/DuoConfig.kt:read",
+      "targetPackage": "com.android.systemui",
+      "installPhase": "PACKAGE_READY",
+      "runtimeReadMode": "INSTALL_TIME_SNAPSHOT",
+      "enableEffect": "Reserves 0-6 dp on each side in half-dp steps, default 1.5 dp, independently of automatic icon sizing",
+      "disableEffect": "Ignored while Duo is disabled",
+      "valueChangeEffect": "Applies this setting after SystemUI restart",
+      "restartTarget": "SYSTEMUI",
+      "hotReloadable": false,
+      "confidence": "CODE_VERIFIED",
+      "evidence": "DuoConfig.horizontalPaddingDp and DuoStatusBarView.layoutWidthPx / onMeasure / onDraw",
+      "notes": "Symmetric native child padding; preserves drawing size and shared status bar / Control Center row geometry."
     },
     {
       "featureId": "system_statusbar_duo_verticaloffset",
@@ -17417,6 +17440,167 @@
       "confidence": "INFERRED",
       "evidence": "android:key in app/src/main/res/xml/prefs_main.xml",
       "notes": ""
+    },
+    {
+      "featureId": "launcher_cat_dock",
+      "featureName": "launcher_cat_dock",
+      "preferenceKeys": [
+        "pref_key_launcher_cat_dock",
+        "launcher_cat_dock"
+      ],
+      "xmlSource": "app/src/main/res/xml/prefs_launcher.xml",
+      "defaultValue": "",
+      "sourceFile": "",
+      "installer": "UNKNOWN",
+      "targetPackage": "UNKNOWN",
+      "installPhase": "APP_UI_ONLY",
+      "runtimeReadMode": "UNKNOWN",
+      "enableEffect": "UNKNOWN",
+      "disableEffect": "UNKNOWN",
+      "valueChangeEffect": "UNKNOWN",
+      "restartTarget": "UNKNOWN",
+      "hotReloadable": false,
+      "confidence": "INFERRED",
+      "evidence": "android:key in app/src/main/res/xml/prefs_launcher.xml",
+      "notes": ""
+    },
+    {
+      "featureId": "launcher_dock_background",
+      "featureName": "Launcher Dock Background",
+      "preferenceKeys": [
+        "launcher_dock_background",
+        "pref_key_launcher_dock_background"
+      ],
+      "xmlSource": "app/src/main/res/xml/prefs_launcher.xml",
+      "defaultValue": "false",
+      "sourceFile": "app/src/main/java/tv/withaibuild/customiuizer/mods/utils/feature/LauncherPackageReadyFeatures.kt",
+      "installer": "app/src/main/java/tv/withaibuild/customiuizer/mods/utils/feature/LauncherPackageReadyFeatures.kt:evaluateEnabled",
+      "targetPackage": "com.miui.home",
+      "installPhase": "PACKAGE_READY",
+      "runtimeReadMode": "CAPTURED_AT_INSTALL",
+      "enableEffect": "Fits the background around native icon/title layout bounds with a small optical top trim; never changes native icon frames or transforms. Overview state and View visibility retire both native blur backends",
+      "disableEffect": "Restores the native Dock after launcher restart",
+      "valueChangeEffect": "Requires launcher restart",
+      "restartTarget": "LAUNCHER",
+      "hotReloadable": false,
+      "confidence": "INFERRED",
+      "evidence": "LauncherDockBackground, DockContentAccess and DockBackgroundTest; target-device acceptance pending",
+      "notes": "One install-time snapshot. The master gate prevents all Dock background hooks and views when disabled; value changes require launcher restart."
+    },
+    {
+      "featureId": "launcher_dock_background_inset",
+      "featureName": "Launcher Dock Background",
+      "preferenceKeys": [
+        "launcher_dock_background_inset",
+        "pref_key_launcher_dock_background_inset"
+      ],
+      "xmlSource": "app/src/main/res/xml/prefs_launcher.xml",
+      "defaultValue": "0",
+      "sourceFile": "app/src/main/java/tv/withaibuild/customiuizer/mods/LauncherDockBackground.kt",
+      "installer": "app/src/main/java/tv/withaibuild/customiuizer/mods/LauncherDockBackground.kt:read",
+      "targetPackage": "com.miui.home",
+      "installPhase": "PACKAGE_READY",
+      "runtimeReadMode": "CAPTURED_AT_INSTALL",
+      "enableEffect": "Uses a compact 14 dp automatic inset with room for dense native icon rows, or applies the manual inset; geometry stays fixed during drag and ignores launcher animation transforms",
+      "disableEffect": "Restores the native Dock after launcher restart",
+      "valueChangeEffect": "Requires launcher restart",
+      "restartTarget": "LAUNCHER",
+      "hotReloadable": false,
+      "confidence": "INFERRED",
+      "evidence": "DockBackgroundView.onPreDraw",
+      "notes": "One install-time snapshot. The master gate prevents all Dock background hooks and views when disabled; value changes require launcher restart."
+    },
+    {
+      "featureId": "launcher_dock_background_material",
+      "featureName": "Launcher Dock Background",
+      "preferenceKeys": [
+        "launcher_dock_background_material",
+        "pref_key_launcher_dock_background_material"
+      ],
+      "xmlSource": "app/src/main/res/xml/prefs_launcher.xml",
+      "defaultValue": "0",
+      "sourceFile": "app/src/main/java/tv/withaibuild/customiuizer/mods/LauncherDockBackground.kt",
+      "installer": "app/src/main/java/tv/withaibuild/customiuizer/mods/LauncherDockBackground.kt:read",
+      "targetPackage": "com.miui.home",
+      "installPhase": "PACKAGE_READY",
+      "runtimeReadMode": "CAPTURED_AT_INSTALL",
+      "enableEffect": "Selects native glass or 35 dp Gaussian background blur; legacy translucent value normalizes to glass, with G4 fallback only when native materials are unavailable",
+      "disableEffect": "Restores the native Dock after launcher restart",
+      "valueChangeEffect": "Requires launcher restart",
+      "restartTarget": "LAUNCHER",
+      "hotReloadable": false,
+      "confidence": "INFERRED",
+      "evidence": "LauncherDockBackground.install, DockBackgroundView.installMaterial and ROM BackdropBlurRelativeLayout",
+      "notes": "One install-time snapshot. The master gate prevents all Dock background hooks and views when disabled; value changes require launcher restart."
+    },
+    {
+      "featureId": "launcher_dock_background_opacity",
+      "featureName": "Launcher Dock Background",
+      "preferenceKeys": [
+        "launcher_dock_background_opacity",
+        "pref_key_launcher_dock_background_opacity"
+      ],
+      "xmlSource": "app/src/main/res/xml/prefs_launcher.xml",
+      "defaultValue": "90",
+      "sourceFile": "app/src/main/java/tv/withaibuild/customiuizer/mods/LauncherDockBackground.kt",
+      "installer": "app/src/main/java/tv/withaibuild/customiuizer/mods/LauncherDockBackground.kt:read",
+      "targetPackage": "com.miui.home",
+      "installPhase": "PACKAGE_READY",
+      "runtimeReadMode": "CAPTURED_AT_INSTALL",
+      "enableEffect": "Applies hook when enabled",
+      "disableEffect": "Restores the native Dock after launcher restart",
+      "valueChangeEffect": "Requires launcher restart",
+      "restartTarget": "LAUNCHER",
+      "hotReloadable": false,
+      "confidence": "INFERRED",
+      "evidence": "PrefMap call at app/src/main/java/tv/withaibuild/customiuizer/mods/LauncherDockBackground.kt:82",
+      "notes": "One install-time snapshot. The master gate prevents all Dock background hooks and views when disabled; value changes require launcher restart."
+    },
+    {
+      "featureId": "launcher_dock_background_radius",
+      "featureName": "Launcher Dock Background",
+      "preferenceKeys": [
+        "launcher_dock_background_radius",
+        "pref_key_launcher_dock_background_radius"
+      ],
+      "xmlSource": "app/src/main/res/xml/prefs_launcher.xml",
+      "defaultValue": "0",
+      "sourceFile": "app/src/main/java/tv/withaibuild/customiuizer/mods/LauncherDockBackground.kt",
+      "installer": "app/src/main/java/tv/withaibuild/customiuizer/mods/LauncherDockBackground.kt:read",
+      "targetPackage": "com.miui.home",
+      "installPhase": "PACKAGE_READY",
+      "runtimeReadMode": "CAPTURED_AT_INSTALL",
+      "enableEffect": "Uses the device bottom corner radius minus horizontal screen-edge inset, uniformly across four corners; vertical Dock placement does not change the radius, and manual radius overrides automatic",
+      "disableEffect": "Restores the native Dock after launcher restart",
+      "valueChangeEffect": "Requires launcher restart",
+      "restartTarget": "LAUNCHER",
+      "hotReloadable": false,
+      "confidence": "INFERRED",
+      "evidence": "DockCornerGeometry.radius and DockBackgroundView.updateGeometry",
+      "notes": "One install-time snapshot. The master gate prevents all Dock background hooks and views when disabled; value changes require launcher restart."
+    },
+    {
+      "featureId": "launcher_dock_background_shrink",
+      "featureName": "Launcher Dock Background",
+      "preferenceKeys": [
+        "launcher_dock_background_shrink",
+        "pref_key_launcher_dock_background_shrink"
+      ],
+      "xmlSource": "app/src/main/res/xml/prefs_launcher.xml",
+      "defaultValue": "13",
+      "sourceFile": "app/src/main/java/tv/withaibuild/customiuizer/mods/LauncherDockBackground.kt",
+      "installer": "app/src/main/java/tv/withaibuild/customiuizer/mods/LauncherDockBackground.kt:read",
+      "targetPackage": "com.miui.home",
+      "installPhase": "PACKAGE_READY",
+      "runtimeReadMode": "CAPTURED_AT_INSTALL",
+      "enableEffect": "Applies one signed inset to all four background edges around native icon bounds: -12 to +12 dp, default +1 dp. Icon space and host clipping bound the adjustment; native icon coordinates and animation transforms remain untouched",
+      "disableEffect": "Restores the native Dock after launcher restart",
+      "valueChangeEffect": "Requires launcher restart",
+      "restartTarget": "LAUNCHER",
+      "hotReloadable": false,
+      "confidence": "INFERRED",
+      "evidence": "DockBackgroundConfig.read and DockBackgroundView.onPreDraw",
+      "notes": "Slider stores 0..24 with negativeShift=12. Positive values shrink the background, negative values expand it. One install-time snapshot; changes require launcher restart."
     }
   ]
 }

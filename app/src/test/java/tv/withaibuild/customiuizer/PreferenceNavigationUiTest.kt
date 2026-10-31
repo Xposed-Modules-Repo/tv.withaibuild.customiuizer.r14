@@ -4,11 +4,15 @@ import android.app.Application
 import android.animation.AnimatorSet
 import android.os.Looper
 import android.provider.Settings
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.PopupMenu
+import android.widget.TextView
 import androidx.activity.BackEventCompat
 import androidx.fragment.app.Fragment
 import androidx.preference.Preference
+import androidx.preference.ListPreference
+import androidx.preference.PreferenceViewHolder
 import java.time.Duration
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -25,6 +29,7 @@ import org.robolectric.annotation.Config
 import org.robolectric.annotation.LooperMode
 import tv.withaibuild.customiuizer.utils.AppHelper
 import tv.withaibuild.customiuizer.utils.Helpers
+import tv.withaibuild.customiuizer.prefs.SeekBarPreference
 
 /** Runs the production FragmentManager, preference XML and animations on an Android 14 model. */
 @RunWith(RobolectricTestRunner::class)
@@ -110,6 +115,50 @@ class PreferenceNavigationUiTest {
 
         assertTrue(currentPage() is MainFragment)
         assertPreferencePageVisible(currentPage())
+    }
+
+    @Test
+    fun removedDockMaterialMigratesToGlassAndKeepsGaussianSelectable() {
+        val key = "pref_key_launcher_dock_background_material"
+        requireNotNull(AppHelper.appPrefs).edit().putString(key, "1").commit()
+        val home = currentPage() as MainFragment
+        home.onPreferenceTreeClick(requireNotNull(home.findPreference<Preference>("pref_key_launcher")))
+        settleNavigation()
+        val selector = currentPage() as SubFragment
+        requireNotNull(selector.findPreference<Preference>("pref_key_launcher_cat_dock")).performClick()
+        settleNavigation()
+        val page = currentPage() as SubFragment
+        val material = requireNotNull(page.findPreference<ListPreference>(key))
+        assertEquals(listOf("0", "2"), material.entryValues.map { it.toString() })
+        assertEquals("0", material.value)
+        assertEquals("0", requireNotNull(AppHelper.appPrefs).getString(key, null))
+        material.value = "2"
+        pressToolbarBack()
+        requireNotNull((currentPage() as SubFragment).findPreference<Preference>("pref_key_launcher_cat_dock")).performClick()
+        settleNavigation()
+        assertEquals("2", (currentPage() as SubFragment).findPreference<ListPreference>(key)?.value)
+    }
+
+    @Test
+    fun dockShrinkShowsSignedDpAndPersistsTheExistingSliderEncoding() {
+        val key = "pref_key_launcher_dock_background_shrink"
+        val home = currentPage() as MainFragment
+        home.onPreferenceTreeClick(requireNotNull(home.findPreference<Preference>("pref_key_launcher")))
+        settleNavigation()
+        requireNotNull((currentPage() as SubFragment)
+            .findPreference<Preference>("pref_key_launcher_cat_dock")).performClick()
+        settleNavigation()
+        val page = currentPage() as SubFragment
+        val shrink = requireNotNull(page.findPreference<SeekBarPreference>(key))
+        val row = LayoutInflater.from(activity).inflate(R.layout.preference_seekbar12, page.listView, false)
+        shrink.onBindViewHolder(PreferenceViewHolder.createInstanceForTests(row))
+        val label = row.findViewById<TextView>(R.id.seekbar_value)
+        assertEquals("+1 dp", label.text.toString())
+        for ((stored, displayed) in listOf(0 to "-12 dp", 12 to "0 dp", 13 to "+1 dp", 24 to "+12 dp")) {
+            shrink.setValue(stored, true)
+            assertEquals(displayed, label.text.toString())
+            assertEquals(stored, requireNotNull(AppHelper.appPrefs).getInt(key, -1))
+        }
     }
 
     @Test

@@ -1055,6 +1055,8 @@
     <string name="system_statusbar_duo_audio_summ">Tai nghe có dây hoặc Bluetooth hiện trong 3 giây khi có kết nối mới, rồi trở lại Wi-Fi hoặc biểu tượng mạng. Cảnh báo mạng được ưu tiên.</string>
     <string name="system_statusbar_duo_bold_title">Nét biểu tượng đậm hơn</string>
     <string name="system_statusbar_duo_bold_summ">Làm đậm vòng pin và nét Wi-Fi, tai nghe.</string>
+    <string name="system_statusbar_duo_horizontalpadding_title">Khoảng cách ngang</string>
+    <string name="system_statusbar_duo_horizontalpadding_summ">Chỉnh khoảng trống mỗi bên theo bước 0,5 dp, giữ nguyên kích thước biểu tượng.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Chỉnh vị trí dọc</string>
     <string name="system_statusbar_duo_verticaloffset_summ">Căn giữa trong hàng, mỗi bước 0,5 dp. Độ lệch theo chiều cao; thu nhỏ ở mép để tránh cắt biểu tượng.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Kiểu biểu tượng tai nghe</string>
@@ -1065,8 +1067,23 @@
     <string name="system_statusbar_duo_networkfallback_title">Thay Wi-Fi đã ngắt</string>
     <string name="system_statusbar_duo_networkfallback_summ">Không có Wi-Fi thì hiện hình hoặc loại mạng hiện tại; loại chưa rõ dùng hình.</string>
     <string name="system_statusbar_duo_btbattery_title">Màu pin Bluetooth</string>
-    <string name="system_statusbar_duo_btbattery_summ">Một thiết bị và báo cáo mới: đỏ đến 20%, hổ phách đến 50%. Mức khác hoặc chưa rõ dùng màu hệ thống; vòng vẫn là pin điện thoại.</string>
+    <string name="system_statusbar_duo_btbattery_summ" formatted="false">Một thiết bị và báo cáo mới: đỏ đến 20%, hổ phách đến 50%. Mức khác hoặc chưa rõ dùng màu hệ thống; vòng vẫn là pin điện thoại.</string>
     <string name="system_statusbar_duo_cellularstyle_title">Kiểu mạng di động ở giữa</string>
     <string name="system_statusbar_duo_cellular_graphic">Hình</string>
     <string name="system_statusbar_duo_cellular_text">Chữ</string>
+    <string name="launcher_dock_category">Dock</string>
+    <string name="launcher_dock_background_title">Nền Dock</string>
+    <string name="launcher_dock_background_summ">Tích hợp vào Dock gốc. Khởi động lại màn hình chính sau khi thay đổi.</string>
+    <string name="launcher_dock_background_material_title">Chất liệu</string>
+    <string name="launcher_dock_background_auto_glass">Kính hệ thống (tự động)</string>
+    <string name="launcher_dock_background_gaussian">Làm mờ Gaussian</string>
+    <string name="launcher_dock_background_material_summ">Làm mờ nền và giữ biểu tượng rõ nét. Dùng nền thông thường khi chất liệu hệ thống không khả dụng.</string>
+    <string name="launcher_dock_background_opacity_title">Độ đục</string>
+    <string name="launcher_dock_background_radius_title">Bán kính góc</string>
+    <string name="launcher_dock_background_inset_title">Lề ngang</string>
+    <string name="launcher_dock_background_radius_summ">Tự động theo góc dưới màn hình và độ thụt vào; bốn góc dùng cùng bán kính.</string>
+    <string name="launcher_dock_background_inset_summ">Tự động giữ khoảng trống hai bên hẹp và ổn định; có thể tinh chỉnh thủ công.</string>
+    <string name="launcher_dock_background_shrink_title">Thu gọn nền</string>
+    <string name="launcher_dock_background_shrink_summ">Tinh chỉnh cả bốn cạnh. Giá trị dương thu gọn, giá trị âm mở rộng; giữ nguyên vị trí biểu tượng.</string>
+    <string name="launcher_dock_background_auto">Tự động</string>
 </resources>

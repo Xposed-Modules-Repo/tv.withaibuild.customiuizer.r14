@@ -1054,6 +1054,8 @@
     <string name="system_statusbar_duo_audio_summ">При новом подключении проводные или Bluetooth-наушники видны 3 секунды, затем возвращается Wi-Fi или символ сети. Предупреждения сети имеют приоритет.</string>
     <string name="system_statusbar_duo_bold_title">Жирные линии значка</string>
     <string name="system_statusbar_duo_bold_summ">Более толстые линии кольца батареи, Wi-Fi и наушников.</string>
+    <string name="system_statusbar_duo_horizontalpadding_title">Отступы по горизонтали</string>
+    <string name="system_statusbar_duo_horizontalpadding_summ">Отступ с каждой стороны с шагом 0,5 dp. Размер значка сохраняется.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Смещение по вертикали</string>
     <string name="system_statusbar_duo_verticaloffset_summ">Центрирование в строке, шаг 0,5 dp. Смещение ограничено высотой; у края значок уменьшается без обрезки.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Стиль наушников</string>
@@ -1064,8 +1066,23 @@
     <string name="system_statusbar_duo_networkfallback_title">Замена отключённого Wi-Fi</string>
     <string name="system_statusbar_duo_networkfallback_summ">Без Wi-Fi — значок сотовой сети или текущий тип сети. Неизвестный тип заменяется значком.</string>
     <string name="system_statusbar_duo_btbattery_title">Цвет заряда Bluetooth</string>
-    <string name="system_statusbar_duo_btbattery_summ">Одно устройство и свежий отчёт: красный до 20%, янтарный до 50%. Остальные и неизвестные уровни используют системный цвет; кольцо показывает заряд телефона.</string>
+    <string name="system_statusbar_duo_btbattery_summ" formatted="false">Одно устройство и свежий отчёт: красный до 20%, янтарный до 50%. Остальные и неизвестные уровни используют системный цвет; кольцо показывает заряд телефона.</string>
     <string name="system_statusbar_duo_cellularstyle_title">Стиль сотовой сети в центре</string>
     <string name="system_statusbar_duo_cellular_graphic">Значок</string>
     <string name="system_statusbar_duo_cellular_text">Текст</string>
+    <string name="launcher_dock_category">Dock</string>
+    <string name="launcher_dock_background_title">Фон Dock</string>
+    <string name="launcher_dock_background_summ">Встроенный фон Dock. После изменений перезапустите рабочий стол.</string>
+    <string name="launcher_dock_background_material_title">Материал</string>
+    <string name="launcher_dock_background_auto_glass">Системное стекло (авто)</string>
+    <string name="launcher_dock_background_gaussian">Размытие по Гауссу</string>
+    <string name="launcher_dock_background_material_summ">Смягчает фон, сохраняя чёткость значков. Если системные материалы недоступны, используется обычный фон.</string>
+    <string name="launcher_dock_background_opacity_title">Непрозрачность</string>
+    <string name="launcher_dock_background_radius_title">Радиус углов</string>
+    <string name="launcher_dock_background_inset_title">Боковые отступы</string>
+    <string name="launcher_dock_background_radius_summ">Автоматически учитывает нижние углы экрана и отступ. Радиус всех четырёх углов одинаковый.</string>
+    <string name="launcher_dock_background_inset_summ">Автоматический режим сохраняет узкие постоянные боковые отступы. При необходимости настройте их вручную.</string>
+    <string name="launcher_dock_background_shrink_title">Сжатие фона</string>
+    <string name="launcher_dock_background_shrink_summ">Регулирует все четыре края. Положительные значения сжимают фон, отрицательные расширяют; значки остаются на месте.</string>
+    <string name="launcher_dock_background_auto">Автоматически</string>
 </resources>

@@ -1055,6 +1055,8 @@
     <string name="system_statusbar_duo_audio_summ">有線またはBluetoothヘッドフォンの新規接続時に3秒間表示し、その後Wi-Fiまたはネットワーク表示に戻ります。ネットワーク警告を優先します。</string>
     <string name="system_statusbar_duo_bold_title">アイコンの線を太くする</string>
     <string name="system_statusbar_duo_bold_summ">バッテリーリング、Wi-Fi、ヘッドフォンの線を太くします。</string>
+    <string name="system_statusbar_duo_horizontalpadding_title">左右の余白</string>
+    <string name="system_statusbar_duo_horizontalpadding_summ">左右それぞれの余白を 0.5 dp 刻みで調整。アイコンのサイズは維持します。</string>
     <string name="system_statusbar_duo_verticaloffset_title">上下位置の微調整</string>
     <string name="system_statusbar_duo_verticaloffset_summ">現在の行内で中央に配置し、0.5dp刻みで調整。行高に応じて移動を制限し、端では縮小して欠けを防止。</string>
     <string name="system_statusbar_duo_headphonestyle_title">イヤホンのアイコン</string>
@@ -1065,8 +1067,23 @@
     <string name="system_statusbar_duo_networkfallback_title">Wi-Fi切断時の代替表示</string>
     <string name="system_statusbar_duo_networkfallback_summ">Wi-Fi未接続時は図形または現在のネットワーク種別を表示。不明な種別は図形を使用。</string>
     <string name="system_statusbar_duo_btbattery_title">Bluetoothの電池色</string>
-    <string name="system_statusbar_duo_btbattery_summ">単一機器の新しい電池情報のみ：20%以下は赤、50%以下は琥珀色。その他や不明な残量はシステムの色を使用。外周はスマートフォンの電池。</string>
+    <string name="system_statusbar_duo_btbattery_summ" formatted="false">単一機器の新しい電池情報のみ：20%以下は赤、50%以下は琥珀色。その他や不明な残量はシステムの色を使用。外周はスマートフォンの電池。</string>
     <string name="system_statusbar_duo_cellularstyle_title">中央のモバイルネットワーク表示</string>
     <string name="system_statusbar_duo_cellular_graphic">図形</string>
     <string name="system_statusbar_duo_cellular_text">文字</string>
+    <string name="launcher_dock_category">Dock</string>
+    <string name="launcher_dock_background_title">Dock の背景</string>
+    <string name="launcher_dock_background_summ">標準の Dock に統合します。変更後はホームアプリを再起動してください。</string>
+    <string name="launcher_dock_background_material_title">素材</string>
+    <string name="launcher_dock_background_auto_glass">システムガラス（自動）</string>
+    <string name="launcher_dock_background_gaussian">ガウスぼかし</string>
+    <string name="launcher_dock_background_material_summ">背景をぼかし、アイコンを鮮明に保ちます。システム素材が利用できない場合は通常の背景を使います。</string>
+    <string name="launcher_dock_background_opacity_title">不透明度</string>
+    <string name="launcher_dock_background_radius_title">角の半径</string>
+    <string name="launcher_dock_background_inset_title">左右の余白</string>
+    <string name="launcher_dock_background_radius_summ">自動では画面下部の角と内側の余白に合わせ、四隅を同じ半径にします。</string>
+    <string name="launcher_dock_background_inset_summ">自動では左右の余白を狭く一定に保ちます。必要に応じて手動調整できます。</string>
+    <string name="launcher_dock_background_shrink_title">背景の縮小</string>
+    <string name="launcher_dock_background_shrink_summ">上下左右を同時に微調整します。正の値で縮小、負の値で拡大し、アイコンの位置を維持します。</string>
+    <string name="launcher_dock_background_auto">自動</string>
 </resources>

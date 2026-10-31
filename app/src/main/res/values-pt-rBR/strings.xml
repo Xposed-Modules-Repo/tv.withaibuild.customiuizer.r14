@@ -1055,6 +1055,8 @@
     <string name="system_statusbar_duo_audio_summ">Fones com fio ou Bluetooth aparecem por 3 segundos em uma nova conexão, depois retornam Wi-Fi ou o símbolo de rede. Alertas de rede têm prioridade.</string>
     <string name="system_statusbar_duo_bold_title">Linhas mais grossas</string>
     <string name="system_statusbar_duo_bold_summ">Anel de bateria e linhas de Wi-Fi e fones mais grossos.</string>
+    <string name="system_statusbar_duo_horizontalpadding_title">Espaçamento horizontal</string>
+    <string name="system_statusbar_duo_horizontalpadding_summ">Ajuste o espaço de cada lado em passos de 0,5 dp, mantendo o tamanho do ícone.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Ajuste vertical</string>
     <string name="system_statusbar_duo_verticaloffset_summ">Centralizado na linha, passos de 0,5 dp. Deslocamento limitado; o ícone diminui na borda para evitar cortes.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Estilo dos fones</string>
@@ -1065,8 +1067,23 @@
     <string name="system_statusbar_duo_networkfallback_title">Substituir Wi-Fi desconectado</string>
     <string name="system_statusbar_duo_networkfallback_summ">Sem Wi-Fi, mostra um ícone ou o tipo de rede atual; tipos desconhecidos usam o ícone.</string>
     <string name="system_statusbar_duo_btbattery_title">Cores da bateria Bluetooth</string>
-    <string name="system_statusbar_duo_btbattery_summ">Um dispositivo e informação recente: vermelho até 20%, âmbar até 50%. Outros níveis ou carga desconhecida usam a cor do sistema; o anel indica a bateria do telefone.</string>
+    <string name="system_statusbar_duo_btbattery_summ" formatted="false">Um dispositivo e informação recente: vermelho até 20%, âmbar até 50%. Outros níveis ou carga desconhecida usam a cor do sistema; o anel indica a bateria do telefone.</string>
     <string name="system_statusbar_duo_cellularstyle_title">Estilo da rede móvel no centro</string>
     <string name="system_statusbar_duo_cellular_graphic">Ícone</string>
     <string name="system_statusbar_duo_cellular_text">Texto</string>
+    <string name="launcher_dock_category">Dock</string>
+    <string name="launcher_dock_background_title">Fundo do Dock</string>
+    <string name="launcher_dock_background_summ">Integrado ao Dock nativo. Reinicie o inicializador após alterar.</string>
+    <string name="launcher_dock_background_material_title">Material</string>
+    <string name="launcher_dock_background_auto_glass">Vidro do sistema (automático)</string>
+    <string name="launcher_dock_background_gaussian">Desfoque gaussiano</string>
+    <string name="launcher_dock_background_material_summ">Suaviza o fundo e mantém os ícones nítidos. Usa um fundo simples quando os materiais do sistema estão indisponíveis.</string>
+    <string name="launcher_dock_background_opacity_title">Opacidade</string>
+    <string name="launcher_dock_background_radius_title">Raio dos cantos</string>
+    <string name="launcher_dock_background_inset_title">Margens laterais</string>
+    <string name="launcher_dock_background_radius_summ">O modo automático segue os cantos inferiores da tela e o recuo; os quatro cantos usam o mesmo raio.</string>
+    <string name="launcher_dock_background_inset_summ">O modo automático mantém um espaço lateral estreito e estável; ajuste manualmente se necessário.</string>
+    <string name="launcher_dock_background_shrink_title">Contração do fundo</string>
+    <string name="launcher_dock_background_shrink_summ">Ajusta as quatro bordas. Valores positivos contraem, negativos expandem; os ícones mantêm suas posições.</string>
+    <string name="launcher_dock_background_auto">Automático</string>
 </resources>

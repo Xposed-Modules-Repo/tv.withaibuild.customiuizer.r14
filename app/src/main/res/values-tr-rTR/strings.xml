@@ -1061,6 +1061,8 @@ ss - iki basamaklı saniye(09)</string>
     <string name="system_statusbar_duo_audio_summ">Kablolu veya Bluetooth kulaklık yeni bağlantıda 3 saniye görünür, ardından Wi-Fi veya ağ simgesi geri döner. Ağ uyarıları önceliklidir.</string>
     <string name="system_statusbar_duo_bold_title">Daha kalın simge çizgileri</string>
     <string name="system_statusbar_duo_bold_summ">Daha kalın pil halkası, Wi-Fi ve kulaklık çizgileri.</string>
+    <string name="system_statusbar_duo_horizontalpadding_title">Yatay boşluk</string>
+    <string name="system_statusbar_duo_horizontalpadding_summ">Simge boyutunu koruyarak her iki taraftaki boşluğu 0,5 dp adımlarla ayarlayın.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Dikey ayar</string>
     <string name="system_statusbar_duo_verticaloffset_summ">Satır içinde ortala, 0,5 dp adımlarla ayarla. Kaydırma yükseklikle sınırlıdır; kenarda kesilmeden küçülür.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Kulaklık simgesi</string>
@@ -1071,8 +1073,23 @@ ss - iki basamaklı saniye(09)</string>
     <string name="system_statusbar_duo_networkfallback_title">Bağlantısız Wi-Fi yerine</string>
     <string name="system_statusbar_duo_networkfallback_summ">Wi-Fi yokken simge veya geçerli ağ türü görünür; bilinmeyen türler simge kullanır.</string>
     <string name="system_statusbar_duo_btbattery_title">Bluetooth pil renkleri</string>
-    <string name="system_statusbar_duo_btbattery_summ">Tek cihaz ve yeni bildirim: %20’ye kadar kırmızı, %50’ye kadar kehribar. Diğer veya bilinmeyen seviyeler sistem rengini kullanır; halka telefon pilini gösterir.</string>
+    <string name="system_statusbar_duo_btbattery_summ" formatted="false">Tek cihaz ve yeni bildirim: %20’ye kadar kırmızı, %50’ye kadar kehribar. Diğer veya bilinmeyen seviyeler sistem rengini kullanır; halka telefon pilini gösterir.</string>
     <string name="system_statusbar_duo_cellularstyle_title">Ortadaki hücresel ağ stili</string>
     <string name="system_statusbar_duo_cellular_graphic">Simge</string>
     <string name="system_statusbar_duo_cellular_text">Metin</string>
+    <string name="launcher_dock_category">Dock</string>
+    <string name="launcher_dock_background_title">Dock arka planı</string>
+    <string name="launcher_dock_background_summ">Yerel Dock ile bütünleşir. Değişikliklerden sonra başlatıcıyı yeniden başlatın.</string>
+    <string name="launcher_dock_background_material_title">Malzeme</string>
+    <string name="launcher_dock_background_auto_glass">Sistem camı (otomatik)</string>
+    <string name="launcher_dock_background_gaussian">Gauss bulanıklığı</string>
+    <string name="launcher_dock_background_material_summ">Simgeleri net tutarken arka planı yumuşatır. Sistem malzemeleri kullanılamadığında normal arka plan kullanılır.</string>
+    <string name="launcher_dock_background_opacity_title">Opaklık</string>
+    <string name="launcher_dock_background_radius_title">Köşe yarıçapı</string>
+    <string name="launcher_dock_background_inset_title">Yatay boşluk</string>
+    <string name="launcher_dock_background_radius_summ">Otomatik mod alt ekran köşelerini ve iç boşluğu izler; dört köşe aynı yarıçapı kullanır.</string>
+    <string name="launcher_dock_background_inset_summ">Otomatik mod dar ve sabit yan boşluklar kullanır; gerekirse elle ayarlayın.</string>
+    <string name="launcher_dock_background_shrink_title">Arka planı daralt</string>
+    <string name="launcher_dock_background_shrink_summ">Dört kenarı birlikte ayarlar. Pozitif değerler daraltır, negatif değerler genişletir; simgelerin konumu korunur.</string>
+    <string name="launcher_dock_background_auto">Otomatik</string>
 </resources>

@@ -1062,6 +1062,8 @@
     <string name="system_statusbar_duo_audio_summ">Kabelová nebo Bluetooth sluchátka se při novém připojení zobrazí na 3 sekundy, pak se vrátí Wi-Fi nebo symbol sítě. Varování sítě mají přednost.</string>
     <string name="system_statusbar_duo_bold_title">Silnější čáry ikony</string>
     <string name="system_statusbar_duo_bold_summ">Silnější kruh baterie a čáry Wi-Fi a sluchátek.</string>
+    <string name="system_statusbar_duo_horizontalpadding_title">Vodorovné rozestupy</string>
+    <string name="system_statusbar_duo_horizontalpadding_summ">Odsazení na každé straně po 0,5 dp při zachování velikosti ikony.</string>
     <string name="system_statusbar_duo_verticaloffset_title">Svislé posunutí</string>
     <string name="system_statusbar_duo_verticaloffset_summ">Vycentrování v řádku, krok 0,5 dp. Posunutí je omezeno výškou; na okraji se ikona zmenší bez oříznutí.</string>
     <string name="system_statusbar_duo_headphonestyle_title">Styl ikony sluchátek</string>
@@ -1072,8 +1074,23 @@
     <string name="system_statusbar_duo_networkfallback_title">Náhrada odpojené Wi-Fi</string>
     <string name="system_statusbar_duo_networkfallback_summ">Bez Wi-Fi zobrazí symbol nebo aktuální typ sítě; neznámý typ použije symbol.</string>
     <string name="system_statusbar_duo_btbattery_title">Barvy baterie Bluetooth</string>
-    <string name="system_statusbar_duo_btbattery_summ">Jedno zařízení a čerstvé hlášení: červená do 20 %, jantarová do 50 %. Ostatní a neznámé úrovně používají systémovou barvu; kruh ukazuje baterii telefonu.</string>
+    <string name="system_statusbar_duo_btbattery_summ" formatted="false">Jedno zařízení a čerstvé hlášení: červená do 20 %, jantarová do 50 %. Ostatní a neznámé úrovně používají systémovou barvu; kruh ukazuje baterii telefonu.</string>
     <string name="system_statusbar_duo_cellularstyle_title">Styl mobilní sítě uprostřed</string>
     <string name="system_statusbar_duo_cellular_graphic">Symbol</string>
     <string name="system_statusbar_duo_cellular_text">Text</string>
+    <string name="launcher_dock_category">Dock</string>
+    <string name="launcher_dock_background_title">Pozadí Docku</string>
+    <string name="launcher_dock_background_summ">Součást původního Docku. Po změnách restartujte spouštěč.</string>
+    <string name="launcher_dock_background_material_title">Materiál</string>
+    <string name="launcher_dock_background_auto_glass">Systémové sklo (automaticky)</string>
+    <string name="launcher_dock_background_gaussian">Gaussovské rozostření</string>
+    <string name="launcher_dock_background_material_summ">Zjemní pozadí a zachová ostré ikony. Pokud systémové materiály nejsou dostupné, použije se běžné pozadí.</string>
+    <string name="launcher_dock_background_opacity_title">Neprůhlednost</string>
+    <string name="launcher_dock_background_radius_title">Poloměr rohů</string>
+    <string name="launcher_dock_background_inset_title">Boční odsazení</string>
+    <string name="launcher_dock_background_radius_summ">Automaticky podle dolních rohů obrazovky a odsazení; všechny čtyři rohy mají stejný poloměr.</string>
+    <string name="launcher_dock_background_inset_summ">Automaticky používá úzké a stálé boční odsazení; podle potřeby jej upravte ručně.</string>
+    <string name="launcher_dock_background_shrink_title">Zmenšení pozadí</string>
+    <string name="launcher_dock_background_shrink_summ">Upravuje všechny čtyři okraje. Kladné hodnoty pozadí zmenšují, záporné rozšiřují; ikony zůstávají na místě.</string>
+    <string name="launcher_dock_background_auto">Automaticky</string>
 </resources>
