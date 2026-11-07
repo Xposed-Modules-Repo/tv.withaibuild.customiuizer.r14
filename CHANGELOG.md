@@ -2,68 +2,21 @@
 
 [简体中文](CHANGELOG_CN.md) | English
 
-## r14.27.3
-
-Changes since r14.27.1:
-
-- Fix DECK scaling interfering with app switching along the Home Indicator. Quick switch keeps system geometry; entering the deck and opening its cards retain DECK motion.
-- Give DECK, Duo and iOS Home Indicator switches their full feature names for easier discovery and search. Shorten descriptions while preserving setup and restart requirements.
-- Fix position and size jumps when a neighboring card fills the gap after dismissing the leftmost recents deck card.
-- Reject stale card and window geometry during repeated orientation changes to improve position, size and direction handoff.
-- Restore the launcher's native rotation policy, including landscape task containers inside portrait windows. Convert opening-window and neighboring-card coordinates consistently, with shared iOS motion in both orientations. Restart the launcher after updating.
-- Align card and window scaling centers when native entry changes the pivot. Complete handoff checks for both landscape directions and unprepared layouts.
-- Fix double scaling and window misalignment during swipe-up entry on newer launchers. Fold neighboring cards using the current native window, reducing extra spring lag and stepped position changes.
-- Fix rear-card title and icon opacity on swipe-up deck entry without requiring another scroll.
-- Follow native thumbnail opacity and fullscreen progress for card shadows, reducing premature shadows during swipe-up entry. Keep HyperOS 1 corners, screenshot clipping and shadow colors.
-- Reuse the system's retargetable black/white gesture-handle tint animation, with a 250 ms ordinary gesture-mode transition. Preserve explicit window-handoff timing.
-- Align centered island captions with the inner camera-safe edge, removing extra space for short text. Keep clipping aligned during scaling and horizontal movement, preserving native cutouts and existing clearance.
-- Add visible horizontal expansion and recoil on first island appearance, music returning home, and new activity reception. Keep same-size handoffs from ending early, reduce vertical expansion and press enlargement, and preserve interrupted and reversed transitions.
-
-[Release](https://github.com/thetvplus/customiuizer-a14/releases/tag/r14.27.3)
-
-## r14.27.1
-
-Changes since r14.26.11:
-
-- Add an opt-in iOS recents deck for Horizontal Recents on supported HyperOS 1 launchers, in portrait and landscape. Preserve native scrolling, task dismissal and window handoff.
-- Add card sizing, independently scaled titles and icons with depth-based fading, and optional window motion. Select between two native window implementations by their interfaces instead of exact version numbers, including the older POCO spring interface; retain native timing when optional motion interfaces are unavailable.
-- Fix card depth during dragging, dismissal, cancellation and return, window-to-card corner alignment, and premature card recycling. Add directional fling snapping; unsupported layouts restore native hit testing, input and scroll bounds.
-- Add an opt-in iOS gesture indicator using native visibility, color and input. Admission now follows native drawing capabilities rather than device or build lists. Enable full-screen gestures, keep the system handle visible, and restart System UI.
-- Add an iOS volume appearance with portrait and landscape support, continuous corners and native shadows. The thin bar moves toward the screen edge, stays thin during repeated key presses and expands for touch adjustment. Preserve native placement, volume steps, routing, mute state and expanded controls.
-- Add “Start with thin bar” to appear thin and return to thin after touch adjustment. The footer transitions from three dots to one; fix the first tap taking focus instead of opening expanded controls.
-- Follow native volume-fill animation and remove dark edge overpainting. Add maximum/minimum key feedback, touch overdrag and release recoil, with smoothly rounded thin-bar ends.
-- Refine island resizing, idle forms, content changes and press feedback, including mid-animation reversals. Shorten activity handoff waits, retain existing content until the next activity makes contact, and add lateral shake and recoil when restoring ringing.
-- Refine absorption entry and island acceptance. Remove the liquid dent, translucent leading edge and extra vertical compression, and avoid exciting the entire island again during acceptance. Preserve native return trajectories, springs, recall and picture-in-picture handoff.
-- Prevent top cutout reservations from inflating automatic height and the camera mask. Restore the music island’s final exit timing to reduce translucent residue, and improve ordinary Toast fitting at larger font sizes and shorter island heights.
-- Prioritize the actual function or mode in system feedback and show secondary state when space permits. Reveal text through its available area without an extra font-size pulse. Same-notification updates retain visible content while invalidating old click actions and continuing native privacy checks.
-- Catch up initial foreground state for live activities; keep native foreground-change observation when singleton lookup is unavailable. Yield to native alarm/timer ringing in landscape and restore the island afterwards. Complete status-bar unbinding even if controller cleanup fails.
-- Update Duo cellular, Wi-Fi, airplane and headphone arrangements, percentage/lightning spacing and four-dot arc symmetry. Preserve existing size, offset, spacing and headphone-scale settings. Handle small HD/roaming status icons by available fields, skip missing icons locally, and remove the unnecessary region restriction.
-- Use a licensed rounded substitute for Duo numbers and network labels; make network-label weight follow the existing bold switch. Refine automatic size, central Wi-Fi proportions and state transitions.
-- Avoid duplicate state messages after Control Center automatically collapses for a tile click, while preserving native feedback on failure. Keep the hide-mute/DND options effective after native volume-footer refreshes.
-- Fix empty pages when restoring old settings categories and route volume and Recents options to their current pages. Simplify some feature names and complete translations while preserving preference keys, search, backups and upgrade compatibility.
-
-[Release](https://github.com/thetvplus/customiuizer-a14/releases/tag/r14.27.1)
-
 ## r14.26.11
 
-Changes since r14.25.9 (cumulative):
+Changes since r14.26.9:
 
-- Migrate settings to Compose with consistent lists, search, selectors, sliders, colors and action editors, preserving preferences, backups and behavior. Group app behavior, Wi-Fi and VPN automation under System → Apps and automation.
-- Keep home search collapsed until opened, then focus and highlight matches. Improve keyboard handling, navigation, background restoration, language changes and index publication; reuse indexes by language and existing app lists without a query.
-- Unify neutral light/dark surfaces and system dynamic colors. Refine rows, menus, current values and spacing; fix empty dialog titles, pressed-state residue and text jitter. Select numeric input automatically and support scrolling around long content and landscape keyboards.
-- Add Wi-Fi automation using network names, optional BSSID and priority to adjust DND, ringer, rotation and VPN. Restore only owned state on exit, respecting manual changes and user switches with bounded recovery after failures.
-- Add opt-in per-app rules for sensor rotation, media-volume memory, fixed or system brightness, and restrictions on app brightness requests, with Activity exceptions. Restart the device after first enabling.
-- Reorganize island media, notifications, live activities and system feedback. Share manually selected media apps between display and return, use selected notification apps, and preserve settings, backups and search routes.
-- Unify return effects as None, Instant and Absorption: native return, capture-free reception, or continuous absorption using native window springs. Support adapted older HyperOS 1 launchers with task, PiP, transparency and interruption safeguards.
-- Refine island entry, reception, recoil, positioning and offsets. Retain same-session media briefly during track changes, fix stale recording levels after silence, and clear expired clock and activity state.
-- Use bounded waveform sampling with display-frame interpolation and stop on settled silence, preserving hidden, paused and power-saving limits. Restore lightweight waveforms after system animations are re-enabled.
-- Keep solid and frosted Dock materials, falling back from retired lightweight glass. Fix blur restoration, corner crashes and leftover areas across hiding, unlock and Recents. Avoid blur for solid panels and stop frame synchronization when stable.
-- Apply global window-blur changes promptly while retaining developer, power-saving and thermal limits. Separate Recents blur from local island transitions by their actual callers.
-- Use caches, system events and on-demand refresh for trusted Wi-Fi and Bluetooth lists, respecting permissions and scan cooldown. Move backup I/O off the UI thread, prevent duplicate operations and resume after permissions; preserve settings on cancellation or invalid choices.
-- Add system-app updater disable/restore and options to hide updater and enterprise-mode entries. Preserve state snapshots, result checks and Settings search consistency; follow restart prompts after enabling or updating.
-- Fix Control Center columns, screenshot folders and formats, foreground-app observation, nullable interfaces and recovery. Strengthen access checks for system actions, screenshot notifications and battery previews while retaining native failure feedback.
-- Correct credential shortcut targets and results, unify keyboard spacing names with explicit Gboard support, refine Duo airplane icons and sizing, and reduce repeated clock, network-speed and charging updates.
-- After updating, some island settings may need reselection. If the island or returns are missing, check mode, media/notification lists, return switches and None/Instant/Absorption; reselect as needed and restart affected processes.
+- Reorganize Dynamic Island settings into media, notifications, live activities and system feedback. Media display and returns share one explicitly selected app list; notifications use their selected apps. Preserve saved preferences, backups and search routes.
+- Unify return effects as None, Instant and Absorption. None retains native launcher returns, Instant captures no page, and Absorption retains native window springs and secure capture. Retire Simplified motion and the old effect scope while respecting system animation and power-saving settings.
+- Refine receiving motion, rebound, centered and side-position bounds and offsets. Give track changes a bounded loading hold for the same media session so the island does not disappear prematurely.
+- Add gesture returns and absorption to older HyperOS 1 launchers without WindowElement, preserving native returns, interruption recovery and secure-window restrictions. Recover the media island after a bounded missing handoff; late page captures no longer end accepted return progress early. Restart the device after updating.
+- Fix a native system smooth-corner crash during Recents or Home transitions with Dock backgrounds enabled, preserving the background and layout. Remove residual blur when Recents hides the Dock.
+- Solid Dock panels no longer create blur. Frosted glass reuses native materials and commits bounds, opacity and visibility after layout settles, follows system blur and power-saving availability, and stops frame synchronization at rest.
+- Apply global window blur changes promptly while retaining developer, power-saving and thermal restrictions. Scope Recents blur ratios to their actual calls and separate local island transitions from the global window blur switch.
+- Retain five measured music frequency bands with mild display compensation and smooth rise and fall. Cap music and recorder sampling at 10 Hz, retain display-frame interpolation, and stop rendering once silence settles.
+- Align spacing and corners across settings rows, groups, search and action editors, and correct single-line centering and long current values. Add search guidance, preparation and no-results messages, and switch menu subitems directly while retaining page animations and system dynamic colors.
+- Reuse unchanged settings rows and groups and reuse search indexes by language. Correct the credential shortcut target, align portrait and landscape keyboard bottom-spacing names while preserving saved values, and clarify Gboard-only support.
+- Center Duo airplane icons by their actual ink and calculate automatic sizing consistently in pixels, preserving layout and user font settings.
 
 [Release](https://github.com/thetvplus/customiuizer-a14/releases/tag/r14.26.11)
 
