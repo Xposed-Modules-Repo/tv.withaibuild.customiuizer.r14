@@ -2,6 +2,25 @@
 
 [简体中文](CHANGELOG_CN.md) | English
 
+## r14.27.3
+
+Changes since r14.27.1:
+
+- Fix DECK scaling interfering with app switching along the Home Indicator. Quick switch keeps system geometry; entering the deck and opening its cards retain DECK motion.
+- Give DECK, Duo and iOS Home Indicator switches their full feature names for easier discovery and search. Shorten descriptions while preserving setup and restart requirements.
+- Fix position and size jumps when a neighboring card fills the gap after dismissing the leftmost recents deck card.
+- Reject stale card and window geometry during repeated orientation changes to improve position, size and direction handoff.
+- Restore the launcher's native rotation policy, including landscape task containers inside portrait windows. Convert opening-window and neighboring-card coordinates consistently, with shared iOS motion in both orientations. Restart the launcher after updating.
+- Align card and window scaling centers when native entry changes the pivot. Complete handoff checks for both landscape directions and unprepared layouts.
+- Fix double scaling and window misalignment during swipe-up entry on newer launchers. Fold neighboring cards using the current native window, reducing extra spring lag and stepped position changes.
+- Fix rear-card title and icon opacity on swipe-up deck entry without requiring another scroll.
+- Follow native thumbnail opacity and fullscreen progress for card shadows, reducing premature shadows during swipe-up entry. Keep HyperOS 1 corners, screenshot clipping and shadow colors.
+- Reuse the system's retargetable black/white gesture-handle tint animation, with a 250 ms ordinary gesture-mode transition. Preserve explicit window-handoff timing.
+- Align centered island captions with the inner camera-safe edge, removing extra space for short text. Keep clipping aligned during scaling and horizontal movement, preserving native cutouts and existing clearance.
+- Add visible horizontal expansion and recoil on first island appearance, music returning home, and new activity reception. Keep same-size handoffs from ending early, reduce vertical expansion and press enlargement, and preserve interrupted and reversed transitions.
+
+[Release](https://github.com/thetvplus/customiuizer-a14/releases/tag/r14.27.3)
+
 ## r14.27.1
 
 Changes since r14.26.11:
