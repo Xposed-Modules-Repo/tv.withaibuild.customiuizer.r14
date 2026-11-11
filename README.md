@@ -4,32 +4,29 @@
 
 面向 **HyperOS 1 / Android 14 / arm64-v8a** 的系统界面与交互定制模块，需要 **libxposed API 102 或更高版本**。
 
-[下载正式 APK](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/download/304-r14.27.3/CustoMIUIzer-A14-r14.27.3.apk) · [发行说明](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/304-r14.27.3) · [更新记录](CHANGELOG_CN.md)
+[下载正式 APK](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/download/305-r14.27.5/CustoMIUIzer-A14-r14.27.5.apk) · [发行说明](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/305-r14.27.5) · [更新记录](CHANGELOG_CN.md)
 
 [Telegram 交流群](https://t.me/customiuizerA14)
 
 ## 当前正式版
 
-`r14.27.3` · versionCode `304` · `tv.withaibuild.customiuizer.r14`
+`r14.27.5` · versionCode `305` · `tv.withaibuild.customiuizer.r14`
 
-APK: `CustoMIUIzer-A14-r14.27.3.apk` (6,160,184 bytes)
+APK: `CustoMIUIzer-A14-r14.27.5.apk` (6,265,729 bytes)
 
-SHA-256: `1650c02a2f7ca654b87148a6d40f01356f04b10591609e802061f5da303bb149`
+SHA-256: `99bb4e3b2094d49b6f90bb8c3c719bdf5b5fd78d16e78815a74f06439dbb0645`
 
-[源码提交](https://github.com/thetvplus/customiuizer-a14/commit/5169eb1c537d639c78fdd84eefdd479f066c4982): `5169eb1c537d639c78fdd84eefdd479f066c4982`
+[源码提交](https://github.com/thetvplus/customiuizer-a14/commit/1a64b974b732105837adf6d7f8f9d3756ec12205): `1a64b974b732105837adf6d7f8f9d3756ec12205`
 
 ## 本版变化
 
-自 r14.26.11 起的变更：
+自 r14.27.3 起的变更：
 
-- 新增可独立开启的 iOS DECK 堆叠任务，支持已适配桌面的横竖屏。
-- 改善 DECK 卡片缩放、阴影和点击恢复，修复手势条快速切换时的异常放大。
-- 新增 iOS 手势指示条，黑白切换更柔和，功能开关更易搜索。
-- 新增 iOS 音量条及默认窄条选项，支持触摸放大、过拖回弹和展开控制。
-- 改善动态岛伸缩、内容切换与返回上岛；恢复长岛右侧内容右对齐，保留摄像头避让。
-- 更新 Duo 图标、字体与布局，精简设置说明并保留搜索和升级兼容。
-- 修复通知提示、控制中心反馈、音量按钮及旧设置页面恢复等问题。
-- 更新后重启桌面与系统界面。DECK 需“横向”最近任务；手势条需全面屏手势及可见的系统指示条。
+- 新增可选的 iOS 12 中央音量框，支持上下微调并自动收起静音、勿扰快捷按钮。音量百分比可用浮层、Toast 胶囊或动态岛显示。
+- 新增可选的 iOS 电池、五圆点蜂窝信号和通知栏媒体卡片样式。
+- 改善 DECK 打开后排卡片时的前卡退场、卡片补位和窗口阴影交接，修复返回桌面时 Dock 背景和模糊恢复。
+- 整理设置分组和搜索路径，保留首页四个入口，兼容现有偏好和备份。
+- 更新后重启桌面和系统界面，使相关样式生效。
 
 ## 安装与兼容
 
@@ -39,6 +36,6 @@ SHA-256: `1650c02a2f7ca654b87148a6d40f01356f04b10591609e802061f5da303bb149`
 
 其他 Android / HyperOS 大版本不在支持范围内。请勿与上游或其他 CustoMIUIzer 派生模块同时启用。
 
-[使用说明与支持](https://github.com/thetvplus/customiuizer-a14/tree/5169eb1c537d639c78fdd84eefdd479f066c4982) · [兼容矩阵](https://github.com/thetvplus/customiuizer-a14/blob/5169eb1c537d639c78fdd84eefdd479f066c4982/COMPATIBILITY.md)
+[使用说明与支持](https://github.com/thetvplus/customiuizer-a14/tree/1a64b974b732105837adf6d7f8f9d3756ec12205) · [兼容矩阵](https://github.com/thetvplus/customiuizer-a14/blob/1a64b974b732105837adf6d7f8f9d3756ec12205/COMPATIBILITY.md)
 
 此仓库只维护正式下载说明。开发分支的未发布内容不代表本 APK 的功能或验收结果。

@@ -4,32 +4,29 @@
 
 System UI and interaction customization for **HyperOS 1 / Android 14 / arm64-v8a**, requiring **libxposed API 102 or later**.
 
-[Download official APK](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/download/304-r14.27.3/CustoMIUIzer-A14-r14.27.3.apk) · [Release notes](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/304-r14.27.3) · [Changelog](CHANGELOG.md)
+[Download official APK](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/download/305-r14.27.5/CustoMIUIzer-A14-r14.27.5.apk) · [Release notes](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/305-r14.27.5) · [Changelog](CHANGELOG.md)
 
 [Telegram community](https://t.me/customiuizerA14)
 
 ## Current stable release
 
-`r14.27.3` · versionCode `304` · `tv.withaibuild.customiuizer.r14`
+`r14.27.5` · versionCode `305` · `tv.withaibuild.customiuizer.r14`
 
-APK: `CustoMIUIzer-A14-r14.27.3.apk` (6,160,184 bytes)
+APK: `CustoMIUIzer-A14-r14.27.5.apk` (6,265,729 bytes)
 
-SHA-256: `1650c02a2f7ca654b87148a6d40f01356f04b10591609e802061f5da303bb149`
+SHA-256: `99bb4e3b2094d49b6f90bb8c3c719bdf5b5fd78d16e78815a74f06439dbb0645`
 
-[Source commit](https://github.com/thetvplus/customiuizer-a14/commit/5169eb1c537d639c78fdd84eefdd479f066c4982): `5169eb1c537d639c78fdd84eefdd479f066c4982`
+[Source commit](https://github.com/thetvplus/customiuizer-a14/commit/1a64b974b732105837adf6d7f8f9d3756ec12205): `1a64b974b732105837adf6d7f8f9d3756ec12205`
 
 ## Changes
 
-Changes since r14.26.11:
+Changes since r14.27.3:
 
-- Add independently enabled iOS DECK task stacking for portrait and landscape on supported launchers.
-- Refine DECK scaling, shadows and task reopening, and fix enlarged cards during quick app switching.
-- Add the iOS home indicator with smoother black/white transitions and an easier-to-find switch.
-- Add the iOS volume bar and an optional narrow default, with touch expansion, overscroll feedback and full controls.
-- Refine island resizing, content transitions and app returns. Restore outer-aligned long-island captions while keeping camera clearance.
-- Update Duo icons, fonts and layout, and simplify settings descriptions while preserving search and upgrades.
-- Fix notification prompts, Control Center feedback, volume buttons and restoration of older settings pages.
-- Restart the launcher and System UI after updating. DECK requires horizontal Recents; the home indicator requires gesture navigation and a visible system handle.
+- Add an optional iOS 12 central volume HUD with vertical adjustment and automatic hiding of the mute and Do Not Disturb shortcuts. Volume percentages can appear in an overlay, a toast capsule or the Dynamic Island.
+- Add optional iOS battery, five-dot cellular signal and notification-shade media styles.
+- Improve foreground card exits, refill and window shadow handoff in DECK, and restore the Dock background and blur when returning Home.
+- Reorganize settings and search paths while preserving the four home entries, existing preferences and backups.
+- Restart the launcher and System UI after updating to apply the affected styles.
 
 ## Installation and compatibility
 
@@ -39,6 +36,6 @@ Changes since r14.26.11:
 
 Other Android / HyperOS major versions are unsupported. Do not enable alongside upstream or another CustoMIUIzer fork.
 
-[Usage and support](https://github.com/thetvplus/customiuizer-a14/tree/5169eb1c537d639c78fdd84eefdd479f066c4982) · [Compatibility](https://github.com/thetvplus/customiuizer-a14/blob/5169eb1c537d639c78fdd84eefdd479f066c4982/COMPATIBILITY.md)
+[Usage and support](https://github.com/thetvplus/customiuizer-a14/tree/1a64b974b732105837adf6d7f8f9d3756ec12205) · [Compatibility](https://github.com/thetvplus/customiuizer-a14/blob/1a64b974b732105837adf6d7f8f9d3756ec12205/COMPATIBILITY.md)
 
 This repository documents published downloads. Unreleased development changes do not describe this APK or its device acceptance.

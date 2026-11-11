@@ -2,6 +2,23 @@
 
 [简体中文](CHANGELOG_CN.md) | English
 
+## r14.27.5
+
+Changes since r14.27.3:
+
+- Add an optional iOS 12 central volume HUD while retaining native volume, routing and expanded controls. Upgrades keep the side style and the saved narrow-bar choice.
+- Add default-off iOS 10 five-dot cellular signals using native network state, hiding and no-service fallback, with Duo taking priority.
+- Add a default-off iOS media presentation using the notification shade's native media sessions, actions and progress controls. Its display lifecycle stays independent of island media. Control Center media is not replaced.
+- Add a default-off iOS battery presentation retaining native charging and power-saving states. Duo, battery hiding and existing battery styles take priority.
+- Reorganize settings within pages and update search routes while preserving the four home entries, saved keys, defaults and backup format.
+- Fix shared-hook and plugin-loading isolation and fallback after partial initialization. Improve cancellation and resource release for monitoring, key combinations and Recents menus.
+- Refine the central volume HUD with vector icons and signed vertical positioning. The central style hides the mute and Do Not Disturb shortcuts and reclaims their space.
+- Make the volume percentage overlay more compact and add an automatic toast capsule or Dynamic Island option. Existing settings keep the overlay by default, and repeated adjustments update the same hint.
+- Restore Dock background and blur when its view reattaches or Home returns. Refine the battery percentage, five-dot spacing and notification-shade media card.
+- Fix DECK card jumps on release, initial refill scale and window shadow handoff. When opening a back card, foreground cards move toward their recentered positions. The app window and its settled card share one shadow during the swipe.
+
+[Release](https://github.com/thetvplus/customiuizer-a14/releases/tag/r14.27.5)
+
 ## r14.27.3
 
 Changes since r14.26.11:
