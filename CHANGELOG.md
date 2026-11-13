@@ -2,9 +2,21 @@
 
 [简体中文](CHANGELOG_CN.md) | English
 
+## r14.27.7
+
+Changes since r14.27.5:
+
+- Select apps under Various → Automatic location. The allowlist turns location on, and the blocklist turns it off. Both modes support a 0–30 second delay before turning location off. The allowlist starts the delay when the last matching card is removed. The blocklist starts it when a listed app enters the foreground. Restart Android after enabling the feature for the first time.
+- DECK uses the same card layout calculation when entered from Home or an app. The native card projects the thumbnail outline, preserving the side shadows of deeper cards and the window handoff.
+- Launcher folder blur fades smoothly when opening and closing folders.
+- Dynamic Island absorption can size the leading edge automatically or use a custom width set under Effects and Waveform.
+- Expanding the central volume panel restores the native mute and Do Not Disturb shortcuts.
+
+[Release](https://github.com/thetvplus/customiuizer-a14/releases/tag/r14.27.7)
+
 ## r14.27.5
 
-Changes since r14.27.3:
+Changes since r14.26.11:
 
 - Add an optional iOS 12 central volume HUD while retaining native volume, routing and expanded controls. Upgrades keep the side style and the saved narrow-bar choice.
 - Add default-off iOS 10 five-dot cellular signals using native network state, hiding and no-service fallback, with Duo taking priority.
@@ -17,12 +29,6 @@ Changes since r14.27.3:
 - Restore Dock background and blur when its view reattaches or Home returns. Refine the battery percentage, five-dot spacing and notification-shade media card.
 - Fix DECK card jumps on release, initial refill scale and window shadow handoff. When opening a back card, foreground cards move toward their recentered positions. The app window and its settled card share one shadow during the swipe.
 
-[Release](https://github.com/thetvplus/customiuizer-a14/releases/tag/r14.27.5)
-
-## r14.27.3
-
-Changes since r14.26.11:
-
 - Fix DECK scaling interfering with app switching along the Home Indicator. Quick switch keeps system geometry; entering the deck and opening its cards retain DECK motion.
 - Give DECK, Duo and iOS Home Indicator switches their full feature names for easier discovery and search. Shorten descriptions while preserving setup and restart requirements.
 - Fix position and size jumps when a neighboring card fills the gap after dismissing the leftmost recents deck card.
@@ -31,7 +37,6 @@ Changes since r14.26.11:
 - Align card and window scaling centers when native entry changes the pivot. Complete handoff checks for both landscape directions and unprepared layouts.
 - Fix double scaling and window misalignment during swipe-up entry on newer launchers. Fold neighboring cards using the current native window, reducing extra spring lag and stepped position changes.
 - Fix rear-card title and icon opacity on swipe-up deck entry without requiring another scroll.
-- Follow native thumbnail opacity and fullscreen progress for card shadows, reducing premature shadows during swipe-up entry. Keep HyperOS 1 corners, screenshot clipping and shadow colors.
 - Reuse the system's retargetable black/white gesture-handle tint animation, with a 250 ms ordinary gesture-mode transition. Preserve explicit window-handoff timing.
 - Restore right alignment for long-island trailing content, mirrored at the outer edge in RTL layouts. Camera clearance constrains the available lane and clipping; resizing and translation preserve the outer margin. Keep existing measured or manual capsule widths without changing text alignment to fill space.
 - Add visible horizontal expansion and recoil on first island appearance, music returning home, and new activity reception. Keep same-size handoffs from ending early, reduce vertical expansion and press enlargement, and preserve interrupted and reversed transitions.
@@ -52,7 +57,7 @@ Changes since r14.26.11:
 - Avoid duplicate state messages after Control Center automatically collapses for a tile click, while preserving native feedback on failure. Keep the hide-mute/DND options effective after native volume-footer refreshes.
 - Fix empty pages when restoring old settings categories and route volume and Recents options to their current pages. Simplify some feature names and complete translations while preserving preference keys, search, backups and upgrade compatibility.
 
-[Release](https://github.com/thetvplus/customiuizer-a14/releases/tag/r14.27.3)
+[Release](https://github.com/thetvplus/customiuizer-a14/releases/tag/r14.27.5)
 
 ## r14.26.11
 
