@@ -34,6 +34,6 @@ SHA-256: `718928042fdb0ae83bab52823ffc793c876e3f32ec9ea719964e05aa46e722a3`
 
 其他 Android / HyperOS 大版本不在支持范围内。请勿与上游或其他 CustoMIUIzer 派生模块同时启用。
 
-[使用说明与支持](https://github.com/thetvplus/customiuizer-a14/tree/a752e3a1689aa982e51aaa78cb3cf79971bd389a) · [兼容矩阵](https://github.com/thetvplus/customiuizer-a14/blob/a752e3a1689aa982e51aaa78cb3cf79971bd389a/COMPATIBILITY.md)
+[本版使用说明](https://github.com/thetvplus/customiuizer-a14/blob/a752e3a1689aa982e51aaa78cb3cf79971bd389a/README.md) · [本版兼容矩阵](https://github.com/thetvplus/customiuizer-a14/blob/a752e3a1689aa982e51aaa78cb3cf79971bd389a/COMPATIBILITY.md) · [项目主页](https://github.com/thetvplus/customiuizer-a14)
 
 此仓库只维护正式下载说明。开发分支的未发布内容不代表本 APK 的功能或验收结果。

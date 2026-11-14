@@ -34,6 +34,6 @@ Changes since r14.27.5:
 
 Other Android / HyperOS major versions are unsupported. Do not enable alongside upstream or another CustoMIUIzer fork.
 
-[Usage and support](https://github.com/thetvplus/customiuizer-a14/tree/a752e3a1689aa982e51aaa78cb3cf79971bd389a) · [Compatibility](https://github.com/thetvplus/customiuizer-a14/blob/a752e3a1689aa982e51aaa78cb3cf79971bd389a/COMPATIBILITY.md)
+[Published usage guide](https://github.com/thetvplus/customiuizer-a14/blob/a752e3a1689aa982e51aaa78cb3cf79971bd389a/README_EN.md) · [Published compatibility matrix](https://github.com/thetvplus/customiuizer-a14/blob/a752e3a1689aa982e51aaa78cb3cf79971bd389a/COMPATIBILITY.md) · [Project home](https://github.com/thetvplus/customiuizer-a14/blob/master/README_EN.md)
 
 This repository documents published downloads. Unreleased development changes do not describe this APK or its device acceptance.
