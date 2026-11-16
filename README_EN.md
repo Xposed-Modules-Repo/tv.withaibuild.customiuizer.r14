@@ -20,16 +20,13 @@ SHA-256: `d2bd1f64612eb2d5b4184a8ee87907cadd902631a6767520b725cf8efc138bfa`
 
 ## Changes
 
-Changes since r14.26.11:
+A stable milestone for HyperOS 1 / Android 14.
 
-This summary compares the shipped r14.27.7 implementation. See the [changelog](https://github.com/thetvplus/customiuizer-a14/blob/r14.27.9/CHANGELOG_EN.md#r14279--2026-11-16) for cumulative changes.
+- **Home and navigation**. DECK, Dock and the iOS gesture indicator integrate with native windows and gestures.
+- **System experience**. Dynamic Island brings activities and alerts together, with optional styles for the status bar, notification-shade media and volume.
+- **Automation and settings**. Configure rules for location, Wi-Fi, VPN and app behavior. Existing preferences and backups remain usable.
 
-- Refined DECK's window coordinates and occlusion when opening a card in landscape. Opening the front card skips unnecessary window clipping.
-- The iOS gesture indicator now styles native landscape handles in Launcher and System UI. Native drawing continues while the window size settles.
-- Improved Dock blur preparation when returning from Recents and reduced the work Dynamic Island does to update status-bar occlusion.
-- Delayed location shutoff keeps the identity of the task that scheduled it so that unrelated task removals cannot interfere with the last-card check.
-- Simplified volume auto-hide and notification auto-expand while preserving their settings and behavior.
-- Restart Launcher and System UI after upgrading. Reboot Android after first enabling location automation.
+Restart Launcher and System UI after upgrading.
 
 ## Installation and compatibility
 
