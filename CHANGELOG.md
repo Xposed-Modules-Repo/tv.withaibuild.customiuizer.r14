@@ -26,11 +26,7 @@ Changes since r14.26.11:
 
 Changes since r14.27.5:
 
-- Select apps under Apps & tools → Automatic location. The allowlist turns location on, and the blocklist turns it off. Both modes support a 0–30 second delay before turning location off. The allowlist starts the delay when the last matching card is removed. The blocklist starts it when a listed app enters the foreground. Restart Android after enabling the feature for the first time.
-- DECK uses the same card layout calculation when entered from Home or an app. The native card projects the thumbnail outline, preserving the side shadows of deeper cards and the window handoff.
-- Launcher folder blur fades smoothly when opening and closing folders.
-- Dynamic Island absorption can size the leading edge automatically or use a custom width set under Effects and Waveform.
-- Expanding the central volume panel restores the native mute and Do Not Disturb shortcuts.
+- The [r14.27.9 cumulative changelog](https://github.com/thetvplus/customiuizer-a14/blob/r14.27.9/CHANGELOG_EN.md#r14279--2026-11-16) covers the changes still in effect.
 
 [Release](https://github.com/thetvplus/customiuizer-a14/releases/tag/r14.27.7)
 
@@ -38,44 +34,7 @@ Changes since r14.27.5:
 
 Changes since r14.26.11:
 
-- Add an optional iOS 12 central volume HUD while retaining native volume, routing and expanded controls. Upgrades keep the side style and the saved narrow-bar choice.
-- Add default-off iOS 10 five-dot cellular signals using native network state, hiding and no-service fallback, with Duo taking priority.
-- Add a default-off iOS media presentation using the notification shade's native media sessions, actions and progress controls. Its display lifecycle stays independent of island media. Control Center media is not replaced.
-- Add a default-off iOS battery presentation retaining native charging and power-saving states. Duo, battery hiding and existing battery styles take priority.
-- Reorganize settings within pages and update search routes while preserving the four home entries, saved keys, defaults and backup format.
-- Fix shared-hook and plugin-loading isolation and fallback after partial initialization. Improve cancellation and resource release for monitoring, key combinations and Recents menus.
-- Refine the central volume HUD with vector icons and signed vertical positioning. The central style hides the mute and Do Not Disturb shortcuts and reclaims their space.
-- Make the volume percentage overlay more compact and add an automatic toast capsule or Dynamic Island option. Existing settings keep the overlay by default, and repeated adjustments update the same hint.
-- Restore Dock background and blur when its view reattaches or Home returns. Refine the battery percentage, five-dot spacing and notification-shade media card.
-- Fix DECK card jumps on release, initial refill scale and window shadow handoff. When opening a back card, foreground cards move toward their recentered positions. The app window and its settled card share one shadow during the swipe.
-
-- Fix DECK scaling interfering with app switching along the Home Indicator. Quick switch keeps system geometry; entering the deck and opening its cards retain DECK motion.
-- Give DECK, Duo and iOS Home Indicator switches their full feature names for easier discovery and search. Shorten descriptions while preserving setup and restart requirements.
-- Fix position and size jumps when a neighboring card fills the gap after dismissing the leftmost recents deck card.
-- Reject stale card and window geometry during repeated orientation changes to improve position, size and direction handoff.
-- Restore the launcher's native rotation policy, including landscape task containers inside portrait windows. Convert opening-window and neighboring-card coordinates consistently, with shared iOS motion in both orientations. Restart the launcher after updating.
-- Align card and window scaling centers when native entry changes the pivot. Complete handoff checks for both landscape directions and unprepared layouts.
-- Fix double scaling and window misalignment during swipe-up entry on newer launchers. Fold neighboring cards using the current native window, reducing extra spring lag and stepped position changes.
-- Fix rear-card title and icon opacity on swipe-up deck entry without requiring another scroll.
-- Reuse the system's retargetable black/white gesture-handle tint animation, with a 250 ms ordinary gesture-mode transition. Preserve explicit window-handoff timing.
-- Restore right alignment for long-island trailing content, mirrored at the outer edge in RTL layouts. Camera clearance constrains the available lane and clipping; resizing and translation preserve the outer margin. Keep existing measured or manual capsule widths without changing text alignment to fill space.
-- Add visible horizontal expansion and recoil on first island appearance, music returning home, and new activity reception. Keep same-size handoffs from ending early, reduce vertical expansion and press enlargement, and preserve interrupted and reversed transitions.
-- Add an opt-in iOS recents deck for Horizontal Recents on supported HyperOS 1 launchers, in portrait and landscape. Preserve native scrolling, task dismissal and window handoff.
-- Add card sizing, independently scaled titles and icons with depth-based fading, and optional window motion. Select between two native window implementations by their interfaces instead of exact version numbers, including the older POCO spring interface; retain native timing when optional motion interfaces are unavailable.
-- Fix card depth during dragging, dismissal, cancellation and return, window-to-card corner alignment, and premature card recycling. Add directional fling snapping; unsupported layouts restore native hit testing, input and scroll bounds.
-- Add an opt-in iOS gesture indicator using native visibility, color and input. Admission now follows native drawing capabilities rather than device or build lists. Enable full-screen gestures, keep the system handle visible, and restart System UI.
-- Add an iOS volume appearance with portrait and landscape support, continuous corners and native shadows. The thin bar moves toward the screen edge, stays thin during repeated key presses and expands for touch adjustment. Preserve native placement, volume steps, routing, mute state and expanded controls.
-- Add “Start with thin bar” to appear thin and return to thin after touch adjustment. The footer transitions from three dots to one; fix the first tap taking focus instead of opening expanded controls.
-- Follow native volume-fill animation and remove dark edge overpainting. Add maximum/minimum key feedback, touch overdrag and release recoil, with smoothly rounded thin-bar ends.
-- Refine island resizing, idle forms, content changes and press feedback, including mid-animation reversals. Shorten activity handoff waits, retain existing content until the next activity makes contact, and add lateral shake and recoil when restoring ringing.
-- Refine absorption entry and island acceptance. Remove the liquid dent, translucent leading edge and extra vertical compression, and avoid exciting the entire island again during acceptance. Preserve native return trajectories, springs, recall and picture-in-picture handoff.
-- Prevent top cutout reservations from inflating automatic height and the camera mask. Restore the music island’s final exit timing to reduce translucent residue, and improve ordinary Toast fitting at larger font sizes and shorter island heights.
-- Prioritize the actual function or mode in system feedback and show secondary state when space permits. Reveal text through its available area without an extra font-size pulse. Same-notification updates retain visible content while invalidating old click actions and continuing native privacy checks.
-- Catch up initial foreground state for live activities; keep native foreground-change observation when singleton lookup is unavailable. Yield to native alarm/timer ringing in landscape and restore the island afterwards. Complete status-bar unbinding even if controller cleanup fails.
-- Update Duo cellular, Wi-Fi, airplane and headphone arrangements, percentage/lightning spacing and four-dot arc symmetry. Preserve existing size, offset, spacing and headphone-scale settings. Handle small HD/roaming status icons by available fields, skip missing icons locally, and remove the unnecessary region restriction.
-- Use a licensed rounded substitute for Duo numbers and network labels; make network-label weight follow the existing bold switch. Refine automatic size, central Wi-Fi proportions and state transitions.
-- Avoid duplicate state messages after Control Center automatically collapses for a tile click, while preserving native feedback on failure. Keep the hide-mute/DND options effective after native volume-footer refreshes.
-- Fix empty pages when restoring old settings categories and route volume and Recents options to their current pages. Simplify some feature names and complete translations while preserving preference keys, search, backups and upgrade compatibility.
+- The [r14.27.9 cumulative changelog](https://github.com/thetvplus/customiuizer-a14/blob/r14.27.9/CHANGELOG_EN.md#r14279--2026-11-16) covers the changes still in effect.
 
 [Release](https://github.com/thetvplus/customiuizer-a14/releases/tag/r14.27.5)
 
