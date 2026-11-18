@@ -1,6 +1,6 @@
 # 米客 A14 — Changelog
 
-[简体中文](CHANGELOG_CN.md) | English
+[简体中文](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/blob/main/CHANGELOG_CN.md) | English
 
 ## r14.27.10
 

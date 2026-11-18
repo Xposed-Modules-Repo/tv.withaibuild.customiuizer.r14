@@ -1,10 +1,10 @@
 # 米客 A14｜CustoMIUIzer A14
 
-简体中文 | [English](README_EN.md)
+简体中文 | [English](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/blob/main/README_EN.md)
 
 面向 **HyperOS 1 / Android 14 / arm64-v8a** 的系统界面与交互定制模块，需要 **libxposed API 102 或更高版本**。
 
-[下载正式 APK](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/download/311-r14.27.10/CustoMIUIzer-A14-r14.27.10.apk) · [发行说明](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/311-r14.27.10) · [更新记录](CHANGELOG_CN.md)
+[下载正式 APK](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/download/311-r14.27.10/CustoMIUIzer-A14-r14.27.10.apk) · [发行说明](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/releases/tag/311-r14.27.10) · [更新记录](https://github.com/Xposed-Modules-Repo/tv.withaibuild.customiuizer.r14/blob/main/CHANGELOG_CN.md)
 
 [Telegram 交流群](https://t.me/customiuizerA14)
 
