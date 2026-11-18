@@ -2,6 +2,19 @@
 
 [简体中文](CHANGELOG_CN.md) | English
 
+## r14.27.10
+
+Changes since r14.27.9:
+
+- With notification shade and Control Center gestures swapped, the notification shade can continue a pull-down when Control Center declines it.
+- Custom Control Center tile columns adapt to portrait and landscape. If the tile layout hook is unavailable, the system panel layout and column count are retained. The edit entry and security notice can still be hidden independently.
+- The Control Center carrier text follows system visibility. Step counts start refreshing when the header attaches, move as it expands and follow the system privacy indicator's visibility rules.
+- Dual-row indicators update the second SIM when the primary SIM state is unchanged and restore the single-SIM display after switching back. Detailed network speed uses the system refresh and reset, and battery styles use the system battery state.
+- Volume and brightness percentages use native slider progress. Extended timer intervals and labels line up with the native slider in portrait and landscape.
+- Refine the native entry points for home-screen icon title size, folder width and double-tap gestures on the verified MiuiHome and POCO Launcher versions.
+
+[Release](https://github.com/thetvplus/customiuizer-a14/releases/tag/r14.27.10)
+
 ## r14.27.9
 
 A stable milestone for HyperOS 1 / Android 14.
